@@ -1,17 +1,32 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Courses from '../components/Courses.vue';
+import Navigation from '../components/Navigation.vue';
+import NotFound from '../components/NotFound.vue';
+import showcase from '../components/Showcase.vue';
 
 Vue.use(Router);
 
 export default new Router({
   mode: 'history',
-  base: process.env.BASE_URL,
+  base: '/',
   routes: [
     {
+      path: '/showcase',
+      name: 'showcase',
+      component: showcase,
+    },
+    {
+      path: '/home',
+      name: 'navigation',
+      component: Navigation,
+    },
+    {
       path: '/',
-      name: 'Courses',
-      component: Courses,
+      redirect: { name: 'showcase' },
+    },
+    {
+      path: '*',
+      component: NotFound,
     },
   ],
 });
