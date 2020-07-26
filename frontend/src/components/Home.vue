@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <md-app>
-      <md-app-toolbar class="md-primary" md-elevation="0" md-align="center">
+      <md-app-toolbar md-elevation="1" md-align="center" class="md-primary">
         <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
           <md-icon>menu</md-icon>
         </md-button>
@@ -55,19 +55,19 @@
       </md-app-drawer>
 
       <md-app-content>
-        <courses></courses>
+        <no-portfolio></no-portfolio>
       </md-app-content>
     </md-app>
   </div>
 </template>
 
 <script>
-import courses from './Courses.vue';
+import noPortfolio from './NoPortfolio.vue';
 
 export default {
-  name: 'navigation',
+  name: 'home',
   components: {
-    courses,
+    noPortfolio,
   },
   data: () => ({
     menuVisible: false,

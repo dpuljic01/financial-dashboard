@@ -1,7 +1,7 @@
 <template>
   <div>
     <md-empty-state
-      md-icon="devices_other"
+      md-icon="post_add"
       md-label="Create your first portfolio"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
     >
@@ -12,6 +12,6 @@
 
 <script>
 export default {
-  name: 'EmptyPortfolio'
+  name: 'noPortfolio',
 };
 </script>

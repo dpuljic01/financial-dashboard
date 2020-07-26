@@ -1,0 +1,19 @@
+@import 'vue-material/dist/theme/engine'; // Import the theme engine
+
+@include md-register-theme(
+  'default',
+  (
+    primary: md-get-palette-color(blue, 900),
+    accent: md-get-palette-color(white, 100),
+    theme: "light",
+  )
+);
+
+@import 'vue-material/dist/components/MdButton/theme'; // Apply the Button theme
+@import 'vue-material/dist/components/MdContent/theme'; // Apply the Content theme
+@import 'vue-material/dist/components/MdToolbar/theme'; // Apply the Toolbar theme
+@import 'vue-material/dist/components/MdIcon/theme'; // Apply the Toolbar theme
+
+.dp-primary {
+  color: #0D47A1;
+}

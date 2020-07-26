@@ -1,4 +1,4 @@
-import Navigation from './components/Navigation.vue';
+import home from './components/Home.vue';
 import showcase from './components/Showcase.vue';
 
 /**
@@ -7,7 +7,7 @@ import showcase from './components/Showcase.vue';
 
 const GlobalComponents = {
   install(Vue) {
-    Vue.component('navigation', Navigation);
+    Vue.component('home', home);
     Vue.component('showcase', showcase);
   },
 };

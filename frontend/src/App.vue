@@ -11,4 +11,7 @@
   color: #2c3e50;
   min-height: 100vh;
 }
+#app .md-app {
+  min-height: 100vh;
+}
 </style>
