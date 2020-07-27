@@ -26,6 +26,7 @@ def register_extensions(app):
     from application.extensions import mail
     from application.extensions import babel
     from application.extensions import csrf
+    from application.extensions import cors
 
     csrf._exempt_views.add('dash.dash.dispatch')
 
@@ -36,10 +37,11 @@ def register_extensions(app):
     mail.init_app(app)
     babel.init_app(app)
     # csrf.init_app(app)
+    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
 
 
 def register_blueprints(app):
     from application.views import blueprints
 
     for blueprint in blueprints:
-        app.register_blueprint(blueprint.bp)
+        app.register_blueprint(blueprint.bp, url_prefix="/api")

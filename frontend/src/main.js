@@ -26,6 +26,7 @@ import 'vue-material/dist/theme/default.css';
 
 import App from './App.vue';
 import router from './router';
+import store from './store';
 import GlobalComponents from './globalComponents';
 import './theme.scss';
 
@@ -54,5 +55,6 @@ Vue.use(VueToast);
 new Vue({ // eslint-disable-line no-new
   el: '#app',
   router,
+  store,
   render: (h) => h(App),
 });

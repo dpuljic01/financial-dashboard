@@ -1,4 +1,5 @@
 from flask_babelex import Babel
+from flask_cors import CORS
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -11,3 +12,4 @@ login = LoginManager()
 mail = Mail()
 babel = Babel()
 csrf = CSRFProtect()
+cors = CORS()
