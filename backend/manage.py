@@ -44,7 +44,6 @@ def create_user():
 @manager.command
 def populate_stocks():
     import yfinance as yf
-    from dateutil.relativedelta import relativedelta
     from pandas_datareader import data as pdr
     from application.models import Stock
 
@@ -55,7 +54,7 @@ def populate_stocks():
         if "$" in idx_s or "." in idx_s or len(str(idx_s)) > 5:  # skip just to have less data in DB, due to limits :/
             continue
 
-        stock = Stock(ticker=idx_s, full_name=row_s["Security Name"])
+        stock = Stock(ticker=idx_s, short_name=row_s["Security Name"])
         objects.append(stock)
 
     try:

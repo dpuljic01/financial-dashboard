@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import VueToast from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-default.css';
+import VueAxios from 'vue-axios';
+import Toasted from 'vue-toasted';
+import VueCookies from 'vue-cookies';
 // import {
 //   MdApp,
 //   MdButton,
@@ -27,13 +28,14 @@ import 'vue-material/dist/theme/default.css';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import GlobalComponents from './globalComponents';
+import axios from './plugins/axios';
 import './theme.scss';
 
 Vue.config.productionTip = false;
-Vue.use(GlobalComponents);
 Vue.use(Vuex);
+Vue.use(VueAxios, axios);
 Vue.use(VueMaterial);
+Vue.use(VueCookies);
 // Vue.use(MdApp);
 // Vue.use(MdLayout);
 // Vue.use(MdButton);
@@ -50,7 +52,7 @@ Vue.use(VueMaterial);
 // Vue.use(MdProgress);
 // Vue.use(MdList);
 // Vue.use(MdToolbar);
-Vue.use(VueToast);
+Vue.use(Toasted, { duration: 4000, theme: 'bubble', type: 'success' });
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',

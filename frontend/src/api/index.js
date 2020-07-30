@@ -1,29 +1,39 @@
-// api/index.js
+import Vue from 'vue';
 
-import axios from 'axios';
+const API_URL = 'http://127.0.0.1:5000/api'; // TODO: change Vue on deployment ofc
 
-const API_URL = 'http://127.0.0.1:5000/api'; // TODO: change this on deployment ofc
-
-export function login(user) {
-  return axios.post(`${API_URL}/login/`, user);
+export function login(userData) {
+  return Vue.axios.post(`${API_URL}/session/auth`, userData);
 }
 
-export function register(user) {
-  return axios.post(`${API_URL}/register/${surveyId}/`, user);
+export function logout(accessToken) {
+  return Vue.axios.delete(`${API_URL}/session/revoke`, { headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
+export function register(userData) {
+  return Vue.axios.post(`${API_URL}/register`, userData);
+}
+
+export function resetPassword(payload) {
+  return Vue.axios.post(`${API_URL}/reset-password`, payload);
+}
+
+export function changePassword(payload) {
+  return Vue.axios.put(`${API_URL}/reset-password`, payload);
 }
 
 export function fetchPortoflios() {
-  return axios.get(`${API_URL}/portoflios/`);
+  return Vue.axios.get(`${API_URL}/users/self/portoflios`);
 }
 
-export function fetchPortoflio() {
-  return axios.get(`${API_URL}/portoflios/${portfolioId}`);
+export function fetchPortoflio(portfolioId) {
+  return Vue.axios.get(`${API_URL}/users/self/portoflios/${portfolioId}`);
 }
 
-export function saveSurveyResponse(portfolioResponse) {
-  return axios.put(`${API_URL}/portfolios/${portfolioResponse.id}/`, portfolioResponse);
+export function savePortfolioResponse(portfolioResponse) {
+  return Vue.axios.put(`${API_URL}/users/self/portfolios/${portfolioResponse.id}/`, portfolioResponse);
 }
 
 export function createNewPortfolio(portfolio) {
-  return axios.post(`${API_URL}/portfolios/`, portfolio);
+  return Vue.axios.post(`${API_URL}/users/self/portfolios`, portfolio);
 }

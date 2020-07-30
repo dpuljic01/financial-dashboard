@@ -1,59 +1,73 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, redirect, url_for, flash, abort, jsonify, make_response
-from flask_login import login_user, logout_user, current_user, login_required
-from marshmallow import fields
-from marshmallow import validate
-from validate_email import validate_email
+from flask import Blueprint, jsonify, current_app
+from webargs import fields, validate
 from webargs.flaskparser import use_kwargs
 
-
+from application.email import send_password_reset_email, send_verify_email
 from application.extensions import db
-from application.email import send_email
-from application.helpers.errors import flash_errors
-from application.helpers.forms import RegistrationForm, LoginForm, ResetPasswordForm, EmailForm
 from application.models import User
 from application.token import generate_confirmation_token, confirm_token
+from flask_jwt_extended import (
+    create_access_token, get_jti, get_jwt_identity, jwt_required, get_raw_jwt
+)
+from application.helpers.blacklist_tokens import BlacklistTokens
 
-bp = Blueprint("auth", __name__)
+bp = Blueprint("auth", __name__, url_prefix="/api")
 
 
-@bp.route("/login", methods=["POST"])
+@bp.route("/session/auth", methods=["POST"])
 @use_kwargs({
-    "email": fields.String(required=True, validate=validate.Email()),
-    "password": fields.String(required=True, validate=validate.Length(min=1, max=255)),
-    "remember": fields.Boolean(missing=False)
+    "email": fields.Str(required=True, validate=validate.Email()),
+    "password": fields.Str(required=True),
 })
 def login(**payload):
     db_user = User.auth(email=payload["email"], password=payload["password"])
 
-    if not db_user:
-        return make_response(jsonify(error_code="INVALID_LOGIN", message="Login failed.")), 400
+    if not db_user or not db_user.confirmed:
+        return jsonify({"message": "Invalid credentials", "authenticated": False, "confirmed": False}), 401
 
-    if not db_user.confirmed:
-        return make_response(jsonify(error_code="INVALID_LOGIN", message="User is not verified.")), 400
+    # Create JWT
+    access_token = create_access_token(identity=db_user.id)
+    # refresh_token = create_refresh_token(identity=db_user.id)
 
-    login_user(user=db_user, remember=payload["remember"])
+    # Store the tokens in redis with a status of not currently revoked. We
+    # can use the `get_jti()` method to get the unique identifier string for
+    # each token. We can also set an expires time on these tokens in redis,
+    # so they will get automatically removed after they expire. We will set
+    # everything to be automatically removed shortly after the token expires
+    access_jti = get_jti(encoded_token=access_token)
+    BlacklistTokens.revoked_store.set(access_jti, "false", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
+    db_user.last_logged_in = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({"access_token": access_token}), 200
+
+
+# Endpoint for revoking the current users access token
+@bp.route("/session/revoke", methods=["DELETE"])
+@jwt_required
+def logout():
+    jti = get_raw_jwt()["jti"]
+    BlacklistTokens.revoked_store.set(jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
     return "", 204
 
 
 @bp.route("/register", methods=["POST"])
 @use_kwargs({
-    "first_name": fields.String(required=True, validate=validate.Length(min=1, max=255)),
-    "last_name": fields.String(required=True, validate=validate.Length(min=1, max=255)),
-    "email": fields.String(required=True, validate=validate.Email()),
-    "password": fields.String(required=True, validate=validate.Length(min=8, max=255))
+    "first_name": fields.Str(required=True, validate=validate.Length(min=1, max=255)),
+    "last_name": fields.Str(required=True, validate=validate.Length(min=1, max=255)),
+    "email": fields.Email(required=True)
 })
 def register(**payload):
     db_user = User.query.filter_by(email=payload["email"]).first()
     if db_user:
-        return make_response(jsonify(error_code="INVALID_LOGIN", message="Email already exists.")), 409
+        return jsonify({"message": "Email already exists."}), 409
 
     db_user = User(
         first_name=payload["first_name"],
         last_name=payload["last_name"],
         email=payload["email"],
-        password=payload["password"]
     )
 
     # add the new user to the database
@@ -61,100 +75,60 @@ def register(**payload):
     db.session.commit()
 
     token = generate_confirmation_token(db_user.email)
-    send_email(
-        redirect="auth.confirm_email",
-        html="activate.html",
-        recipients=db_user.email,
-        subject="Please confirm your email",
+    send_verify_email(
+        fe_url=current_app.config.get('FINANCIAL_DASHBOARD_FE_URL'),
+        email=db_user.email,
         token=token
     )
 
-    login_user(db_user)  # hmmmmmmmmmm
-    return "", 204
-
-
-@bp.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    return "", 204
-
-
-@bp.route("/confirm/<string:token>")
-@login_required
-def confirm_email(token):
-    email = confirm_token(token)
-
-    if not email:
-        return make_response(jsonify(error_code="INVALID_ARGUMENT", message="The confirmation link is invalid or has expired.")), 400
-
-    db_user = User.query.filter_by(email=email).first_or_404()
-    db_user.confirmed = True
-    db_user.email_confirmed_at = datetime.utcnow()
-    db.session.commit()
-
-    return "", 204
+    return jsonify(db_user.json), 201
 
 
 @bp.route("/unconfirmed", methods=["GET"])
-@login_required
+@jwt_required
 def unconfirmed():
-    if current_user.confirmed:
-        return redirect(url_for("main.profile"))
-    flash("Please confirm your account!")
-    return render_template("unconfirmed.html")
+    current_identity = get_jwt_identity()
+    db_user = User.query.get_or_404(current_identity)
+    if not db_user.confirmed:
+        return jsonify({"message": "Invalid credentials", "authenticated": True, "confirmed": False}), 403
+    return jsonify({"message": "User confirmed.", "authenticated": True, "confirmed": True}), 200
 
 
-@bp.route("/resend")
-@login_required
-def resend_confirmation():
-    token = generate_confirmation_token(current_user.email)
-    send_email(
-        redirect="auth.confirm_email",
-        html="activate.html",
-        recipients=current_user.email,
-        subject="Please confirm your email",
+@bp.route("/reset-password", methods=["POST"])
+@use_kwargs({
+    "email": fields.String(required=True, validate=validate.Email())
+})
+def reset(**payload):
+    db_user = User.query.filter_by(email=payload["email"]).first_or_404()
+
+    token = generate_confirmation_token(db_user.email)
+    send_password_reset_email(
+        fe_url=current_app.config.get('FINANCIAL_DASHBOARD_FE_URL'),
+        email=db_user.email,
         token=token
     )
-    flash("A new confirmation email has been sent.")
-    return redirect(url_for("auth.unconfirmed"))
+
+    return "", 204
 
 
-@bp.route("/reset", methods=["GET", "POST"])
-def reset():
-    form = EmailForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first_or_404()
-        token = generate_confirmation_token(user.email)
-        send_email(
-            redirect="auth.reset_with_token",
-            html="recover.html",
-            recipients=user.email,
-            subject="Password reset requested",
-            token=token
-        )
-        flash("Check your email.")
-        return redirect(url_for("auth.login"))
-    return render_template("login.html")
+@bp.route("/reset-password", methods=["PUT"])
+@use_kwargs({
+    "token": fields.String(required=True),
+    "password": fields.String(required=True, validate=[validate.Length(min=8, max=255)])
+})
+def reset_password(**payload):
+    email = confirm_token(payload["token"])
 
+    if not email or email in [True, 1]:
+        jsonify({"message": "Link is invalid or has expired."}), 400
 
-@bp.route("/reset/<token>", methods=["GET", "POST"])
-def reset_with_token(token):
-    email = confirm_token(token)
-    if not email:
-        flash("The confirmation link is invalid or has expired.")
-        return render_template("login.html")
+    user = User.query.filter_by(email=email).first_or_404()
+    user.password = payload["password"]
 
-    form = ResetPasswordForm()
+    if not user.confirmed:
+        user.confirmed = True
+        user.email_confirmed_at = datetime.utcnow()
 
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=email).first_or_404()
+    db.session.commit()
 
-        user.password = form.password.data
-
-        db.session.add(user)
-        db.session.commit()
-
-        return redirect(url_for("auth.login"))
-
-    return render_template("reset_with_token.html", form=form, token=token)
+    return "", 204

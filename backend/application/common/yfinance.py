@@ -4,9 +4,8 @@ from application.extensions import db
 from application.models import StockHistory
 from application.models import Stock
 
-# ten_years_ago = datetime.now() - relativedelta(years=10)
 
-
+# probably not a smart idea to save this into DB due to database limits on Heroku free account :(
 def fetch_stock_history(ticker, period="1y", interval="1d", insert_into_db=False):
     data = yf.Ticker(ticker)
     history = data.history(period=period, interval=interval)
@@ -15,10 +14,10 @@ def fetch_stock_history(ticker, period="1y", interval="1d", insert_into_db=False
         return history
 
     objects = []
-
+    stock = create_stock(ticker)
     for idx_h, row_h in history.iterrows():
         stock_history = StockHistory(
-            stock_id=stock.id,
+            stock_id=stock["id"],
             date=idx_h,
             close=row_h["Close"],
             open=row_h["Open"],
@@ -47,3 +46,4 @@ def create_stock(ticker):
     )
     db.session.add(stock)
     db.session.commit()
+    return stock.json

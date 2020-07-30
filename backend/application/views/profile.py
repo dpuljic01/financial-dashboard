@@ -1,33 +1,55 @@
-from flask import Blueprint, render_template, flash, redirect, url_for
-from flask_login import login_required, current_user
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from marshmallow import fields, validate
 from application.decorators import check_confirmed
-from application.models import User, Portfolio, Stock
-from application.helpers.forms import PortfolioForm
+from application.models import User, Portfolio
 from application.extensions import db
+from webargs.flaskparser import use_kwargs
 
-
-bp = Blueprint("profile", __name__, url_prefix="/profile")
+bp = Blueprint("profile", __name__, url_prefix="/api/users/self")
 
 
 @bp.route("/")
-@login_required
-@check_confirmed
+@jwt_required
+@check_confirmed  # this absolutely **must** come after @jwt_required decorator
 def get_user():
-    portfolio = Portfolio.query.filter_by(user_id=current_user.id).one_or_none()
-    return render_template("profile.html", portfolio=portfolio)
+    current_identity = get_jwt_identity()
+    user = User.query.get_or_404(current_identity)
+    return jsonify(user.json)
 
 
-@bp.route("/portfolio", methods=["GET", "POST"])
-@login_required
+@bp.route("/portfolios", methods=["GET"])
+@jwt_required
 @check_confirmed
-def create_portfolio():
-    form = PortfolioForm()
-    if form.validate_on_submit():
-        user = User.query.get(current_user.id)
-        portfolio = Portfolio(name=form.name.data, user_id=user.id)
-        user.portfolios.append(portfolio)
-        db.session.add(portfolio)
-        db.session.commit()
-        return redirect(url_for("profile.get_user", form=form))
-    user = User.query.get(current_user.id)
-    return render_template("profile.html", portfolio=user.portfolios, form=form)
+def list_portfolios():
+    current_identity = get_jwt_identity()
+    portfolios = Portfolio.query.filter_by(user_id=current_identity).all()
+    return jsonify([portfolio.json for portfolio in portfolios])
+
+
+@bp.route("/portfolios/<string:name>", methods=["GET"])
+@jwt_required
+@check_confirmed
+def get_portfolio(name):
+    current_identity = get_jwt_identity()
+    portfolio = Portfolio.query.filter_by(user_id=current_identity, name=name).first_or_404()
+    return jsonify(portfolio.json)
+
+
+@bp.route("/portfolios", methods=["POST"])
+@jwt_required
+@check_confirmed
+@use_kwargs({
+    "name": fields.String(required=True, validate=validate.Length(min=1, max=255))
+})
+def create_portfolio(**payload):
+    current_identity = get_jwt_identity()
+
+    portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
+    if portfolio:
+        jsonify({"message": "Portfolio with that name already exists."}), 409
+
+    portfolio = Portfolio(name=payload["name"], user_id=current_identity)
+    db.session.add(portfolio)
+    db.session.commit()
+    return jsonify(portfolio.json), 201

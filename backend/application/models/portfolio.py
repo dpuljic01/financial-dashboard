@@ -1,20 +1,29 @@
 from application.extensions import db
 from sqlalchemy import Numeric
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from application.models.mixin import TimestampMixin
 
 
-class Portfolio(db.Model):
+class Portfolio(db.Model, TimestampMixin):
     __tablename__ = "portfolio"
 
     id = db.Column(db.Integer(), db.Sequence("portfolio_id_seq"), primary_key=True)
     name = db.Column(db.String(50), nullable=True, server_default="Default")
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"))
+    info = db.Column(db.Text())
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = db.relationship("User", back_populates="portfolios")
     stocks = db.relationship("Stock", secondary="portfolio_stocks")
 
+    @property
+    def json(self):
+        return {
+            "name": self.name,
+            "stocks": [stock.json for stock in self.stocks]
+        }
 
-class Stock(db.Model):
+
+class Stock(db.Model, TimestampMixin):
     __tablename__ = "stocks"
 
     id = db.Column(db.Integer(), db.Sequence("stocks_id_seq"), primary_key=True)
@@ -23,6 +32,15 @@ class Stock(db.Model):
     info = db.Column(JSONB)
 
     history = db.relationship("StockHistory", backref="stock", uselist=True)
+
+    @property
+    def json(self):
+        return {
+            "id": self.id,
+            "ticker": self.ticker,
+            "short_name": self.short_name,
+            "info": self.info
+        }
 
 
 class StockHistory(db.Model):

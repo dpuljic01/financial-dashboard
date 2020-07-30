@@ -12,6 +12,7 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FINANCIAL_DASHBOARD_FE_URL = os.getenv("FINANCIAL_DASHBOARD_FE_URL", "http://127.0.0.1:8080")
     # limit for free keys: (5 API requests per minute; 500 API requests per day)
     ALPHA_VANTAGE_API_URL = os.getenv("ALPHA_VANTAGE_API_URL", "https://www.alphavantage.co")
     ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
@@ -28,16 +29,16 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = ("Financial Dashboard", "financial.dashboard.info@gmail.com")
 
-    # Flask-User settings
-    # USER_APP_NAME = "Financial Dashboard"       # Shown in an email templates and page footers
-    # USER_ENABLE_EMAIL = True                    # Enable email authentication
-    # USER_ENABLE_USERNAME = False                 # Enable username authentication
-    # USER_EMAIL_SENDER_NAME = USER_APP_NAME
-    # USER_EMAIL_SENDER_EMAIL = MAIL_USERNAME
+    REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379")
+
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 60 * 60 * 24 * 30))
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = ["access"]
 
 
 class ProductionConfig(Config):
     DEBUG = False
+    JWT_COOKIE_SECURE = True
 
 
 class DevelopmentConfig(Config):

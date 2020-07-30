@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from application.models import Stock
 
 
-bp = Blueprint("tickers", __name__, url_prefix="/tickers")
+bp = Blueprint("tickers", __name__, url_prefix="/api/tickers")
 
 
 @bp.route("/", methods=["POST"])

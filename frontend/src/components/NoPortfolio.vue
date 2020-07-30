@@ -5,13 +5,114 @@
       md-label="Create your first portfolio"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
     >
-      <md-button class="md-primary md-raised">Create portfolio</md-button>
+      <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
     </md-empty-state>
+    <md-dialog :md-active.sync="open">
+      <md-dialog-title>Create portfolio</md-dialog-title>
+
+      <md-steppers :md-active-step.sync="active" md-alternative>
+        <md-step id="first" md-label="Basic information" :md-error="firstStepError" :md-done.sync="first">
+          <p>
+            Here you can enter some general information about your portfolio
+          </p>
+
+          <md-field>
+            <label for="portfolioName">Portfolio name</label>
+            <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
+          </md-field>
+
+          <md-field>
+            <label>Additional info</label>
+            <md-textarea v-model="info"></md-textarea>
+          </md-field>
+
+          <p class="dp-error" v-if="msg.firstName">Must have at least two characters</p>
+          <md-button class="md-raised" :disabled="portfolioName === ''" @click="setDone('first', 'second')"
+            >Continue</md-button
+          >
+        </md-step>
+
+        <md-step id="second" md-label="Holdings" :md-error="secondStepError" :md-done.sync="second">
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque
+            quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat
+            nulla.
+          </p>
+          <md-button class="md-raised" @click="setDone('second', 'third')">Continue</md-button>
+        </md-step>
+
+        <md-step id="third" md-label="Review" :md-done.sync="third">
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque
+            quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat
+            nulla.
+          </p>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque
+            quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat
+            nulla.
+          </p>
+          <md-button class="md-raised" @click="setDone('third')">Looks good!</md-button>
+        </md-step>
+      </md-steppers>
+    </md-dialog>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'noPortfolio',
+  name: 'NoPortfolio',
+  data() {
+    return {
+      open: false,
+      active: 'first',
+      first: false,
+      second: false,
+      third: false,
+      value: null,
+      portfolioName: '',
+      info: '',
+      secondStepError: null,
+      firstStepError: null,
+      msg: {
+        portfolioName: false,
+      },
+    };
+  },
+  watch: {
+    portfolioName: {
+      handler: function portfolioName(value) {
+        this.portfolioName = value;
+        this.msg.portfolioName = !this.validName(value);
+      },
+    },
+  },
+  methods: {
+    validName(value) {
+      return value.length > 1;
+    },
+    setDone(id, index) {
+      if (this[id] === 'first') {
+        if (this.portfolioName === '') {
+          this.msg.portfolioName = '';
+          return;
+        }
+      }
+      this[id] = true;
+      if (index) {
+        this.active = index;
+      }
+      if (this.third) {
+        // here dispatch portfolio creation
+      }
+      this.secondStepError = null;
+    },
+    setError() {
+      this.secondStepError = 'This is an error!';
+    },
+    onConfirm() {
+      console.log(this.value);
+    },
+  },
 };
 </script>

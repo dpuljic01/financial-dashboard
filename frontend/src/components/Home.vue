@@ -19,36 +19,33 @@
         </md-toolbar>
 
         <md-list>
-          <md-list-item>
+          <md-list-item to="home">
             <md-icon>dashboard</md-icon>
             <span class="md-list-item-text">Dashboard</span>
           </md-list-item>
 
-          <md-list-item>
+          <md-list-item to="portfolio">
             <md-icon>pie_chart</md-icon>
             <span class="md-list-item-text">Portfolio</span>
           </md-list-item>
 
-          <md-list-item>
+          <md-list-item to="notifications">
             <md-icon>notifications_none</md-icon>
             <span class="md-list-item-text">Notifications</span>
           </md-list-item>
-
-          <md-menu md-size="small" :md-offset-x="200" :md-offset-y="-120">
+          <md-menu md-size="small" :md-offset-x="200" :md-offset-y="-120" class="md-button">
             <md-list-item md-menu-trigger>
               <md-icon>person_outline</md-icon>
               <span class="md-list-item-text">Profile</span>
               <md-icon>keyboard_arrow_right</md-icon>
             </md-list-item>
             <md-menu-content>
-              <md-menu-item>
-                <md-icon>settings</md-icon>
-                <span flex>Settings</span>
-              </md-menu-item>
-              <md-menu-item>
-                <md-icon>lock</md-icon>
-                <span flex>Logout</span>
-              </md-menu-item>
+              <md-list-item to="settings" class="md-alignment-center-center">
+                Settings
+              </md-list-item>
+              <md-list-item @click="logout">
+                Logout
+              </md-list-item>
             </md-menu-content>
           </md-menu>
         </md-list>
@@ -62,12 +59,14 @@
 </template>
 
 <script>
-import noPortfolio from './NoPortfolio.vue';
+import NoPortfolio from './NoPortfolio.vue';
+import AUTH_COOKIE_NAME from '../consts';
+import { removeCookie } from '../utils/cookie';
 
 export default {
-  name: 'home',
+  name: 'Home',
   components: {
-    noPortfolio,
+    NoPortfolio,
   },
   data: () => ({
     menuVisible: false,
@@ -75,6 +74,14 @@ export default {
   methods: {
     toggleMenu() {
       this.menuVisible = !this.menuVisible;
+      console.log(this.$store.state.jwt);
+    },
+    logout() {
+      this.$store.dispatch('logout').then(() => {
+        removeCookie(AUTH_COOKIE_NAME);
+        this.$router.replace('/landing');
+        console.log(this.$store.state);
+      });
     },
   },
 };
@@ -83,5 +90,8 @@ export default {
 <style scoped>
 .md-drawer {
   max-width: 250px;
+}
+.md-menu.md-button {
+  height: 100%;
 }
 </style>

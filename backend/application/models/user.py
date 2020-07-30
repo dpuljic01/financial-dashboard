@@ -1,25 +1,20 @@
 from uuid import uuid4
-
-from flask_login import UserMixin
+import os
+import binascii
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy_utils import PasswordType
 
+
 from application.extensions import db
-from application.extensions import login
 from application.models.mixin import TimestampMixin
-
-
-@login.user_loader
-def load_user(uuid):
-    return User.query.get(uuid)
 
 
 def get_uuid():
     return str(uuid4())
 
 
-class User(UserMixin, db.Model, TimestampMixin):
+class User(db.Model, TimestampMixin):
     """
     User model.
     `account_type`: `basic` and `premium`, also `admin`, but not sure about that yet. It"s `basic` by default
@@ -31,10 +26,11 @@ class User(UserMixin, db.Model, TimestampMixin):
     email = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
-    password = db.Column(PasswordType(schemes=["bcrypt"]), nullable=False)
+    password = db.Column(PasswordType(schemes=["bcrypt"]))
     is_active = db.Column(db.Boolean(), nullable=False, server_default="1")
     confirmed = db.Column(db.Boolean(), nullable=False, server_default="0")
     email_confirmed_at = db.Column(db.DateTime())
+    last_logged_in = db.Column(db.DateTime())
 
     portfolios = db.relationship("Portfolio", back_populates="user")
     roles = db.relationship("Role", secondary="user_roles")
@@ -45,16 +41,37 @@ class User(UserMixin, db.Model, TimestampMixin):
 
     def __init__(self, *args, **kwargs):
         super(User, self).__init__(*args, **kwargs)
+        if not self.password:
+            self.password = binascii.hexlify(os.urandom(24)).decode()
 
-    @staticmethod
-    def auth(email, password):
-        user = User.query.filter_by(email=email).first()
-        if user and user.password == password:
-            return user
-        return None
+    @classmethod
+    def auth(cls, **kwargs):
+        email = kwargs.get('email')
+        password = kwargs.get('password')
+
+        if not email or not password:
+            return None
+
+        user = cls.query.filter_by(email=email).first()
+        if not user or user.password != password:
+            return None
+
+        return user
+
+    @property
+    def json(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "confirmed": self.confirmed,
+            "last_logged_in": self.last_logged_in,
+        }
 
     def __repr__(self):
-        return f"User(id={self.id}, email={self.email}, first_name={self.first_name}, last_name={self.last_name})"
+        return f"User(id={self.id}, email={self.email}, first_name={self.first_name}, " \
+               f"last_name={self.last_name}), confirmed={self.confirmed}"
 
 
 class Role(db.Model):

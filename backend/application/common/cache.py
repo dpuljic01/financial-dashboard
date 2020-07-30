@@ -1,6 +1,4 @@
-from base64 import b64encode, b64decode
 from datetime import timedelta
-import pickle
 import bz2
 from flask import current_app
 from redis import StrictRedis
@@ -10,10 +8,10 @@ cipher = Fernet(Fernet.generate_key())
 
 
 class Cache:
-    DEFAULT_TTL = 60 * 60 * 24  # 24 hours
+    DEFAULT_TTL = 1800  # 30 min
 
     def __init__(self, encrypted=False, ttl=None):
-        self.redis = StrictRedis.from_url(current_app.config["RESULT_REDIS"])
+        self.redis = StrictRedis.from_url(url=current_app.config["REDIS_URL"])
         self.encrypted = encrypted
         if ttl is None:
             self.ttl = Cache.DEFAULT_TTL
@@ -25,25 +23,20 @@ class Cache:
         if data is None:
             return False, None
 
-        data = pickle.loads(data)
         if self.encrypted:
-            data = cipher.decrypt(data.encode("utf-8")).decode("utf-8")
-        else:
-            data = b64decode(data).decode("utf-8")
+            data = cipher.decrypt(data)
 
-        return True, bz2.decompress(data)
+        return True, bz2.decompress(data).decode("utf-8")
 
     def set(self, key, value, ttl=None):
         if ttl is None:
             ttl = self.ttl
 
-        compressed_value = bz2.compress(value)
+        value = bz2.compress(value.encode("utf-8"))
         if self.encrypted:
-            value = cipher.encrypt(compressed_value.encode("utf-8")).decode("utf-8")
-        else:
-            value = b64encode(compressed_value.encode("utf-8")).decode("utf-8")
+            value = cipher.encrypt(value)
 
-        self.redis.setex(key, timedelta(seconds=ttl), pickle.dumps(value))
+        self.redis.setex(key, timedelta(seconds=ttl), value)
 
     def delete(self, key):
         self.redis.delete(key)

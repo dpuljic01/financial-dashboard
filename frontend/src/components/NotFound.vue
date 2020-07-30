@@ -5,13 +5,13 @@
       md-label="404 - Not Found"
       md-description="Requested page could not be found."
     >
-      <router-link to="home">Take me home</router-link>
+      <router-link to="home">Click here to find your way back</router-link>
     </md-empty-state>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'notfound',
+  name: 'NotFound',
 };
 </script>
