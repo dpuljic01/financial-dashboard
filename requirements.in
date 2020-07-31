@@ -1,5 +1,6 @@
 flask
 flask-cors
+flask-mail
 gunicorn
 # Flask-Restful
 flask-script
@@ -27,3 +28,4 @@ sklearn
 yfinance
 webargs
 flask-jwt-extended
+iexfinance
