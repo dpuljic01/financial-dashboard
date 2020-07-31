@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-const API_URL = 'http://127.0.0.1:5000/api'; // TODO: change Vue on deployment ofc
+const API_URL = process.env.VUE_APP_API_URL; // TODO: change Vue on deployment ofc
 
 export function login(userData) {
   return Vue.axios.post(`${API_URL}/session/auth`, userData);

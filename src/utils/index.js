@@ -3,7 +3,6 @@ import Vue from 'vue';
 export const EventBus = new Vue();
 
 export function isValidJwt(jwt) {
-  console.log(jwt);
   if (!jwt || jwt.split('.').length < 3) {
     return false;
   }

@@ -111,7 +111,6 @@ export default {
       this.secondStepError = 'This is an error!';
     },
     onConfirm() {
-      console.log(this.value);
     },
   },
 };

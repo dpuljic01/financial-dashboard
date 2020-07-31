@@ -74,13 +74,11 @@ export default {
   methods: {
     toggleMenu() {
       this.menuVisible = !this.menuVisible;
-      console.log(this.$store.state.jwt);
     },
     logout() {
       this.$store.dispatch('logout').then(() => {
         removeCookie(AUTH_COOKIE_NAME);
         this.$router.replace('/landing');
-        console.log(this.$store.state);
       });
     },
   },
