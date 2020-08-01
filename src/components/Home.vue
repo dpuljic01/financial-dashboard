@@ -78,7 +78,7 @@ export default {
     logout() {
       this.$store.dispatch('logout').then(() => {
         removeCookie(AUTH_COOKIE_NAME);
-        this.$router.replace('/landing');
+        this.$router.replace('/login');
       });
     },
   },

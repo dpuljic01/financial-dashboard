@@ -53,10 +53,16 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
+  const openRoutes = ['Login', 'Register', 'Landing', 'ResetPassword'];
   const protectedRoutes = ['Home'];
 
+  // if the user is logged in and tries to access login/register pages, return him to home
+  if (store.getters.isAuthenticated && openRoutes.includes(to.name)) {
+    next('/home');
+  }
+
   if (protectedRoutes.includes(to.name) && !store.getters.isAuthenticated) {
-    next('login');
+    next('/login');
   }
   next();
 });

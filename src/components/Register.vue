@@ -3,8 +3,8 @@
     <md-content class="md-elevation-3">
       <div class="title">
         <div class="md-display-1">
-          <router-link to="landing" style="text-decoration: none">
-            <md-icon class="md-size-2x md-primary" to="base">attach_money</md-icon>
+          <router-link to="/landing" style="text-decoration: none">
+            <md-icon class="md-size-2x md-primary">attach_money</md-icon>
           </router-link>
           <p class="dp-primary">Register</p>
         </div>
