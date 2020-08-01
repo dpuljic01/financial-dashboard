@@ -18,7 +18,7 @@ Vue.use(Vuex);
 Vue.use(VueAxios, axios);
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
-Vue.use(Toasted, { duration: 4000, theme: 'bubble', type: 'success' });
+Vue.use(Toasted, { duration: 5000, theme: 'bubble', type: 'success' });
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',
