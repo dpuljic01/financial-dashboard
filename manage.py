@@ -5,8 +5,8 @@ from datetime import datetime
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Server
 
-from application.extensions import db
-from application.models import User, Role
+from server.extensions import db
+from server.models import User, Role
 from wsgi import app
 
 migrate = Migrate(app, db)
@@ -45,7 +45,7 @@ def create_user():
 def populate_stocks():
     import yfinance as yf
     from pandas_datareader import data as pdr
-    from application.models import Stock
+    from server.models import Stock
 
     yf.pdr_override()  # override pandas default source for yahoo data with our yfinance data source
     df = pdr.get_nasdaq_symbols()

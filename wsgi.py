@@ -1,7 +1,6 @@
-from application import create_app
+from server import create_app
+from dotenv import load_dotenv
+
+load_dotenv()
 
 application = app = create_app()
-
-# for development only
-# if __name__ == '__main__':
-#     app.run(host="0.0.0.0", port=5000, debug=True)
