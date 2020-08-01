@@ -3,7 +3,7 @@
 Insert some description here :)
 
 
-# Backend
+# Server
 
 ## Project setup
 
@@ -20,7 +20,7 @@ or
 python manage.py runserver
 ```
 
-# Frontend
+# Client
 
 ## Project setup
 ```
