@@ -10,9 +10,9 @@ module.exports = {
   // and distribute
   devServer: {
     proxy: {
-      '*': {
+      '/api': {
         // Forward frontend dev server request for /api to flask dev server
-        target: 'http://localhost:5000/'
+        target: 'http://127.0.0.1:5000'
       }
     }
   }

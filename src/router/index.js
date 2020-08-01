@@ -41,7 +41,7 @@ const router = new Router({
       component: Register,
     },
     {
-      path: '/reset/:passwordToken?',
+      path: '/reset/:passwordToken',
       name: 'ResetPassword',
       component: ResetPassword,
     },
