@@ -1,5 +1,5 @@
 <template>
-  <div id="landing" class="dp-bg">
+  <div id="landing" class="dp-bg1">
     <md-empty-state
       class="md-accent"
       md-icon="attach_money"

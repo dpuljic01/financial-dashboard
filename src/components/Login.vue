@@ -1,13 +1,11 @@
 <template>
   <div class="centered-container dp-bg">
     <md-content class="md-elevation-3">
-      <div class="title">
-        <div class="md-display-1">
-          <router-link to="/landing" style="text-decoration: none">
-            <md-icon class="md-size-2x md-primary">attach_money</md-icon>
-          </router-link>
-          <p class="dp-primary">Login</p>
-        </div>
+      <div>
+        <router-link to="/landing" style="text-decoration: none">
+          <md-icon class="md-size-3x md-primary">person</md-icon>
+        </router-link>
+        <h1 class="dp-primary">LOGIN</h1>
       </div>
 
       <form novalidate @submit.prevent="onSubmit">
@@ -19,7 +17,7 @@
 
         <md-field md-has-password>
           <label name="password">Password</label>
-          <md-input v-model="password" type="text" name="password"></md-input>
+          <md-input v-model="password" type="password" name="password"></md-input>
         </md-field>
         <p class="dp-error" v-if="msg.password">Must be at least 8 characters long</p>
 
@@ -34,10 +32,10 @@
         </p>
       </form>
       <md-dialog :md-active.sync="showDialog" :md-fullscreen="false">
-        <md-dialog-title>Reset password</md-dialog-title>
+        <md-dialog-title class="dp-primary">What's your email address?</md-dialog-title>
         <md-dialog-content>
           <p>
-            Enter the email address associated with your account, and we’ll email you a link to reset your password.
+            We will email you a link to reset your password.
           </p>
           <form @submit.prevent="onModalSubmit">
             <md-field>
@@ -46,8 +44,8 @@
             </md-field>
             <p class="dp-error" v-if="msg.resetEmail">Invalid email address</p>
             <md-dialog-actions>
-              <md-button class="md-primary" @click="showDialog = false">Cancel</md-button>
-              <md-button class="md-primary" type="submit">Send</md-button>
+              <md-button class="md-raised" @click="showDialog = false">Cancel</md-button>
+              <md-button class="md-raised md-primary" type="submit">Send</md-button>
             </md-dialog-actions>
           </form>
         </md-dialog-content>

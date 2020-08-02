@@ -20,6 +20,9 @@ class Config:
     # limit for free: (50.000 API requests per day, but no concurrent calls)
     QUANDL_API_URL = os.getenv("QUANDL_API_URL", "https://www.quandl.com")
     QUANDL_API_KEY = os.getenv("QUANDL_API_KEY")
+    # unlimited mocked data, 50k messages/mo on production (free plan)
+    IEX_BASE_URL = os.getenv("IEX_BASE_URL", "https://sandbox.iexapis.com/")  # prod https://cloud.iexapis.com/v1/
+    IEX_TOKEN = os.getenv("IEX_TOKEN")
 
     # Flask-Mail SMTP server settings
     MAIL_SERVER = os.getenv("MAIL_SERVER")
