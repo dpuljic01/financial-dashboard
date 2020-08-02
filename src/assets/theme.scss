@@ -5,7 +5,7 @@
   'default',
   (
     primary: md-get-palette-color(blue, 900),
-    accent: md-get-palette-color(green, 400),
+    accent: md-get-palette-color(teal, 700),
     theme: "light",
   )
 );
@@ -18,7 +18,10 @@
 
 .dp-primary {
   color: #0D47A1;
-  /* color: rgb(0,77,64); */
+}
+
+.dp-accent {
+  color: rgb(0,77,64);
 }
 
 /* ugly workaround for blue-ish background on form input autocompletion (chrome/safari only) */
@@ -38,6 +41,11 @@ input:-webkit-autofill:active {
 }
 
 .dp-bg {
+  background: url('./bg.jpg');
+  background-size: cover;
+}
+
+.dp-bg1 {
   background: url('./bg1.jpg');
   background-size: cover;
 }

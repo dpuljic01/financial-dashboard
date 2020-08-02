@@ -8,14 +8,11 @@
       <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
     </md-empty-state>
     <md-dialog :md-active.sync="open">
-      <md-dialog-title>Create portfolio</md-dialog-title>
-
-      <md-steppers :md-active-step.sync="active" md-alternative>
+      <md-dialog-title>Create portfolio
+        <md-button class="md-icon" @click="open = false">close</md-button>
+      </md-dialog-title>
+      <md-steppers :md-active-step.sync="active" md-linear>
         <md-step id="first" md-label="Basic information" :md-error="firstStepError" :md-done.sync="first">
-          <p>
-            Here you can enter some general information about your portfolio
-          </p>
-
           <md-field>
             <label for="portfolioName">Portfolio name</label>
             <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
@@ -27,7 +24,7 @@
           </md-field>
 
           <p class="dp-error" v-if="msg.firstName">Must have at least two characters</p>
-          <md-button class="md-raised" :disabled="portfolioName === ''" @click="setDone('first', 'second')"
+          <md-button class="md-raised md-primary" :disabled="portfolioName === ''" @click="setDone('first', 'second')"
             >Continue</md-button
           >
         </md-step>
@@ -52,7 +49,7 @@
             quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat
             nulla.
           </p>
-          <md-button class="md-raised" @click="setDone('third')">Looks good!</md-button>
+          <md-button class="md-raised" @click="onConfirm()">Looks good!</md-button>
         </md-step>
       </md-steppers>
     </md-dialog>
@@ -95,7 +92,6 @@ export default {
       if (this[id] === 'first') {
         if (this.portfolioName === '') {
           this.msg.portfolioName = '';
-          return;
         }
       }
       this[id] = true;
@@ -111,7 +107,15 @@ export default {
       this.secondStepError = 'This is an error!';
     },
     onConfirm() {
+      this.setDone('third');
+      this.open = false;
     },
   },
 };
 </script>
+<style scoped>
+.md-icon {
+  position: absolute;
+  right: 4%;
+}
+</style>

@@ -1,13 +1,11 @@
 <template>
   <div class="centered-container dp-bg">
     <md-content class="md-elevation-3">
-      <div class="title">
-        <div class="md-display-1">
-          <router-link to="/landing" style="text-decoration: none">
-            <md-icon class="md-size-2x md-primary">attach_money</md-icon>
-          </router-link>
-          <p class="dp-primary">Setup password</p>
-        </div>
+      <div>
+        <router-link to="/landing" style="text-decoration: none">
+          <md-icon class="md-size-3x md-primary">enhanced_encryption</md-icon>
+        </router-link>
+        <h1 class="dp-primary">SET PASSWORD</h1>
       </div>
 
       <form novalidate @submit.prevent="onSubmit">

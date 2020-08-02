@@ -1,13 +1,11 @@
 <template>
   <div class="centered-container dp-bg">
     <md-content class="md-elevation-3">
-      <div class="title">
-        <div class="md-display-1">
-          <router-link to="/landing" style="text-decoration: none">
-            <md-icon class="md-size-2x md-primary">attach_money</md-icon>
-          </router-link>
-          <p class="dp-primary">Register</p>
-        </div>
+      <div>
+        <router-link to="/landing" style="text-decoration: none">
+          <md-icon class="md-size-3x md-primary">person</md-icon>
+        </router-link>
+        <h1 class="dp-primary">REGISTER</h1>
       </div>
 
       <form novalidate @submit.prevent="onSubmit">
@@ -29,7 +27,7 @@
         </md-field>
         <p class="dp-error" v-if="msg.email">Invalid email address</p>
 
-        <md-button class="md-raised md-primary" type="submit" :disabled="loading">Register</md-button>
+        <md-button class="md-raised md-primary" type="submit" :disabled="loading">Submit</md-button>
         <p>
           Already have an account?
           <router-link to="login">Login</router-link>
@@ -69,21 +67,18 @@ export default {
         this.email = value;
         this.msg.email = !isValidEmail(value);
       },
-      immediate: true,
     },
     firstName: {
       handler: function firstName(value) {
         this.firstName = value;
         this.msg.firstName = !this.validName(value);
       },
-      immediate: true,
     },
     lastName: {
       handler: function lastName(value) {
         this.lastName = value;
         this.msg.lastName = !this.validName(value);
       },
-      immediate: true,
     },
   },
   methods: {
@@ -104,8 +99,15 @@ export default {
     },
     onSubmit() {
       const valid = !this.msg.email && !this.msg.firstName && !this.msg.lastName;
+
       if (valid) {
-        this.save();
+        if (this.firstName === '' && this.lastName === '' && this.email === '') {
+          this.msg.firstName = true;
+          this.msg.lastName = true;
+          this.msg.email = true;
+        } else {
+          this.save();
+        }
       }
     },
   },
