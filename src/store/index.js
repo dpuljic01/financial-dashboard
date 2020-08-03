@@ -25,7 +25,7 @@ const getDefaultState = function () {
     remember: false,
     loggedIn: false,
     jwt: {
-      access_token: getCookie('auth') || null,
+      access_token: getCookie(AUTH_COOKIE_NAME) || null,
     },
     confirmed: false,
   };

@@ -109,9 +109,17 @@ export default {
         });
     },
     sendResetEmail() {
-      this.$store.dispatch('resetPassword', { email: this.resetEmail }).then(() => {
-        this.showDialog = false;
-      });
+      this.loading = true;
+      this.showDialog = false;
+      this.$store
+        .dispatch('resetPassword', { email: this.resetEmail })
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+          this.showDialog = true;
+        });
     },
     onModalSubmit() {
       if (!this.msg.resetEmail) {
