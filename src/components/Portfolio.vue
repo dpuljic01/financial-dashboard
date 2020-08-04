@@ -8,7 +8,8 @@
       <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
     </md-empty-state>
     <md-dialog :md-active.sync="open">
-      <md-dialog-title>Create portfolio
+      <md-dialog-title
+        >Create portfolio
         <md-button class="md-icon" @click="open = false">close</md-button>
       </md-dialog-title>
       <md-steppers :md-active-step.sync="active" md-linear>
@@ -30,11 +31,15 @@
         </md-step>
 
         <md-step id="second" md-label="Holdings" :md-error="secondStepError" :md-done.sync="second">
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque
-            quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat
-            nulla.
-          </p>
+          <md-table v-for="row in tableData" :key="row.id">
+            <md-table-row>
+              <md-table-head md-numeric>ID</md-table-head>
+              <md-table-head>Name</md-table-head>
+              <md-table-head>Email</md-table-head>
+              <md-table-head>Gender</md-table-head>
+              <md-table-head>Job Title</md-table-head>
+            </md-table-row>
+          </md-table>
           <md-button class="md-raised" @click="setDone('second', 'third')">Continue</md-button>
         </md-step>
 
@@ -58,7 +63,7 @@
 
 <script>
 export default {
-  name: 'NoPortfolio',
+  name: 'Portfolio',
   data() {
     return {
       open: false,

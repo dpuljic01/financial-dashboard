@@ -6,6 +6,9 @@ import Landing from '../components/Landing.vue';
 import Login from '../components/Login.vue';
 import Register from '../components/Register.vue';
 import ResetPassword from '../components/ResetPassword.vue';
+import Portfolio from '../components/Portfolio.vue';
+import Notifications from '../components/Notifications.vue';
+import Settings from '../components/Settings.vue';
 import store from '../store';
 
 Vue.use(Router);
@@ -29,6 +32,7 @@ const router = new Router({
       path: '/home',
       name: 'Home',
       component: Home,
+      props: { title: 'Dashboard' },
     },
     {
       path: '/login',
@@ -41,6 +45,24 @@ const router = new Router({
       component: Register,
     },
     {
+      path: '/portfolio',
+      name: 'Portfolio',
+      component: Portfolio,
+      props: { title: 'Portfolio' },
+    },
+    {
+      path: '/notifications',
+      name: 'Notifications',
+      component: Notifications,
+      props: { title: 'Notifications' },
+    },
+    {
+      path: '/settings',
+      name: 'Settings',
+      component: Settings,
+      props: { title: 'Settings' },
+    },
+    {
       path: '/reset/:passwordToken',
       name: 'ResetPassword',
       component: ResetPassword,
@@ -50,11 +72,12 @@ const router = new Router({
       component: NotFound,
     },
   ],
+  linkActiveClass: 'active',
 });
 
 router.beforeEach((to, from, next) => {
   const openRoutes = ['Login', 'Register', 'Landing', 'ResetPassword'];
-  const protectedRoutes = ['Home'];
+  const protectedRoutes = ['Home', 'Portfolio'];
 
   // if the user is logged in and tries to access login/register pages, return him to home
   if (store.getters.isAuthenticated && openRoutes.includes(to.name)) {
