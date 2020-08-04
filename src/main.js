@@ -11,6 +11,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 import axios from './plugins/axios';
+import Navigation from './components/Navigation.vue';
 import './assets/theme.scss';
 
 Vue.config.productionTip = false;
@@ -18,7 +19,13 @@ Vue.use(Vuex);
 Vue.use(VueAxios, axios);
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
-Vue.use(Toasted, { duration: 5000, theme: 'bubble', type: 'success' });
+Vue.use(Toasted, {
+  router,
+  duration: 5000,
+  type: 'success',
+});
+
+Vue.component('navigation', Navigation);
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',

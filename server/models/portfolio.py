@@ -14,12 +14,13 @@ class Portfolio(db.Model, TimestampMixin):
 
     user = db.relationship("User", back_populates="portfolios")
     stocks = db.relationship("Stock", secondary="portfolio_stocks")
+    purchases = db.relationship("Purchase", backref="porfolio", uselist=True)
 
     @property
     def json(self):
         return {
             "name": self.name,
-            "stocks": [stock.json for stock in self.stocks]
+            "stocks": [stock.json for stock in self.stocks],
         }
 
 
@@ -28,7 +29,7 @@ class Stock(db.Model, TimestampMixin):
 
     id = db.Column(db.Integer(), db.Sequence("stocks_id_seq"), primary_key=True)
     ticker = db.Column(db.String(15), unique=True)
-    short_name = db.Column(db.String(255))
+    short_name = db.Column(db.String(255))   
     info = db.Column(JSONB)
 
     history = db.relationship("StockHistory", backref="stock", uselist=True)
@@ -40,6 +41,24 @@ class Stock(db.Model, TimestampMixin):
             "ticker": self.ticker,
             "short_name": self.short_name,
             "info": self.info
+        }
+
+
+class Purchase(db.Model, TimestampMixin):  # this will hold all the purchases user made for stocks (which portfolio, which stock, at what price)
+    id = db.Column(db.Integer(), db.Sequence("purchases_id_seq"), primary_key=True)
+    portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), nullable=False)
+    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False)
+    price = db.Column(Numeric, nullable=False)
+    purchased_at = db.Column(db.DateTime(), nullable=False)
+
+    @property
+    def json(self):
+        return {
+            "id": self.id,
+            "portfolio_id": self.portfolio_id,
+            "stock_id": self.stock_id,
+            "price": self.price,
+            "purchased_at": self.purchased_at,
         }
 
 

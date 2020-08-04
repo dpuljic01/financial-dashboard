@@ -24,6 +24,10 @@
   color: rgb(0,77,64);
 }
 
+.dp-bg-warning {
+  background-color: rgb(245, 122, 91) !important;
+}
+
 /* ugly workaround for blue-ish background on form input autocompletion (chrome/safari only) */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

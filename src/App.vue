@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view />
+    <navigation />
   </div>
 </template>
 
@@ -13,5 +13,11 @@
 }
 #app .md-app {
   min-height: 100vh;
+}
+.md-drawer {
+  max-width: 250px;
+}
+.md-menu.md-button {
+  height: 100%;
 }
 </style>
