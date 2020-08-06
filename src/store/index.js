@@ -12,12 +12,13 @@ import {
   getStockHistoryData,
 } from '../api';
 import { isValidJwt } from '../utils';
-import { getCookie, setCookie } from '../utils/cookie';
-import AUTH_COOKIE_NAME from '../consts';
+import { getCookie, setCookie, removeCookie } from '../utils/cookie';
+import { AUTH_COOKIE_NAME } from '../consts';
 
 Vue.use(Vuex);
 
-const getDefaultState = function () {
+// eslint-disable-next-line
+const getDefaultState = function() {
   return {
     // single source of data
     portfolios: [],
@@ -96,6 +97,9 @@ const actions = {
   getStockHistoryData(context, params) {
     return getStockHistoryData(params, context.state.jwt.access_token);
   },
+  resetState(context) {
+    context.commit('resetState');
+  },
 };
 
 const mutations = {
@@ -111,6 +115,7 @@ const mutations = {
   },
   resetState(state) {
     // Merge rather than replace so we don't lose observers
+    removeCookie(AUTH_COOKIE_NAME);
     Object.assign(state, getDefaultState());
   },
 };

@@ -36,14 +36,15 @@ def login(**payload):
     # each token. We can also set an expires time on these tokens in redis,
     # so they will get automatically removed after they expire. We will set
     # everything to be automatically removed shortly after the token expires
+
+    db_user.last_logged_in = datetime.utcnow()
+    db.session.commit()
+
     try:
         access_jti = get_jti(encoded_token=access_token)
         BlacklistTokens.revoked_store.set(access_jti, "false", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
     except:
         pass
-    
-    db_user.last_logged_in = datetime.utcnow()
-    db.session.commit()
 
     return jsonify({"access_token": access_token}), 200
 
@@ -56,7 +57,8 @@ def logout():
         jti = get_raw_jwt()["jti"]
         BlacklistTokens.revoked_store.set(jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
     except:
-        return "", 204
+        pass
+
     return "", 204
 
 

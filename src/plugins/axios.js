@@ -8,7 +8,7 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     // all 4xx/5xx responses will end here
-    let message = 'We were unable to complete your request';
+    let message = 'Unknown error';
     const switchError = error.status ? error.status : error.response.status;
     switch (switchError) {
       case 401:
@@ -24,10 +24,12 @@ axios.interceptors.response.use(
         message = 'Entry already exist';
         break;
       default:
-        message = 'We were unable to complete your request';
+        message = 'Error';
     }
-
-    Vue.toasted.show(message, { type: 'error' });
+    if (message !== 'Error') {
+      Vue.toasted.show(message, { type: 'error' });
+    }
+    this.$store.state.loading = false;
     return Promise.reject(error);
   },
 );

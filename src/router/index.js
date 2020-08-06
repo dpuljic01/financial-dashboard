@@ -10,6 +10,7 @@ import Portfolio from '../components/Portfolio.vue';
 import Notifications from '../components/Notifications.vue';
 import Settings from '../components/Settings.vue';
 import store from '../store';
+import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
 
 Vue.use(Router);
 
@@ -74,22 +75,21 @@ const router = new Router({
       component: NotFound,
     },
   ],
-  linkActiveClass: 'active',
 });
 
 router.beforeEach((to, from, next) => {
-  const openRoutes = ['Login', 'Register', 'Landing', 'ResetPassword'];
-  const protectedRoutes = ['Dashboard', 'Portfolio'];
-
   // if the user is logged in and tries to access login/register pages, return him to dashboard
-  if (store.getters.isAuthenticated && openRoutes.includes(to.name)) {
-    next('/dashboard');
+  if (!store.getters.isAuthenticated) {
+    if (PROTECTED_ROUTES.includes(to.name)) {
+      next('/login');
+    } else {
+      next();
+    }
+  } else if (PUBLIC_ROUTES.includes(to.name)) {
+    next(false);
+  } else {
+    next();
   }
-
-  if (protectedRoutes.includes(to.name) && !store.getters.isAuthenticated) {
-    next('/login');
-  }
-  next();
 });
 
 export default router;

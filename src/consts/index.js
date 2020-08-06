@@ -1,3 +1,5 @@
 const AUTH_COOKIE_NAME = 'ath_dash';
+const PUBLIC_ROUTES = ['Login', 'Register', 'Landing', 'ResetPassword'];
+const PROTECTED_ROUTES = ['Dashboard', 'Portfolio', 'Settings', 'Notifications'];
 
-export default AUTH_COOKIE_NAME;
+export { AUTH_COOKIE_NAME, PUBLIC_ROUTES, PROTECTED_ROUTES };
