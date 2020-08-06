@@ -9,6 +9,7 @@ import {
   logout,
   resetPassword,
   changePassword,
+  getStockHistoryData,
 } from '../api';
 import { isValidJwt } from '../utils';
 import { getCookie, setCookie } from '../utils/cookie';
@@ -24,6 +25,7 @@ const getDefaultState = function () {
     userData: {},
     remember: false,
     loggedIn: false,
+    loading: false,
     jwt: {
       access_token: getCookie(AUTH_COOKIE_NAME) || null,
     },
@@ -90,6 +92,9 @@ const actions = {
   },
   submitNewPortfolio(context, portfolio) {
     return createNewPortfolio(portfolio, context.state.jwt.access_token);
+  },
+  getStockHistoryData(context, params) {
+    return getStockHistoryData(params, context.state.jwt.access_token);
   },
 };
 

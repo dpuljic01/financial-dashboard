@@ -15,6 +15,14 @@ class IEXUrl:
             raise Exception("Symbol is required")
         return self.make(f"/v1/stock/{symbol}/quote/{field}") if field else self.make(f"/v1/stock/{symbol}/quote")
 
+    def symbols(self):
+        return self.make("/v1/ref-data/symbols")
+
+    def search(self, symbol):
+        if not symbol:
+            raise Exception("Symbol is required")
+        return self.make(f"/v1/search/{symbol}")
+
 
 class IEXFinanceApi:
     def __init__(self):
@@ -47,6 +55,16 @@ class IEXFinanceApi:
 
     def get_stock_quote(self, ticker):
         resp = requests.get(self.url.quote(str(ticker)), params={"token": self.token})
+        resp.raise_for_status()
+        return resp.json()
+
+    def list_symbols(self):
+        resp = requests.get(self.url.symbols(), params={"token": self.token})
+        resp.raise_for_status()
+        return resp.json()
+
+    def search_symbol(self, symbol):
+        resp = requests.get(self.url.search(symbol), params={"token": self.token})
         resp.raise_for_status()
         return resp.json()
 

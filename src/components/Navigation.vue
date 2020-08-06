@@ -1,7 +1,7 @@
 <template>
   <div>
-    <md-app md-mode="reveal">
-      <md-app-toolbar md-elevation="1" md-align="center" class="md-primary">
+    <md-app>
+      <md-app-toolbar md-align="center" class="md-primary">
         <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
           <md-icon>menu</md-icon>
         </md-button>
@@ -19,7 +19,7 @@
         </md-toolbar>
 
         <md-list>
-          <md-list-item to="home" @click="toggleMenu">
+          <md-list-item to="dashboard" @click="toggleMenu">
             <md-icon>dashboard</md-icon>
             <span class="md-list-item-text">Dashboard</span>
           </md-list-item>
@@ -50,7 +50,8 @@
           </md-menu>
         </md-list>
       </md-app-drawer>
-      <md-app-content class="page-container">
+      <md-app-content>
+        <progress-bar v-if="this.$store.state.loading === true"></progress-bar>
         <router-view></router-view>
       </md-app-content>
     </md-app>
@@ -60,9 +61,13 @@
 <script>
 import AUTH_COOKIE_NAME from '../consts';
 import { removeCookie } from '../utils/cookie';
+import ProgressBar from './charts/ProgressBar.vue';
 
 export default {
   name: 'Navigation',
+  components: {
+    ProgressBar,
+  },
   data() {
     return {
       menuVisible: false,
@@ -90,8 +95,5 @@ export default {
 <style scoped>
 .md-drawer {
   max-width: 250px;
-}
-.md-menu.md-button {
-  height: 100%;
 }
 </style>

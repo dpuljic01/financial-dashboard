@@ -24,7 +24,6 @@ Vue.use(Toasted, {
   duration: 5000,
   type: 'success',
 });
-
 Vue.component('navigation', Navigation);
 
 new Vue({ // eslint-disable-line no-new

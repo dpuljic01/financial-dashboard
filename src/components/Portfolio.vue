@@ -13,7 +13,7 @@
         <md-button class="md-icon" @click="open = false">close</md-button>
       </md-dialog-title>
       <md-steppers :md-active-step.sync="active" md-linear>
-        <md-step id="first" md-label="Basic information" :md-error="firstStepError" :md-done.sync="first">
+        <md-step id="first" md-label="Info" :md-error="firstStepError" :md-done.sync="first">
           <md-field>
             <label for="portfolioName">Portfolio name</label>
             <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
