@@ -38,6 +38,12 @@ export default {
             },
           },
           displayColors: false,
+          mode: 'index',
+          intersect: false,
+        },
+        hover: {
+          mode: 'index',
+          intersect: false,
         },
         scales: {
           xAxes: [

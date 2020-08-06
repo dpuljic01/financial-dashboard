@@ -33,19 +33,20 @@
             <md-icon>notifications_none</md-icon>
             <span class="md-list-item-text">Notifications</span>
           </md-list-item>
-          <md-menu md-size="small" :md-offset-x="200" :md-offset-y="-120" class="md-button">
-            <md-list-item md-menu-trigger>
+
+          <md-menu :md-offset-x="200" :md-offset-y="-110">
+            <md-list-item @click="toggleSubmenu" md-menu-trigger>
               <md-icon>person_outline</md-icon>
               <span class="md-list-item-text">Profile</span>
               <md-icon>keyboard_arrow_right</md-icon>
             </md-list-item>
             <md-menu-content>
-              <md-list-item to="settings" class="md-alignment-center-center" @click="toggleMenu">
+              <md-menu-item to="settings" @click="toggleMenu">
                 Settings
-              </md-list-item>
-              <md-list-item @click="logout">
+              </md-menu-item>
+              <md-menu-item @click="logout">
                 Logout
-              </md-list-item>
+              </md-menu-item>
             </md-menu-content>
           </md-menu>
         </md-list>
@@ -59,8 +60,6 @@
 </template>
 
 <script>
-import AUTH_COOKIE_NAME from '../consts';
-import { removeCookie } from '../utils/cookie';
 import ProgressBar from './charts/ProgressBar.vue';
 
 export default {
@@ -71,6 +70,7 @@ export default {
   data() {
     return {
       menuVisible: false,
+      submenuVisible: false,
       title: this.$route.name,
     };
   },
@@ -82,11 +82,15 @@ export default {
         this.title = this.$route.name;
       }
     },
-    logout() {
-      this.$store.dispatch('logout').then(() => {
-        removeCookie(AUTH_COOKIE_NAME);
-        this.$router.replace('/login');
-      });
+    toggleSubmenu() {
+      this.submenuVisible = !this.submenuVisible;
+    },
+    async logout() {
+      this.$store.state.loading = true;
+      this.menuVisible = false;
+      await this.$store.dispatch('logout');
+      this.$store.dispatch('resetState');
+      this.$router.replace('/login');
     },
   },
 };

@@ -1,10 +1,21 @@
 <template>
   <div id="app">
-    <navigation v-if="this.$route.name !== 'Login' && this.$route.name !== 'Register'" />
+    <navigation v-if="protectedRoutes.includes(this.$route.name)" />
     <router-view v-else></router-view>
   </div>
 </template>
 
+<script>
+import { PROTECTED_ROUTES } from './consts';
+
+export default {
+  data() {
+    return {
+      protectedRoutes: PROTECTED_ROUTES,
+    };
+  },
+};
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

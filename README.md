@@ -1,17 +1,17 @@
 # Masters Thesis - Financial Dashboard
 
-Insert some description here :)
+NOTE: this is still WIP, here is the [LIVE DEMO](https://dp-finance.herokuapp.com/) of the current progress.
 
 
-# Server
+## Server
 
-## Project setup
+### Project setup
 
 ```
 pip install -r requirements.txt
 ```
 
-## Run
+### Run
 ```
 flask run
 
@@ -20,16 +20,16 @@ or
 python manage.py runserver
 ```
 
-# Client
+## Client
 
-## Project setup
+### Project setup
 ```
 npm install
 ```
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+npm start
 ```
 
 ### Compiles and minifies for production
@@ -52,7 +52,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
     ```bash
     heroku config:set SECRET_KEY=not-so-secret
-    heroku config:set FLASK_APP=autoapp.py
+    heroku config:set FLASK_APP=wsgi.py
     ```
 
 * Deploy on Heroku by pushing to the `heroku` branch or some other branch you created
@@ -64,8 +64,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 * Running the app
 
     - *locally* -> `python manage.py runserver`
-    - *staging* -> `heroku run python manage.py runserver --app financial-dashboard-stage`
-    - *production* -> `heroku run python manage.py runserver --app financial-dashboard-prod`
+    - *production* -> `heroku run python manage.py runserver --app app_name`
 
-* Create user manually
+* Create user manually (these are automatically verified, no need for email confirmation)
     - `heroku run python manage.py create_user --app app_name`
