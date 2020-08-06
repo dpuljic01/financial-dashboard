@@ -102,7 +102,7 @@ export default {
         .dispatch('login', { email: this.email, password: this.password })
         .then(() => {
           this.loading = false;
-          if (this.$store.state.loggedIn) this.$router.push('/home');
+          if (this.$store.state.loggedIn) this.$router.push('/dashboard');
         })
         .catch(() => {
           this.loading = false;

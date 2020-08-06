@@ -4,8 +4,8 @@
 @include md-register-theme(
   'default',
   (
-    primary: md-get-palette-color(blue, 900),
-    accent: md-get-palette-color(teal, 700),
+    primary: #116468,
+    accent:rgb(0, 170, 173),
     theme: "light",
   )
 );
@@ -16,12 +16,28 @@
 // @import 'vue-material/dist/components/MdToolbar/theme'; // Apply the Toolbar theme
 // @import 'vue-material/dist/components/MdIcon/theme'; // Apply the Toolbar theme
 
+$positive: 'rgb(0,154,128)';
+$negative: 'rgb(200, 60, 90)';
+$primary: #116468;
+$accent: rgb(0, 170, 173);
+
 .dp-primary {
-  color: #0D47A1;
+  color: $primary;
+  /* color: #0D47A1; */
+}
+
+.dp-primary-dark {
+  color: #0a383a;
+  /* color: #0D47A1; */
+}
+
+.toasted.toasted-primary .action {
+  color: black;
+  font-weight: 900;
 }
 
 .dp-accent {
-  color: rgb(0,77,64);
+  color: $accent;
 }
 
 .dp-bg-warning {

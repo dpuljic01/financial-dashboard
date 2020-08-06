@@ -49,4 +49,6 @@ def register_blueprints(app):
 
     for blueprint in blueprints:
         app.register_blueprint(blueprint.bp)
-    app.register_blueprint(client_bp)
+
+    if app.config.get("SHOULD_PROXY", False):
+        app.register_blueprint(client_bp)

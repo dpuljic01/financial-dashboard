@@ -22,7 +22,6 @@ pandas-datareader
 alpha_vantage
 redis
 cryptography
-quandl
 numpy
 sklearn
 yfinance

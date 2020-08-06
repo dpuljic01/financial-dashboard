@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from '../components/Home.vue';
+import Dashboard from '../components/Dashboard.vue';
 import NotFound from '../components/NotFound.vue';
 import Landing from '../components/Landing.vue';
 import Login from '../components/Login.vue';
@@ -20,7 +20,7 @@ const router = new Router({
     {
       path: '/',
       redirect: {
-        path: '/home',
+        path: '/dashboard',
       },
     },
     {
@@ -29,20 +29,22 @@ const router = new Router({
       component: Landing,
     },
     {
-      path: '/home',
-      name: 'Home',
-      component: Home,
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: Dashboard,
       props: { title: 'Dashboard' },
     },
     {
       path: '/login',
       name: 'Login',
       component: Login,
+      props: { title: 'Dashboard' },
     },
     {
       path: '/register',
       name: 'Register',
       component: Register,
+      props: { title: 'Dashboard' },
     },
     {
       path: '/portfolio',
@@ -77,11 +79,11 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   const openRoutes = ['Login', 'Register', 'Landing', 'ResetPassword'];
-  const protectedRoutes = ['Home', 'Portfolio'];
+  const protectedRoutes = ['Dashboard', 'Portfolio'];
 
-  // if the user is logged in and tries to access login/register pages, return him to home
+  // if the user is logged in and tries to access login/register pages, return him to dashboard
   if (store.getters.isAuthenticated && openRoutes.includes(to.name)) {
-    next('/home');
+    next('/dashboard');
   }
 
   if (protectedRoutes.includes(to.name) && !store.getters.isAuthenticated) {

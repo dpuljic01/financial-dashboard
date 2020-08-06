@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <navigation />
+    <navigation v-if="this.$route.name !== 'Login' && this.$route.name !== 'Register'" />
+    <router-view v-else></router-view>
   </div>
 </template>
 
@@ -13,11 +14,5 @@
 }
 #app .md-app {
   min-height: 100vh;
-}
-.md-drawer {
-  max-width: 250px;
-}
-.md-menu.md-button {
-  height: 100%;
 }
 </style>
