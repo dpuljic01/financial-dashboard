@@ -92,13 +92,22 @@ const actions = {
     });
   },
   submitNewPortfolio(context, portfolio) {
-    return createNewPortfolio(portfolio, context.state.jwt.access_token);
+    return createNewPortfolio(portfolio, context.state.jwt.access_token).then((resp) => {
+      console.log(resp);
+      context.dispatch('successMessage');
+    });
   },
   getStockHistoryData(context, params) {
     return getStockHistoryData(params, context.state.jwt.access_token);
   },
   resetState(context) {
     context.commit('resetState');
+  },
+  successMessage(context, message = 'Saved') {
+    Vue.toasted.show(message, { type: 'success', duration: 1500 });
+  },
+  errorMessage(context, message = "Something's wrong") {
+    Vue.toasted.show(message, { type: 'error', duration: 1500 });
   },
 };
 

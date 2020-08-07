@@ -23,7 +23,7 @@ export default {
   },
   data() {
     return {
-      symbols: ['es=f', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f'], // most popular market indexes
+      symbols: ['^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f'], // most popular market indexes
       trendData: [],
       interval: '5m',
       options: {
@@ -110,7 +110,7 @@ export default {
     },
     nameFromSymbol(symbol) {
       const mapping = {
-        'es=f': 'S&P 500',
+        '^gspc': 'S&P 500',
         '^dji': 'DOW 30',
         '^ixic': 'NASDAQ',
         '^rut': 'Russell 2000',

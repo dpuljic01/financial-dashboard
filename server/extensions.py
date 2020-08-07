@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask import jsonify
+from flask_caching import Cache
 
 from server.helpers.blacklist_tokens import BlacklistTokens
 
@@ -14,6 +15,7 @@ mail = Mail()
 babel = Babel()
 cors = CORS()
 jwt = JWTManager()
+cache = Cache()
 
 
 @jwt.unauthorized_loader  # override default "msg" key to be "message"

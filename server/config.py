@@ -13,6 +13,9 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CACHE_TYPE = "simple"  # Flask-Caching related configs
+    CACHE_DEFAULT_TIMEOUT = 300  # 5min
+
     FINANCIAL_DASHBOARD_FE_URL = os.getenv("FINANCIAL_DASHBOARD_FE_URL", "http://127.0.0.1:8080")
     # limit for free keys: (5 API requests per minute; 500 API requests per day)
     ALPHA_VANTAGE_API_URL = os.getenv("ALPHA_VANTAGE_API_URL", "https://www.alphavantage.co")
@@ -59,7 +62,7 @@ class DevelopmentConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
     FLASK_ENV = "development"
-    MAIL_SUPPRESS_SEND = True
+    # MAIL_SUPPRESS_SEND = True
 
 
 class TestingConfig(Config):

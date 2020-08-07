@@ -14,7 +14,10 @@ class Portfolio(db.Model, TimestampMixin):
 
     user = db.relationship("User", back_populates="portfolios")
     stocks = db.relationship("Stock", secondary="portfolio_stocks")
-    purchases = db.relationship("Purchase", backref="porfolio", uselist=True)
+    purchases = db.relationship("Purchase", backref="portfolio", uselist=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def json(self):
@@ -44,7 +47,7 @@ class Stock(db.Model, TimestampMixin):
         }
 
 
-class Purchase(db.Model, TimestampMixin):  # this will hold all the purchases user made for stocks (which portfolio, which stock, at what price)
+class Purchase(db.Model, TimestampMixin):  # all user purchases (which portfolio, which stock, at what price)
     id = db.Column(db.Integer(), db.Sequence("purchases_id_seq"), primary_key=True)
     portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), nullable=False)
     stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False)

@@ -34,8 +34,10 @@ export function savePortfolioResponse(portfolioResponse) {
   return Vue.axios.put(`${API_URL}/users/self/portfolios/${portfolioResponse.id}/`, portfolioResponse);
 }
 
-export function createNewPortfolio(portfolio) {
-  return Vue.axios.post(`${API_URL}/users/self/portfolios`, portfolio);
+export function createNewPortfolio(portfolio, accessToken) {
+  return Vue.axios.post(`${API_URL}/users/self/portfolios`, portfolio, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 }
 
 export function getStockHistoryData(params, accessToken) {

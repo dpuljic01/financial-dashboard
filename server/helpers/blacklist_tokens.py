@@ -22,7 +22,11 @@ class BlacklistTokensImpl:
             we will consider the token to be revoked, for safety purposes.
         """
         jti = decrypted_token['jti']
-        entry = self.revoked_store.get(jti)
+        entry = ('false', False)
+        try:
+            entry = self.revoked_store.get(jti)
+        except:
+            pass
 
         if entry is None:
             return True

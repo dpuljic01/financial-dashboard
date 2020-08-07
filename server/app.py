@@ -24,6 +24,7 @@ def register_extensions(app):
     from server.extensions import babel
     from server.extensions import cors
     from server.extensions import jwt
+    from server.extensions import cache
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -34,6 +35,7 @@ def register_extensions(app):
                   resources={r"/api/*": {"origins": "*"}},
                   supports_credentials=True)
     jwt.init_app(app)
+    cache.init_app(app)
 
     # Return validation errors as JSON
     @app.errorhandler(422)
