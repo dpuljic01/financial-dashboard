@@ -6,6 +6,7 @@ import VueCookies from 'vue-cookies';
 import VueMaterial from 'vue-material';
 import 'vue-material/dist/vue-material.min.css';
 import 'vue-material/dist/theme/default.css';
+import VueSimpleAlert from 'vue-simple-alert';
 
 import App from './App.vue';
 import router from './router';
@@ -19,6 +20,7 @@ Vue.use(Vuex);
 Vue.use(VueAxios, axios);
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
+Vue.use(VueSimpleAlert);
 Vue.use(Toasted, {
   router,
   duration: 5000,
@@ -26,7 +28,8 @@ Vue.use(Toasted, {
 });
 Vue.component('navigation', Navigation);
 
-new Vue({ // eslint-disable-line no-new
+// eslint-disable-next-line
+new Vue({
   el: '#app',
   router,
   store,

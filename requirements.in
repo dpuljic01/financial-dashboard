@@ -28,3 +28,4 @@ yfinance
 webargs
 flask-jwt-extended
 iexfinance
+flask-caching

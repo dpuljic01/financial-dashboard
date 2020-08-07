@@ -52,7 +52,7 @@
         </md-list>
       </md-app-drawer>
       <md-app-content>
-        <progress-bar v-if="this.$store.state.loading === true"></progress-bar>
+        <progress-bar class="progress-bar" v-if="this.$store.state.loading === true"></progress-bar>
         <router-view></router-view>
       </md-app-content>
     </md-app>

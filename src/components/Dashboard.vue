@@ -1,17 +1,25 @@
 <template>
   <div>
     <trend-chart></trend-chart>
+    <portfolio v-if="portfolios.length === 0"></portfolio>
   </div>
 </template>
 
 <script>
 // import Vue from 'vue';
 import TrendChart from './charts/TrendChart.vue';
+import Portfolio from './Portfolio.vue';
 
 export default {
   name: 'Dashboard',
   components: {
     TrendChart,
+    Portfolio,
+  },
+  data() {
+    return {
+      portfolios: this.$store.state.portfolios,
+    };
   },
   // created() {
   //   if (this.$store.state.portfolios.length === 0) {

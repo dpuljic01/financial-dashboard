@@ -5,6 +5,7 @@
       md-label="Create your first portfolio"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
     >
+      <!--<md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>-->
       <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
     </md-empty-state>
     <md-dialog :md-active.sync="open">
@@ -12,7 +13,25 @@
         >Create portfolio
         <md-button class="md-icon" @click="open = false">close</md-button>
       </md-dialog-title>
-      <md-steppers :md-active-step.sync="active" md-linear>
+      <md-dialog-content>
+        <form novalidate @submit.prevent="submit">
+          <md-field>
+            <label for="portfolioName">Portfolio name</label>
+            <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
+          </md-field>
+          <p class="dp-error" v-if="!valid">Must have at least two characters</p>
+
+          <md-field>
+            <label>Additional info (Optional)</label>
+            <md-textarea v-model="info"></md-textarea>
+          </md-field>
+          <md-dialog-actions>
+            <md-button class="md-raised" @click="open = false">Cancel</md-button>
+            <md-button class="md-raised md-primary" type="submit">Save</md-button>
+          </md-dialog-actions>
+        </form>
+      </md-dialog-content>
+      <!-- <md-steppers :md-active-step.sync="active" md-linear>
         <md-step id="first" md-label="Info" :md-error="firstStepError" :md-done.sync="first">
           <md-field>
             <label for="portfolioName">Portfolio name</label>
@@ -56,7 +75,7 @@
           </p>
           <md-button class="md-raised" @click="onConfirm()">Looks good!</md-button>
         </md-step>
-      </md-steppers>
+      </md-steppers> -->
     </md-dialog>
   </div>
 </template>
@@ -67,55 +86,80 @@ export default {
   data() {
     return {
       open: false,
-      active: 'first',
-      first: false,
-      second: false,
-      third: false,
-      value: null,
       portfolioName: '',
       info: '',
-      secondStepError: null,
-      firstStepError: null,
-      msg: {
-        portfolioName: false,
-      },
+      valid: false,
     };
   },
+  methods: {
+    async createPortfolio() {
+      this.open = false;
+      this.$store.state.loading = true;
+      await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
+      this.portfolioName = '';
+      this.info = '';
+    },
+    submit() {
+      if (this.valid) {
+        this.createPortfolio();
+      }
+    },
+    validName(value) {
+      return value.length > 1;
+    },
+  },
+  // data() {
+  //   return {
+  //     open: false,
+  //     active: 'first',
+  //     first: false,
+  //     second: false,
+  //     third: false,
+  //     value: null,
+  //     portfolioName: '',
+  //     info: '',
+  //     secondStepError: null,
+  //     firstStepError: null,
+  //     msg: {
+  //       portfolioName: false,
+  //     },
+  //   };
+  // },
   watch: {
     portfolioName: {
       handler: function portfolioName(value) {
         this.portfolioName = value;
-        this.msg.portfolioName = !this.validName(value);
+        this.valid = this.validName(value);
       },
     },
   },
-  methods: {
-    validName(value) {
-      return value.length > 1;
-    },
-    setDone(id, index) {
-      if (this[id] === 'first') {
-        if (this.portfolioName === '') {
-          this.msg.portfolioName = '';
-        }
-      }
-      this[id] = true;
-      if (index) {
-        this.active = index;
-      }
-      if (this.third) {
-        // here dispatch portfolio creation
-      }
-      this.secondStepError = null;
-    },
-    setError() {
-      this.secondStepError = 'This is an error!';
-    },
-    onConfirm() {
-      this.setDone('third');
-      this.open = false;
-    },
-  },
+  // methods: {
+  //   validName(value) {
+  //     return value.length > 1;
+  //   },
+  //   setDone(id, index) {
+  //     if (this[id] === 'first') {
+  //       if (this.portfolioName === '') {
+  //         this.msg.portfolioName = '';
+  //       }
+  //     }
+  //     this[id] = true;
+  //     if (index) {
+  //       this.active = index;
+  //     }
+  //     if (this.third) {
+  //       // here dispatch portfolio creation
+  //     }
+  //     this.secondStepError = null;
+  //   },
+  //   setError() {
+  //     this.secondStepError = 'This is an error!';
+  //   },
+  //   onConfirm() {
+  //     this.setDone('third');
+  //     this.open = false;
+  //   },
+  // },
 };
 </script>
 <style scoped>

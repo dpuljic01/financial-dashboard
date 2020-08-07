@@ -40,16 +40,17 @@ def get_portfolio(name):
 @jwt_required
 @check_confirmed
 @use_kwargs({
-    "name": fields.String(required=True, validate=validate.Length(min=1, max=255))
+    "name": fields.String(required=True, validate=validate.Length(min=1, max=255)),
+    "info": fields.String(),
 })
 def create_portfolio(**payload):
     current_identity = get_jwt_identity()
 
     portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
     if portfolio:
-        jsonify({"message": "Portfolio with that name already exists."}), 409
+        return jsonify({"message": "Portfolio with that name already exists."}), 409
 
-    portfolio = Portfolio(name=payload["name"], user_id=current_identity)
+    portfolio = Portfolio(name=payload["name"], user_id=current_identity, info=payload["info"])
     db.session.add(portfolio)
     db.session.commit()
     return jsonify(portfolio.json), 201

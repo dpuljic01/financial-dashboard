@@ -3,6 +3,7 @@ from server.apis.iex import IEXFinance
 from server.apis.yfinance import fetch_stock_history
 from webargs.flaskparser import use_args
 from webargs import fields
+from server.extensions import cache
 
 bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
 
@@ -14,6 +15,7 @@ def iex_stock_quote(symbol):
 
 
 @bp.route("/yfinance", methods=["GET"])
+@cache.cached(timeout=50, key_prefix="quote_history")
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
@@ -21,7 +23,7 @@ def iex_stock_quote(symbol):
     "start": fields.Str(missing=None),
     "end": fields.Str(missing=None),
 }, location="query")
-def yfinance_stock_quote(args):
+def yfinance_quote_history(args):
     history = fetch_stock_history(
         tickers=args["symbols"],
         period=args["period"],
