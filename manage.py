@@ -66,5 +66,42 @@ def populate_stocks():
     print("Done!")
 
 
+@manager.command
+def populate_tickers():
+    """
+    Populate mongo db collection with all the symbols
+    This will be done only once (or more if needed)
+    I'm doing this due to limited API calls on free IEX account,
+    and also to save some space in my Heroku postgresql DB, since they have limit of 10k rows for the DB :(
+    """
+    import pymongo
+    from pymongo import TEXT
+    from server.mongo_db import mongo_db
+    from server.apis.iex import IEXFinance
+
+    tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
+    tickers_collection.drop()  # drop old data to repopulate it with fresh data
+
+    tickers = IEXFinance.list_symbols()
+    tickers_collection.insert_many([ticker for ticker in tickers])
+    indexes = tickers_collection.list_indexes()
+    if "SymbolIndex" in indexes:
+        print("Done! Index already present.")
+        return
+    tickers_collection.create_index(
+        [
+            ("symbol", TEXT),
+            ("name", TEXT),
+        ],
+        weights={
+            "symbol": 10,
+            "name": 1
+        },
+        name="SymbolIndex",
+    )
+
+    print("Done!")
+
+
 if __name__ == "__main__":
     manager.run()

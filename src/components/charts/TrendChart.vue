@@ -45,6 +45,7 @@ export default {
           mode: 'index',
           intersect: false,
         },
+        events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove', 'touchend'],
         scales: {
           xAxes: [
             {

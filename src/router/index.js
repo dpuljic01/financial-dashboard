@@ -21,7 +21,7 @@ const router = new Router({
     {
       path: '/',
       redirect: {
-        path: '/dashboard',
+        path: '/landing',
       },
     },
     {
@@ -79,6 +79,9 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   // if the user is logged in and tries to access login/register pages, return him to dashboard
+  // if the user is just coming to the site it will redirect him to /landing
+  // if the user is not logged in and tries to access protected route (e.g dashboard), redirect him to /login
+  // in every other case take him to the path he requested
   if (!store.getters.isAuthenticated) {
     if (PROTECTED_ROUTES.includes(to.name)) {
       next('/login');
@@ -86,7 +89,7 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else if (PUBLIC_ROUTES.includes(to.name)) {
-    next(false);
+    next('/dashboard');
   } else {
     next();
   }

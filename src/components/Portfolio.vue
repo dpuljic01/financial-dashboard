@@ -1,7 +1,7 @@
 <template>
   <div>
-    <md-empty-state
-      md-icon="post_add"
+    <md-empty-state v-if="!hasPortfolios"
+      :md-icon="icon"
       md-label="Create your first portfolio"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
     >
@@ -89,6 +89,8 @@ export default {
       portfolioName: '',
       info: '',
       valid: false,
+      icon: this.$route.name === 'Portfolio' ? 'post_add' : '',
+      hasPortfolios: this.$store.getters.hasPortfolios,
     };
   },
   methods: {

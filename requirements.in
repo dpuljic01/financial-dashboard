@@ -29,3 +29,5 @@ webargs
 flask-jwt-extended
 iexfinance
 flask-caching
+flask-pymongo
+dnspython

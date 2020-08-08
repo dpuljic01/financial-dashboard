@@ -63,8 +63,8 @@ class IEXFinanceApi:
         resp.raise_for_status()
         return resp.json()
 
-    def search_symbol(self, symbol):
-        resp = requests.get(self.url.search(symbol), params={"token": self.token})
+    def search(self, q):
+        resp = requests.get(self.url.search(q), params={"token": self.token})
         resp.raise_for_status()
         return resp.json()
 

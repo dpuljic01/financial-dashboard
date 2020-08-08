@@ -1,16 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import {
-  fetchPortoflios,
-  fetchPortoflio,
-  createNewPortfolio,
-  login,
-  register,
-  logout,
-  resetPassword,
-  changePassword,
-  getStockHistoryData,
-} from '../api';
+import * as api from '../api';
 import { isValidJwt } from '../utils';
 import { getCookie, setCookie, removeCookie } from '../utils/cookie';
 import { AUTH_COOKIE_NAME } from '../consts';
@@ -21,8 +11,8 @@ Vue.use(Vuex);
 const getDefaultState = function() {
   return {
     // single source of data
-    portfolios: [],
-    currentPortfolio: {},
+    portfolios: localStorage.getItem('_portfolios') || [],
+    currentPortfolio: localStorage.getItem('_portfolio') || {},
     userData: {},
     remember: false,
     loggedIn: false,
@@ -30,7 +20,7 @@ const getDefaultState = function() {
     jwt: {
       access_token: getCookie(AUTH_COOKIE_NAME) || null,
     },
-    confirmed: false,
+    shouldRefresh: false,
   };
 };
 
@@ -38,20 +28,18 @@ const state = getDefaultState();
 
 const actions = {
   // asynchronous operations
-  loadPortoflios(context) {
-    return fetchPortoflios().then((response) => {
+  loadPortfolios(context) {
+    return api.fetchPortfolios(context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolios', { portfolios: response.data });
     });
   },
-  loadPortfolio(context, { id }) {
-    return fetchPortoflio(id).then((response) => {
+  loadPortfolio(context, id) {
+    return api.fetchPortfolio(id, context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolio', { portfolio: response.data });
     });
   },
   login(context, userData) {
-    state.userData = userData;
-    context.commit('setUserData', { userData });
-    return login(userData)
+    return api.login(userData)
       .then((response) => {
         context.commit('setJwtToken', { jwt: response.data });
         if (state.remember) {
@@ -65,8 +53,13 @@ const actions = {
         context.commit('resetState');
       });
   },
+  getCurrentUser(context) {
+    return api.getUser(state.jwt.access_token).then((response) => {
+      context.commit('setUserData', { user: response.data });
+    });
+  },
   logout(context) {
-    return logout(context.state.jwt.access_token)
+    return api.logout(context.state.jwt.access_token)
       .then(() => {
         context.commit('resetState');
       })
@@ -76,29 +69,31 @@ const actions = {
   },
   register(context, userData) {
     context.commit('setUserData', { userData });
-    return register(userData).then(() => {
+    return api.register(userData).then(() => {
       Vue.toasted.show('Check your email to finish setting up your account.', { type: 'success' });
     });
   },
   resetPassword(context, payload) {
-    return resetPassword(payload).then(() => {
+    return api.resetPassword(payload).then(() => {
       Vue.toasted.show('Check your email to set up a new password', { type: 'success' });
     });
   },
   changePassword(context, payload) {
-    return changePassword(payload).then(() => {
+    return api.changePassword(payload).then(() => {
       context.commit('resetState');
       Vue.toasted.show('You can now log in');
     });
   },
   submitNewPortfolio(context, portfolio) {
-    return createNewPortfolio(portfolio, context.state.jwt.access_token).then((resp) => {
-      console.log(resp);
+    return api.createNewPortfolio(portfolio, context.state.jwt.access_token).then(() => {
       context.dispatch('successMessage');
     });
   },
   getStockHistoryData(context, params) {
-    return getStockHistoryData(params, context.state.jwt.access_token);
+    return api.getStockHistoryData(params, context.state.jwt.access_token);
+  },
+  search(context, params) {
+    return api.search(params, context.state.jwt.access_token);
   },
   resetState(context) {
     context.commit('resetState');
@@ -116,14 +111,17 @@ const mutations = {
   setPortfolios(state, payload) {
     state.portfolios = payload.portfolios;
   },
+  setCurrentPortfolio(state, payload) {
+    state.currentPortfolio = payload.portfolio;
+  },
   setUserData(state, payload) {
-    state.userData = payload.userData;
+    state.userData = payload.user;
   },
   setJwtToken(state, payload) {
     state.jwt = payload.jwt;
   },
   resetState(state) {
-    // Merge rather than replace so we don't lose observers
+    localStorage.clear();
     removeCookie(AUTH_COOKIE_NAME);
     Object.assign(state, getDefaultState());
   },
@@ -133,6 +131,9 @@ const getters = {
   // reusable data accessors
   isAuthenticated(state) {
     return isValidJwt(state.jwt.access_token);
+  },
+  hasPortfolio(state) {
+    return state.portfolios.length > 0;
   },
 };
 
