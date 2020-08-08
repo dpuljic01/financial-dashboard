@@ -26,7 +26,7 @@ class Config:
     # QUANDL_API_KEY = os.getenv("QUANDL_API_KEY")
 
     # unlimited mocked data, 50k messages/mo on production (free plan)
-    IEX_BASE_URL = os.getenv("IEX_BASE_URL", "https://sandbox.iexapis.com/")  # prod https://cloud.iexapis.com/v1/
+    IEX_BASE_URL = os.getenv("IEX_BASE_URL", "https://sandbox.iexapis.com/")  # prod https://cloud.iexapis.com/
     IEX_TOKEN = os.getenv("IEX_TOKEN")
 
     # Flask-Mail SMTP server settings
@@ -52,6 +52,7 @@ class Config:
         raise Exception("DIST_DIR not found: {}".format(DIST_DIR))
 
     SHOULD_PROXY = bool(int(os.getenv("SHOULD_PROXY", "1")))
+    MONGO_DB_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
 
 
 class ProductionConfig(Config):

@@ -1,7 +1,7 @@
 <template>
   <div>
     <md-app>
-      <md-app-toolbar md-align="center" class="md-primary">
+      <md-app-toolbar class="md-primary">
         <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
           <md-icon>menu</md-icon>
         </md-button>
@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import ProgressBar from './charts/ProgressBar.vue';
+import ProgressBar from './ProgressBar.vue';
 
 export default {
   name: 'Navigation',

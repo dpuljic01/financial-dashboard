@@ -1,7 +1,8 @@
 <template>
   <div>
+    <search />
     <trend-chart></trend-chart>
-    <portfolio v-if="portfolios.length === 0"></portfolio>
+    <portfolio v-if="!hasPortfolios"></portfolio>
   </div>
 </template>
 
@@ -9,16 +10,18 @@
 // import Vue from 'vue';
 import TrendChart from './charts/TrendChart.vue';
 import Portfolio from './Portfolio.vue';
+import Search from './Search.vue';
 
 export default {
   name: 'Dashboard',
   components: {
     TrendChart,
     Portfolio,
+    Search,
   },
   data() {
     return {
-      portfolios: this.$store.state.portfolios,
+      hasPortfolios: this.$store.getters.hasPortfolios,
     };
   },
   // created() {

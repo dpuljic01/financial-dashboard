@@ -1,21 +1,37 @@
-from flask import Blueprint, jsonify
+import json
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+import pymongo
+from bson.json_util import dumps
+from flask import Blueprint, jsonify, request
+from webargs import fields
+from webargs.flaskparser import use_args
+
 from server.apis.iex import IEXFinance
 from server.apis.yfinance import fetch_stock_history
-from webargs.flaskparser import use_args
-from webargs import fields
+from server.decorators import check_confirmed
 from server.extensions import cache
+from server.mongo_db import mongo_db
 
 bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
 
 
+def make_cache_key(*args, **kwargs):
+    return request.url
+
+
 @bp.route("/iex/<string:symbol>", methods=["GET"])
+@jwt_required
+@check_confirmed
 def iex_stock_quote(symbol):
     quote = IEXFinance.get_stock_quote(symbol)
     return jsonify(quote)
 
 
 @bp.route("/yfinance", methods=["GET"])
-@cache.cached(timeout=50, key_prefix="quote_history")
+@jwt_required
+@check_confirmed
+# @cache.cached(timeout=60, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
@@ -24,6 +40,7 @@ def iex_stock_quote(symbol):
     "end": fields.Str(missing=None),
 }, location="query")
 def yfinance_quote_history(args):
+    current_identity = get_jwt_identity()
     history = fetch_stock_history(
         tickers=args["symbols"],
         period=args["period"],
@@ -34,16 +51,41 @@ def yfinance_quote_history(args):
     return jsonify(history)
 
 
-@bp.route("/symbols", methods=["GET"])
+@bp.route("/iex/symbols", methods=["GET"])
+@jwt_required
+@check_confirmed
 def list_iex_cloud_symbols():
     symbols = IEXFinance.list_symbols()
     return jsonify(symbols)
 
 
-@bp.route("/symbols/search", methods=["GET"])
+# this search calls iex api
+@bp.route("/iex/symbols/search", methods=["GET"])
 @use_args({
-    "symbol": fields.Str(required=True),
+    "q": fields.Str(required=True),
 }, location="query")
-def search_symbol(args):
-    symbol = IEXFinance.search_symbol(args["symbol"])
+def search_iex_companies(args):
+    symbol = IEXFinance.search(args["q"])
     return jsonify(symbol)
+
+
+# this search queries mongo_db
+@bp.route("/search", methods=["GET"])
+@use_args({
+    "q": fields.Str(required=True),
+}, location="query")
+def aggregate_search_mongodb(args):
+    q = args["q"]
+    tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
+    symbols = tickers_collection.aggregate([{
+        "$match":
+            {
+                "$or": [
+                    {"symbol": {"$regex": f"^{q}", "$options": "$i"}},
+                    {"name": {"$regex": f"^{q}", "$options": "$i"}},
+                ]
+            },
+        },
+        {"$limit": 5}
+    ])
+    return jsonify(json.loads(dumps(symbols)))

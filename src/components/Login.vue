@@ -97,12 +97,13 @@ export default {
     auth() {
       // callout to login user
       this.loading = true;
-      this.$store.state.remember = true;
+      this.$store.state.remember = this.remember;
       this.$store
         .dispatch('login', { email: this.email, password: this.password })
         .then(() => {
           this.loading = false;
-          if (this.$store.state.loggedIn) this.$router.push('/dashboard');
+          this.$store.dispatch('getCurrentUser');
+          this.$router.push('/dashboard');
         })
         .catch(() => {
           this.loading = false;

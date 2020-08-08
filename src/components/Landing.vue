@@ -1,7 +1,7 @@
 <template>
   <div id="landing" class="dp-bg1">
     <md-empty-state
-      class="md-accent"
+      class="md-primary"
       md-icon="attach_money"
       md-label="Financial Dashboard"
       md-description="We evaluate and analyze your investment portfolio,

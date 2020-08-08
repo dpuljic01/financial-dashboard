@@ -15,11 +15,6 @@ def get_uuid():
 
 
 class User(db.Model, TimestampMixin):
-    """
-    User model.
-    `account_type`: `basic` and `premium`, also `admin`, but not sure about that yet. It"s `basic` by default
-    `status`: by default inactive, becomes active after email confirmation
-    """
     __tablename__ = "users"
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid4)
@@ -65,8 +60,7 @@ class User(db.Model, TimestampMixin):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
-            "confirmed": self.confirmed,
-            "last_logged_in": self.last_logged_in,
+            "portfolios": [portfolio.json for portfolio in self.portfolios],
         }
 
     def __repr__(self):
