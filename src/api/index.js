@@ -3,7 +3,7 @@ import Vue from 'vue';
 const API_URL = process.env.VUE_APP_API_URL;
 
 export function getUser(accessToken) {
-  return Vue.axios.get(`${API_URL}/users/self/`, { headers: { Authorization: `Bearer ${accessToken}` } });
+  return Vue.axios.get(`${API_URL}/users/self`, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
 export function login(userData) {

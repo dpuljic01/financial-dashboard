@@ -4,15 +4,16 @@
       class="search"
       v-model="selectedLabel"
       :md-options="getSanitizedLabels"
-      @md-changed="getTickers"
+      @input="getTickers"
       @md-selected="onSelect"
       md-layout="box"
       md-dense
+      autocomplete="off"
     >
       <label>Search for symbols or companies</label>
 
       <template slot="md-autocomplete-item" slot-scope="{ item, term }">
-        <md-highlight-text :md-term="term">{{ item.Symbol }}  -  {{ item.Name }}</md-highlight-text>
+        <md-highlight-text :md-term="term">{{ item.Symbol }} - {{ item.Name }}</md-highlight-text>
       </template>
     </md-autocomplete>
   </div>
@@ -22,13 +23,13 @@
 export default {
   name: 'Search',
   data: () => ({
-    selectedLabel: [],
-    searchTerm: '',
+    selectedLabel: '',
     tickers: [],
     value: '',
   }),
   methods: {
     async getTickers(q) {
+      this.$emit('input', this.selectedLabel);
       this.$store.dispatch('search', { q }).then((resp) => {
         const results = [];
         if (!resp || !resp.data) {

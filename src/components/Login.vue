@@ -50,7 +50,7 @@
           </form>
         </md-dialog-content>
       </md-dialog>
-      <div class="loading-overlay" v-if="loading">
+      <div class="loading-overlay" v-if="this.$store.state.loading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -67,7 +67,6 @@ export default {
     return {
       showDialog: false,
       resetEmail: '',
-      loading: false,
       error: '',
       remember: false,
       email: '',
@@ -94,31 +93,26 @@ export default {
     validPassword(value) {
       return value.length >= 8;
     },
-    auth() {
+    async auth() {
       // callout to login user
-      this.loading = true;
+      this.$store.state.loading = true;
       this.$store.state.remember = this.remember;
-      this.$store
-        .dispatch('login', { email: this.email, password: this.password })
-        .then(() => {
-          this.loading = false;
-          this.$store.dispatch('getCurrentUser');
-          this.$router.push('/dashboard');
-        })
-        .catch(() => {
-          this.loading = false;
-        });
+      await this.$store.dispatch('login', { email: this.email, password: this.password });
+      if (this.$store.state.loggedIn) {
+        this.$router.push('/dashboard');
+        this.$store.dispatch('getCurrentUser');
+      }
     },
     sendResetEmail() {
-      this.loading = true;
+      this.$store.state.loading = true;
       this.showDialog = false;
       this.$store
         .dispatch('resetPassword', { email: this.resetEmail })
         .then(() => {
-          this.loading = false;
+          this.$store.state.loading = false;
         })
         .catch(() => {
-          this.loading = false;
+          this.$store.state.loading = false;
           this.showDialog = true;
         });
     },
