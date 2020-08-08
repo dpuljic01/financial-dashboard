@@ -18,7 +18,7 @@
         <md-button class="md-raised md-primary" @click="reset">Confirm</md-button>
       </form>
 
-      <div class="loading-overlay" v-if="loading">
+      <div class="loading-overlay" v-if="this.$store.state.loading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -33,7 +33,6 @@ export default {
   },
   data() {
     return {
-      loading: false,
       password: '',
       msg: 'Must be at least 8 characters long',
     };
@@ -52,18 +51,13 @@ export default {
         this.msg = '';
       }
     },
-    reset() {
+    async reset() {
       // callout to login user
-      this.loading = true;
-      this.$store
-        .dispatch('changePassword', { token: this.passwordToken, password: this.password })
-        .then(() => {
-          this.loading = false;
-          this.$router.push('/login');
-        })
-        .catch(() => {
-          this.loading = false;
-        });
+      this.$store.state.loading = true;
+      this.$store.dispatch('changePassword', { token: this.passwordToken, password: this.password }).then(() => {
+        this.$store.state.loading = false;
+        this.$router.push('/login');
+      });
     },
     onSubmit() {
       if (this.msg === '') {

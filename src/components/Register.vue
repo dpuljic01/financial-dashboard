@@ -34,7 +34,7 @@
         </p>
       </form>
 
-      <div class="loading-overlay" v-if="loading">
+      <div class="loading-overlay" v-if="this.$store.state.loading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -49,7 +49,6 @@ export default {
   data() {
     return {
       firstClick: true,
-      loading: false,
       email: '',
       firstName: '',
       lastName: '',
@@ -85,17 +84,14 @@ export default {
     validName(value) {
       return value.length > 1;
     },
-    save() {
+    async save() {
       // callout to login user
-      this.loading = true; // move this globally probably, for all components to use it
-      this.$store
-        .dispatch('register', { first_name: this.firstName, last_name: this.lastName, email: this.email })
-        .then(() => {
-          this.loading = false;
-        })
-        .catch(() => {
-          this.loading = false;
-        });
+      this.$store.state.loading = true; // move this globally probably, for all components to use it
+      await this.$store.dispatch('register', {
+        first_name: this.firstName,
+        last_name: this.lastName,
+        email: this.email,
+      });
     },
     onSubmit() {
       const valid = !this.msg.email && !this.msg.firstName && !this.msg.lastName;

@@ -51,6 +51,7 @@ const actions = {
       })
       .catch(() => {
         context.commit('resetState');
+        state.loggedIn = false;
       });
   },
   getCurrentUser(context) {

@@ -12,7 +12,7 @@ from types import SimpleNamespace
 bp = Blueprint("profile", __name__, url_prefix="/api/users/self")
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 @jwt_required
 @check_confirmed  # this absolutely **must** come after @jwt_required decorator
 def get_user():

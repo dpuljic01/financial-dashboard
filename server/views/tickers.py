@@ -31,7 +31,7 @@ def iex_stock_quote(symbol):
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-# @cache.cached(timeout=60, key_prefix=make_cache_key)
+@cache.cached(timeout=60, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
@@ -75,14 +75,13 @@ def search_iex_companies(args):
     "q": fields.Str(required=True),
 }, location="query")
 def aggregate_search_mongodb(args):
-    q = args["q"]
     tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
     symbols = tickers_collection.aggregate([{
         "$match":
             {
                 "$or": [
-                    {"symbol": {"$regex": f"^{q}", "$options": "$i"}},
-                    {"name": {"$regex": f"^{q}", "$options": "$i"}},
+                    {"symbol": {"$regex": f"^{args['q']}", "$options": "$i"}},
+                    {"name": {"$regex": f"^{args['q']}", "$options": "$i"}},
                 ]
             },
         },
