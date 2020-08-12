@@ -24,9 +24,9 @@
             <span class="md-list-item-text">Dashboard</span>
           </md-list-item>
 
-          <md-list-item to="portfolio" @click="toggleMenu">
+          <md-list-item to="portfolios" @click="toggleMenu">
             <md-icon>pie_chart</md-icon>
-            <span class="md-list-item-text">Portfolio</span>
+            <span class="md-list-item-text">Portfolios</span>
           </md-list-item>
 
           <md-list-item to="notifications" @click="toggleMenu">

@@ -2,7 +2,7 @@
   <div>
     <search />
     <trend-chart></trend-chart>
-    <portfolio v-if="!hasPortfolios"></portfolio>
+    <portfolio v-if="!hasPortfolio"></portfolio>
   </div>
 </template>
 
@@ -21,7 +21,7 @@ export default {
   },
   data() {
     return {
-      hasPortfolios: this.$store.getters.hasPortfolios,
+      hasPortfolio: this.$store.getters.hasPortfolio,
     };
   },
   // created() {

@@ -8,7 +8,6 @@
       @md-selected="onSelect"
       md-layout="box"
       md-dense
-      autocomplete="off"
     >
       <label>Search for symbols or companies</label>
 

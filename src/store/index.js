@@ -11,9 +11,7 @@ Vue.use(Vuex);
 const getDefaultState = function() {
   return {
     // single source of data
-    portfolios: localStorage.getItem('_portfolios') || [],
-    currentPortfolio: localStorage.getItem('_portfolio') || {},
-    userData: {},
+    userData: JSON.parse(localStorage.getItem('_currentUser')) || {},
     remember: false,
     loggedIn: false,
     loading: false,
@@ -39,7 +37,8 @@ const actions = {
     });
   },
   login(context, userData) {
-    return api.login(userData)
+    return api
+      .login(userData)
       .then((response) => {
         context.commit('setJwtToken', { jwt: response.data });
         if (state.remember) {
@@ -60,7 +59,8 @@ const actions = {
     });
   },
   logout(context) {
-    return api.logout(context.state.jwt.access_token)
+    return api
+      .logout(context.state.jwt.access_token)
       .then(() => {
         context.commit('resetState');
       })
@@ -116,6 +116,7 @@ const mutations = {
     state.currentPortfolio = payload.portfolio;
   },
   setUserData(state, payload) {
+    localStorage.setItem('_currentUser', JSON.stringify(payload.user));
     state.userData = payload.user;
   },
   setJwtToken(state, payload) {
@@ -134,7 +135,13 @@ const getters = {
     return isValidJwt(state.jwt.access_token);
   },
   hasPortfolio(state) {
-    return state.portfolios.length > 0;
+    return state.userData.portfolios.length > 0;
+  },
+  getPortfolios(state) {
+    if (!state.userData.portfolios.length > 0) {
+      return false;
+    }
+    return state.userData.portfolios;
   },
 };
 

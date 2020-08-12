@@ -6,7 +6,7 @@ import Landing from '../components/Landing.vue';
 import Login from '../components/Login.vue';
 import Register from '../components/Register.vue';
 import ResetPassword from '../components/ResetPassword.vue';
-import Portfolio from '../components/Portfolio.vue';
+import MyPortfolios from '../components/MyPortfolios.vue';
 import Notifications from '../components/Notifications.vue';
 import Settings from '../components/Settings.vue';
 import store from '../store';
@@ -48,10 +48,10 @@ const router = new Router({
       props: { title: 'Dashboard' },
     },
     {
-      path: '/portfolio',
-      name: 'Portfolio',
-      component: Portfolio,
-      props: { title: 'Portfolio' },
+      path: '/portfolios',
+      name: 'MyPortfolios',
+      component: MyPortfolios,
+      props: { title: 'MyPortfolios' },
     },
     {
       path: '/notifications',
