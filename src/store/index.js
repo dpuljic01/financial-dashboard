@@ -12,8 +12,9 @@ const getDefaultState = function() {
   return {
     // single source of data
     userData: JSON.parse(localStorage.getItem('_currentUser')) || {},
+    portfolios: [],
+    searchedSymbol: null,
     remember: false,
-    loggedIn: false,
     loading: false,
     jwt: {
       access_token: getCookie(AUTH_COOKIE_NAME) || null,
@@ -36,12 +37,12 @@ const actions = {
       context.commit('setPortfolio', { portfolio: response.data });
     });
   },
-  login(context, userData) {
+  login(context, userData, remember) {
     return api
       .login(userData)
       .then((response) => {
         context.commit('setJwtToken', { jwt: response.data });
-        if (state.remember) {
+        if (remember) {
           setCookie(AUTH_COOKIE_NAME, state.jwt.access_token, '30d');
         } else {
           setCookie(AUTH_COOKIE_NAME, state.jwt.access_token);
@@ -96,6 +97,11 @@ const actions = {
   search(context, params) {
     return api.search(params, context.state.jwt.access_token);
   },
+  addSymbol(context, payload) {
+    return api.addSymbol(payload, context.state.jwt.access_token).then(() => {
+      context.dispatch('getCurrentUser');
+    });
+  },
   resetState(context) {
     context.commit('resetState');
   },
@@ -127,6 +133,9 @@ const mutations = {
     removeCookie(AUTH_COOKIE_NAME);
     Object.assign(state, getDefaultState());
   },
+  setLoading(state, bool) {
+    state.loading = bool;
+  },
 };
 
 const getters = {
@@ -135,13 +144,25 @@ const getters = {
     return isValidJwt(state.jwt.access_token);
   },
   hasPortfolio(state) {
+    if (!state.userData.portfolios) {
+      return false;
+    }
     return state.userData.portfolios.length > 0;
   },
   getPortfolios(state) {
+    if (!state.userData.portfolios) {
+      return [];
+    }
     if (!state.userData.portfolios.length > 0) {
-      return false;
+      return [];
     }
     return state.userData.portfolios;
+  },
+  searchedSymbol(state) {
+    return state.searchedSymbol;
+  },
+  isLoading(state) {
+    return state.loading;
   },
 };
 

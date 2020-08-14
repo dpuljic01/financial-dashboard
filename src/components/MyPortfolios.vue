@@ -11,18 +11,17 @@
         </md-field>
       </md-table-toolbar>
 
-      <md-table-empty-state md-label="No portfolios found">
-        <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
-      </md-table-empty-state>
-
       <md-table-row slot="md-table-row" slot-scope="{ item }">
         <md-table-cell md-label="Name" md-sort-by="name">{{ item.name }}</md-table-cell>
-        <md-table-cell md-label="Holdings">{{ item.holdings.length }}</md-table-cell>
-        <md-table-cell md-label="Worth (USD)">{{
-          calculatePortfolioValue(item.holdings)
-        }}</md-table-cell>
+        <md-table-cell md-label="Holdings">{{ item.stocks.length }}</md-table-cell>
+        <md-table-cell md-label="Shares">{{ item.holdings.length }}</md-table-cell>
+        <md-table-cell md-label="Worth (USD)">{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
       </md-table-row>
     </md-table>
+    <md-empty-state v-if="searched.length == 0" md-label="No portfolios found">
+      <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
+    </md-empty-state>
+
     <md-dialog :md-active.sync="open" :md-fullscreen="false">
       <md-dialog-title
         >Create portfolio
@@ -78,8 +77,11 @@ export default {
   methods: {
     async createPortfolio() {
       this.open = false;
-      this.$store.state.loading = true;
+      this.$store.commit('setLoading', true);
       await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
+      await this.$store.dispatch('getCurrentUser');
+      this.portfolios = this.$store.getters.getPortfolios;
+      this.searched = this.portfolios;
       this.portfolioName = '';
       this.info = '';
     },

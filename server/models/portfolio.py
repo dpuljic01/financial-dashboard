@@ -1,20 +1,28 @@
 from server.extensions import db
-from sqlalchemy import Numeric
+from sqlalchemy import Numeric, Table
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from server.models.mixin import TimestampMixin
+from sqlalchemy import (
+    ForeignKeyConstraint,
+    UniqueConstraint,
+)
 
 
 class Portfolio(db.Model, TimestampMixin):
     __tablename__ = "portfolio"
 
     id = db.Column(db.Integer(), db.Sequence("portfolio_id_seq"), primary_key=True)
-    name = db.Column(db.String(50), nullable=True, server_default="Default")
+    name = db.Column(db.String(50), nullable=False, server_default="Default")
     info = db.Column(db.Text())
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = db.relationship("User", back_populates="portfolios")
-    stocks = db.relationship("Stock", secondary="portfolio_stocks")
+    stocks = db.relationship("Stock", secondary="portfolio_stocks", backref="portfolio")
     holdings = db.relationship("Holding", backref="portfolio", uselist=True)
+
+    __table_args__ = (
+        UniqueConstraint("name", name="uq_portfolio_name"),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,6 +30,7 @@ class Portfolio(db.Model, TimestampMixin):
     @property
     def json(self):
         return {
+            "id": self.id,
             "name": self.name,
             "holdings": [holding.json for holding in self.holdings],
             "stocks": [stock.json for stock in self.stocks],
@@ -32,11 +41,16 @@ class Stock(db.Model, TimestampMixin):
     __tablename__ = "stocks"
 
     id = db.Column(db.Integer(), db.Sequence("stocks_id_seq"), primary_key=True)
-    ticker = db.Column(db.String(15), unique=True)
+    ticker = db.Column(db.String(15))
     short_name = db.Column(db.String(255))   
     info = db.Column(JSONB)
 
-    history = db.relationship("StockHistory", backref="stock", uselist=True)
+    __table_args__ = (
+        UniqueConstraint("ticker", name="uq_stocks_ticker"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def json(self):
@@ -68,21 +82,20 @@ class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, 
         }
 
 
-class StockHistory(db.Model):
-    id = db.Column(db.Integer(), db.Sequence("stock_history_id_seq"), primary_key=True)
-    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"))
-    date = db.Column(db.DateTime())
-    close = db.Column(Numeric)
-    open = db.Column(Numeric)
-    high = db.Column(Numeric)
-    low = db.Column(Numeric)
-    dividends = db.Column(Numeric)
-    volume = db.Column(Numeric)
+# class StockHistory(db.Model):
+#     id = db.Column(db.Integer(), db.Sequence("stock_history_id_seq"), primary_key=True)
+#     stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"))
+#     date = db.Column(db.DateTime())
+#     close = db.Column(Numeric)
+#     open = db.Column(Numeric)
+#     high = db.Column(Numeric)
+#     low = db.Column(Numeric)
+#     dividends = db.Column(Numeric)
+#     volume = db.Column(Numeric)
 
 
 class PortfolioStocks(db.Model):
     __tablename__ = "portfolio_stocks"
 
-    id = db.Column(db.Integer(), primary_key=True)
-    portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"))
-    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"))
+    portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), primary_key=True)
+    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), primary_key=True)

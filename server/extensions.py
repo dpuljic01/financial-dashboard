@@ -1,3 +1,5 @@
+from sqlalchemy import MetaData
+
 from flask_babelex import Babel
 from flask_cors import CORS
 from flask_mail import Mail
@@ -9,7 +11,13 @@ from flask_caching import Cache
 
 from server.helpers.blacklist_tokens import BlacklistTokens
 
-db = SQLAlchemy()
+convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+}
+
+db = SQLAlchemy(metadata=MetaData(naming_convention=convention))
 migrate = Migrate()
 mail = Mail()
 babel = Babel()

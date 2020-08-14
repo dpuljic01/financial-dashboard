@@ -52,7 +52,7 @@
         </md-list>
       </md-app-drawer>
       <md-app-content>
-        <progress-bar class="progress-bar" v-if="this.$store.state.loading === true"></progress-bar>
+        <progress-bar class="progress-bar" v-if="this.$store.getters.isLoading"></progress-bar>
         <router-view></router-view>
       </md-app-content>
     </md-app>
@@ -86,7 +86,7 @@ export default {
       this.submenuVisible = !this.submenuVisible;
     },
     async logout() {
-      this.$store.state.loading = true;
+      this.$store.commit('setLoading', true);
       this.menuVisible = false;
       await this.$store.dispatch('logout');
       this.$store.dispatch('resetState');

@@ -34,7 +34,7 @@
         </p>
       </form>
 
-      <div class="loading-overlay" v-if="this.$store.state.loading">
+      <div class="loading-overlay" v-if="this.$store.getters.isLoading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -86,7 +86,7 @@ export default {
     },
     async save() {
       // callout to login user
-      this.$store.state.loading = true; // move this globally probably, for all components to use it
+      this.$store.commit('setLoading', true);
       await this.$store.dispatch('register', {
         first_name: this.firstName,
         last_name: this.lastName,

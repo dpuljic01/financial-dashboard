@@ -59,3 +59,12 @@ export function search(params, accessToken) {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
+
+export function addSymbol(data, accessToken) {
+  return Vue.axios({
+    method: 'post',
+    url: `${API_URL}/portfolios/${data.portfolio}/symbols`,
+    headers: { Authorization: `Bearer ${accessToken}` },
+    data: data.payload,
+  });
+}

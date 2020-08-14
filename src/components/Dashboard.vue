@@ -2,7 +2,16 @@
   <div>
     <search />
     <trend-chart></trend-chart>
-    <portfolio v-if="!hasPortfolio"></portfolio>
+    <portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>
+    <md-empty-state
+      v-else
+      md-icon="post_add"
+      md-label="Create your first portfolio"
+      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
+    >
+      <!--<md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>-->
+      <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
+    </md-empty-state>
   </div>
 </template>
 
@@ -21,35 +30,16 @@ export default {
   },
   data() {
     return {
-      hasPortfolio: this.$store.getters.hasPortfolio,
+      hasPortfolio: true,
+      portfolio: [],
     };
   },
-  // created() {
-  //   if (this.$store.state.portfolios.length === 0) {
-  //     Vue.toasted.show('Set up your first portfolio. ', {
-  //       position: 'bottom-center',
-  //       duration: null, // forever
-  //       icon: 'error',
-  //       type: 'error',
-  //       after: true,
-  //       action: [
-  //         {
-  //           text: 'Close',
-  //           onClick: (e, toast) => {
-  //             toast.goAway(0);
-  //           },
-  //         },
-  //         {
-  //           text: 'Setup',
-  //           className: 'dp-accent',
-  //           push: {
-  //             name: 'Portfolio',
-  //           },
-  //         },
-  //       ],
-  //     });
-  //   }
-  // },
+  async mounted() {
+    this.$store.commit('setLoading', true);
+    await this.$store.dispatch('getCurrentUser');
+    this.hasPortfolio = this.$store.getters.hasPortfolio;
+    this.portfolio = this.$store.getters.getPortfolios;
+  },
 };
 </script>
 

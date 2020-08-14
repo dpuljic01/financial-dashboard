@@ -6,11 +6,9 @@
       :md-options="getSanitizedLabels"
       @input="getTickers"
       @md-selected="onSelect"
-      md-layout="box"
-      md-dense
+      :md-layout="searchLayout"
     >
-      <label>Search for symbols or companies</label>
-
+      <label>Search for symbols</label>
       <template slot="md-autocomplete-item" slot-scope="{ item, term }">
         <md-highlight-text :md-term="term">{{ item.Symbol }} - {{ item.Name }}</md-highlight-text>
       </template>
@@ -21,6 +19,12 @@
 <script>
 export default {
   name: 'Search',
+  props: {
+    searchLayout: {
+      type: String,
+      default: 'box',
+    },
+  },
   data: () => ({
     selectedLabel: '',
     tickers: [],
@@ -46,7 +50,7 @@ export default {
     },
     onSelect(ticker) {
       this.symbol = ticker.Symbol;
-      console.log(this.symbol);
+      this.$emit('search', { symbol: ticker.Symbol, short_name: ticker.Name });
     },
   },
   computed: {

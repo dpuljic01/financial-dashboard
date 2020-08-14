@@ -1,5 +1,3 @@
-from datetime import datetime
-from decimal import Decimal
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields, validate
@@ -99,3 +97,22 @@ def create_portfolio_holding(**payload):
     db.session.add(holding_db)
     db.session.commit()
     return jsonify(portfolio.json), 201
+
+
+@bp.route("/symbols", methods=["POST"])
+@jwt_required
+@check_confirmed
+@use_kwargs({
+    "portfolio": fields.String(required=True),
+    "symbol": fields.String(required=True),
+    "short_name": fields.String(),
+})
+def add_symbol():
+    current_identity = get_jwt_identity()
+    portfolio = Portfolio.query.filter_by(user_id=current_identity, name=portfolio).first_or_404()
+    stock_db = Stock(
+        ticker = payload["symbol"],
+        short_name = payload["short_name"],   
+    )
+    db.session.add(stock_db)
+    db.session.commit()

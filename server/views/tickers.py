@@ -8,7 +8,8 @@ from webargs import fields
 from webargs.flaskparser import use_args
 
 from server.apis.iex import IEXFinance
-from server.apis.yfinance import fetch_stock_history
+from server.apis.yfinance import fetch_stock_history, fetch_stock_info
+from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
 from server.extensions import cache
 from server.mongo_db import mongo_db
@@ -28,10 +29,19 @@ def iex_stock_quote(symbol):
     return jsonify(quote)
 
 
+@bp.route("/yfinance/<string:symbol>", methods=["GET"])
+@jwt_required
+@check_confirmed
+@cache.cached(timeout=300, key_prefix=make_cache_key)
+def yf_stock_quote(symbol):
+    quote = fetch_stock_info(symbol)
+    return jsonify(quote)
+
+
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=60, key_prefix=make_cache_key)
+@cache.cached(timeout=300, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
@@ -88,3 +98,20 @@ def aggregate_search_mongodb(args):
         {"$limit": 5}
     ])
     return jsonify(json.loads(dumps(symbols)))
+
+
+@bp.route("/alpha-timeseries", methods=["GET"])
+@jwt_required
+@check_confirmed
+@cache.cached(timeout=30, key_prefix=make_cache_key)
+@use_args({
+    "function": fields.Str(required=True),
+    "interval": fields.Str(),
+    "symbol": fields.Str(required=True),
+    "start": fields.Str(missing=None),
+    "end": fields.Str(missing=None),
+}, location="query")
+def alpha_vantage_info(args):
+    current_identity = get_jwt_identity()
+    resp = AlphaVantage.fetch_data(args)
+    return jsonify(resp)
