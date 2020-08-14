@@ -50,7 +50,7 @@
           </form>
         </md-dialog-content>
       </md-dialog>
-      <div class="loading-overlay" v-if="this.$store.state.loading">
+      <div class="loading-overlay" v-if="this.$store.getters.isLoading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -95,26 +95,17 @@ export default {
     },
     async auth() {
       // callout to login user
-      this.$store.state.loading = true;
-      this.$store.state.remember = this.remember;
-      await this.$store.dispatch('login', { email: this.email, password: this.password });
+      this.$store.commit('setLoading', true);
+      await this.$store.dispatch('login', { email: this.email, password: this.password }, this.remember);
       if (this.$store.state.loggedIn) {
         this.$router.push('/dashboard');
         this.$store.dispatch('getCurrentUser');
       }
     },
-    sendResetEmail() {
-      this.$store.state.loading = true;
+    async sendResetEmail() {
+      this.$store.commit('setLoading', true);
       this.showDialog = false;
-      this.$store
-        .dispatch('resetPassword', { email: this.resetEmail })
-        .then(() => {
-          this.$store.state.loading = false;
-        })
-        .catch(() => {
-          this.$store.state.loading = false;
-          this.showDialog = true;
-        });
+      await this.$store.dispatch('resetPassword', { email: this.resetEmail });
     },
     onModalSubmit() {
       if (!this.msg.resetEmail) {

@@ -45,25 +45,21 @@ const router = new Router({
       path: '/register',
       name: 'Register',
       component: Register,
-      props: { title: 'Dashboard' },
     },
     {
       path: '/portfolios',
-      name: 'MyPortfolios',
+      name: 'Portfolios',
       component: MyPortfolios,
-      props: { title: 'MyPortfolios' },
     },
     {
       path: '/notifications',
       name: 'Notifications',
       component: Notifications,
-      props: { title: 'Notifications' },
     },
     {
       path: '/settings',
       name: 'Settings',
       component: Settings,
-      props: { title: 'Settings' },
     },
     {
       path: '/reset/:passwordToken',

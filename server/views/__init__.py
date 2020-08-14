@@ -1,11 +1,13 @@
 from server.views import (
     auth,
-    profile,
+    portfolio,
+    user,
     tickers
 )
 
 blueprints = (
     auth,
-    profile,
+    portfolio,
+    user,
     tickers
 )

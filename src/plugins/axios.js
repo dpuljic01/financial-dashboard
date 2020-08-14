@@ -7,7 +7,7 @@ axios.defaults.withCredentials = true;
 // doing something with the response
 axios.interceptors.response.use(
   (response) => {
-    store.state.loading = false;
+    store.commit('setLoading', false);
     return response;
   },
   (error) => {
@@ -33,7 +33,7 @@ axios.interceptors.response.use(
     if (message !== 'Error') {
       Vue.toasted.show(message, { type: 'error' });
     }
-    store.state.loading = false;
+    store.commit('setLoading', false);
     return Promise.reject(error);
   },
 );

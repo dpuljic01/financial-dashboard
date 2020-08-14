@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!this.$store.state.loading">
+  <div v-if="!this.$store.getters.isLoading">
     <h3>Market summary</h3>
     <div class="futures">
       <div class="md-content md-elevation-2" v-for="(value, index) in trendData" :key="index">
@@ -25,8 +25,12 @@ export default {
     return {
       symbols: ['^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f'], // most popular market indexes
       trendData: [],
-      interval: '5m',
+      interval: '15m',
       options: {
+        animation: {
+          duration: 0, // general animation time
+        },
+        responsiveAnimationDuration: 0, // animation duration after a resize
         legend: { display: false },
         tooltips: {
           callbacks: {
@@ -34,7 +38,7 @@ export default {
               return '';
             },
             label(tooltipItem, data) {
-              return data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+              return data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
             },
           },
           displayColors: false,
@@ -42,6 +46,7 @@ export default {
           intersect: false,
         },
         hover: {
+          animationDuration: 0, // duration of animations when hovering an item
           mode: 'index',
           intersect: false,
         },
@@ -51,6 +56,12 @@ export default {
             {
               gridLines: { display: false },
               ticks: { display: false },
+              type: 'time',
+              time: {
+                unit: 'minute',
+                stepSize: 15,
+              },
+              distribution: 'series',
             },
           ],
           yAxes: [
@@ -68,18 +79,18 @@ export default {
   },
   methods: {
     async fetchStockHistory() {
-      this.$store.state.loading = true;
+      this.$store.commit('setLoading', true);
       this.trendData = [];
       const resp = await this.$store.dispatch('getStockHistoryData', {
         symbols: this.symbols.join(),
         interval: this.interval,
       });
-      this.$store.state.loading = false;
       const keys = Object.keys(resp.data);
       const values = Object.values(resp.data);
       for (let i = 0; i < keys.length; i += 1) {
         this.setTrendData(keys[i], values[i]);
       }
+      this.$store.commit('setLoading', false);
     },
     setTrendData(symbol, symbolData) {
       const keys = Object.keys(symbolData);
@@ -91,15 +102,18 @@ export default {
       }
       const data = [];
       for (let i = 0; i < keys.length; i += 1) {
-        data.push(values[i].Open);
+        const item = {
+          x: keys[i] * 1000,
+          y: values[i].Open,
+        };
+        data.push(item);
       }
-      const positiveTrend = data[0] < data[data.length - 1];
+      const positiveTrend = data[0].y < data[data.length - 1].y;
       this.trendData.push({
-        labels: new Array(keys.length),
         datasets: [
           {
             label: this.nameFromSymbol(symbol),
-            price: `$${data[data.length - 1].toString()}`, // last value is the newest
+            price: `$${data[data.length - 1].y.toString()}`, // last value is the newest
             borderColor: 'rgba(0, 0, 0, 0.5)',
             borderWidth: 1,
             backgroundColor: positiveTrend ? 'rgb(0,154,128)' : 'rgb(200, 60, 90)',
@@ -143,6 +157,11 @@ export default {
   display: flex;
   font-size: 10px;
   font-weight: 600;
+}
+
+.refresh {
+  position: absolute;
+  right: 20px;
 }
 
 ::-webkit-scrollbar {

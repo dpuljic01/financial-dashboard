@@ -18,7 +18,7 @@
         <md-button class="md-raised md-primary" @click="reset">Confirm</md-button>
       </form>
 
-      <div class="loading-overlay" v-if="this.$store.state.loading">
+      <div class="loading-overlay" v-if="this.$store.getters.isLoading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
     </md-content>
@@ -53,11 +53,9 @@ export default {
     },
     async reset() {
       // callout to login user
-      this.$store.state.loading = true;
-      this.$store.dispatch('changePassword', { token: this.passwordToken, password: this.password }).then(() => {
-        this.$store.state.loading = false;
-        this.$router.push('/login');
-      });
+      this.$store.commit('setLoading', true);
+      await this.$store.dispatch('changePassword', { token: this.passwordToken, password: this.password });
+      this.$router.push('/login');
     },
     onSubmit() {
       if (this.msg === '') {
