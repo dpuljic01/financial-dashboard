@@ -27,7 +27,9 @@
         </md-field>
         <p class="dp-error" v-if="msg.email">Invalid email address</p>
 
-        <md-button class="md-raised md-primary" type="submit" :disabled="loading">Submit</md-button>
+        <md-button class="md-raised md-primary" type="submit" :disabled="this.$store.getters.isLoading"
+          >Submit</md-button
+        >
         <p>
           Already have an account?
           <router-link to="login">Login</router-link>

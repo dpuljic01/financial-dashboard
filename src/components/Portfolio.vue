@@ -2,7 +2,7 @@
   <div>
     <div class="portfolio">
       <md-content><router-link to="portfolios">My Portfolios</router-link> / {{ portfolio.name }}</md-content>
-      <md-tabs @md-changed="onTabChange">
+      <md-tabs @md-changed="onTabChange" :md-active-tab="tabId">
         <md-tab id="tab-summary" md-label="Summary">
           <md-table v-model="stocks">
             <md-table-row slot="md-table-row" slot-scope="{ item }">
@@ -53,13 +53,6 @@
 <script>
 import Search from './Search.vue';
 
-const mapping = {
-  'tab-summary': 'Summary',
-  'tab-holdings': 'Holdings',
-  'tab-news': 'News',
-  'tab-add-symbol': 'Add symbol',
-};
-
 export default {
   name: 'Portfolio',
   props: ['portfolioId', 'portfolio'],
@@ -67,6 +60,7 @@ export default {
     Search,
   },
   data() {
+    console.log(this.portfolio);
     return {
       tabId: 'tab-summary',
       stocks: this.portfolio.stocks,
@@ -78,11 +72,6 @@ export default {
   },
   mounted() {
     this.$store.dispatch('getCurrentUser');
-  },
-  computed: {
-    title() {
-      return mapping[this.tabId];
-    },
   },
   methods: {
     async createPortfolio() {
@@ -103,19 +92,24 @@ export default {
     validName(value) {
       return value.length > 1;
     },
-    addSymbol(payload) {
+    async addSymbol(payload) {
       this.$store.commit('setLoading', true);
-      this.$store
-        .dispatch('addSymbol', {
-          portfolio: this.portfolio.name,
-          payload: {
-            symbol: payload.symbol,
-            short_name: payload.short_name,
-          },
-        })
-        .then(() => {
-          this.$store.dispatch('successMessage');
-        });
+      await this.$store.dispatch('addSymbol', {
+        portfolio: this.portfolio.name,
+        payload: {
+          symbol: payload.symbol,
+          short_name: payload.short_name,
+        },
+      });
+      this.$store.dispatch('successMessage');
+      this.updateUserDetails();
+    },
+    async updateUserDetails() {
+      this.$store.commit('setLoading', true);
+      await this.$store.dispatch('getCurrentUser');
+      const [p] = this.$store.getters.getPortfolios;
+      this.stocks = p.stocks;
+      this.tabId = 'tab-summary';
     },
   },
 };

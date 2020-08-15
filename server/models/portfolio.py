@@ -21,7 +21,7 @@ class Portfolio(db.Model, TimestampMixin):
     holdings = db.relationship("Holding", backref="portfolio", uselist=True)
 
     __table_args__ = (
-        UniqueConstraint("name", name="uq_portfolio_name"),
+        UniqueConstraint("name", "user_id", name="uq_portfolio_name_user_id"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -70,6 +70,9 @@ class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, 
     stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False)
     price = db.Column(Numeric, nullable=False)
     purchased_at = db.Column(db.DateTime(), nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def json(self):

@@ -24,7 +24,6 @@ def upgrade():
                nullable=False,
                existing_server_default=sa.text("'Default'::character varying"))
     op.create_unique_constraint('uq_portfolio_name', 'portfolio', ['name'])
-    op.drop_constraint('portfolio_name_key', 'portfolio', type_='unique')
     op.drop_constraint('portfolio_stocks_portfolio_id_fkey', 'portfolio_stocks', type_='foreignkey')
     op.drop_constraint('portfolio_stocks_stock_id_fkey', 'portfolio_stocks', type_='foreignkey')
     op.create_foreign_key(op.f('fk_portfolio_stocks_portfolio_id_portfolio'), 'portfolio_stocks', 'portfolio', ['portfolio_id'], ['id'], ondelete='CASCADE')
@@ -43,7 +42,7 @@ def downgrade():
     op.drop_constraint('uq_stocks_ticker', 'stocks', type_='unique')
     op.create_unique_constraint('roles_name_key', 'roles', ['name'])
     op.drop_constraint(op.f('uq_roles_name'), 'roles', type_='unique')
-    op.add_column('portfolio_stocks', sa.Column('id', sa.INTEGER(), autoincrement=False, nullable=False))
+    op.add_column('portfolio_stocks', sa.Column('id', sa.INTEGER(), autoincrement=False, nullable=True))
     op.drop_constraint(op.f('fk_portfolio_stocks_stock_id_stocks'), 'portfolio_stocks', type_='foreignkey')
     op.drop_constraint(op.f('fk_portfolio_stocks_portfolio_id_portfolio'), 'portfolio_stocks', type_='foreignkey')
     op.create_foreign_key('portfolio_stocks_stock_id_fkey', 'portfolio_stocks', 'stocks', ['stock_id'], ['id'])
