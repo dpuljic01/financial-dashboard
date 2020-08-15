@@ -1,11 +1,7 @@
 <template>
   <div>
-    <md-table class="md-content" v-model="searched" md-sort="name" md-sort-order="asc" md-card>
+    <md-table class="md-content" v-model="searched" md-sort="name" md-sort-order="asc">
       <md-table-toolbar>
-        <div class="md-toolbar-section-start">
-          <h1 class="md-title">My Portfolios</h1>
-        </div>
-
         <md-field md-clearable class="md-toolbar-section-end">
           <md-input placeholder="Search by name..." v-model="search" @input="searchOnTable" />
         </md-field>
@@ -18,7 +14,12 @@
         <md-table-cell md-label="Worth (USD)">{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
       </md-table-row>
     </md-table>
-    <md-empty-state v-if="searched.length == 0" md-label="No portfolios found">
+    <md-empty-state
+      v-if="searched.length == 0"
+      md-icon="post_add"
+      md-label="No portfolios found"
+      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
+    >
       <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
     </md-empty-state>
 

@@ -57,8 +57,7 @@ def logout():
         jti = get_raw_jwt()["jti"]
         BlacklistTokens.revoked_store.set(jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
     except:
-        pass
-
+        return "", 204
     return "", 204
 
 

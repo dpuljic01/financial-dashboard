@@ -1,7 +1,7 @@
 <template>
   <div v-if="!this.$store.getters.isLoading">
     <h3>Market summary</h3>
-    <div class="futures">
+    <div class="futures noselect">
       <div class="md-content md-elevation-2" v-for="(value, index) in trendData" :key="index">
         <div class="md-layout-item md-size-30">
           {{ value.datasets[0].label.toUpperCase() }}<br />
@@ -90,7 +90,6 @@ export default {
       for (let i = 0; i < keys.length; i += 1) {
         this.setTrendData(keys[i], values[i]);
       }
-      this.$store.commit('setLoading', false);
     },
     setTrendData(symbol, symbolData) {
       const keys = Object.keys(symbolData);
@@ -170,6 +169,7 @@ export default {
 
 /* Track */
 ::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   -webkit-border-radius: 10px;
   border-radius: 10px;
@@ -180,6 +180,7 @@ export default {
   -webkit-border-radius: 10px;
   border-radius: 10px;
   background: rgba(85, 85, 85, 0.8);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
 }
 ::-webkit-scrollbar-thumb:window-inactive {

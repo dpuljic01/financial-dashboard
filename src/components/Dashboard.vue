@@ -5,12 +5,11 @@
     <portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>
     <md-empty-state
       v-else
-      md-icon="post_add"
       md-label="Create your first portfolio"
-      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
     >
-      <!--<md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>-->
-      <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
+      <router-link to="portfolios">
+        <md-button class="md-primary md-raised">Go to portfolios</md-button>
+      </router-link>
     </md-empty-state>
   </div>
 </template>
@@ -30,7 +29,8 @@ export default {
   },
   data() {
     return {
-      hasPortfolio: true,
+      showEmpty: false,
+      hasPortfolio: false,
       portfolio: [],
     };
   },
@@ -38,7 +38,11 @@ export default {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
     this.hasPortfolio = this.$store.getters.hasPortfolio;
-    this.portfolio = this.$store.getters.getPortfolios;
+    if (this.hasPortfolio) {
+      const [firstPortfolio] = this.$store.getters.getPortfolios;
+      this.portfolio = firstPortfolio;
+    }
+    this.showEmpty = this.hasPortfolio || true;
   },
 };
 </script>

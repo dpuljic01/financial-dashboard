@@ -70,7 +70,6 @@ const actions = {
       }); // clear cookies even if it fails, then they will be logged out anyway
   },
   register(context, userData) {
-    context.commit('setUserData', { userData });
     return api.register(userData).then(() => {
       Vue.toasted.show('Check your email to finish setting up your account.', { type: 'success' });
     });
