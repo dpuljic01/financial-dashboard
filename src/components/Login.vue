@@ -88,6 +88,9 @@ export default {
       this.resetEmail = value;
       this.msg.resetEmail = !isValidEmail(value);
     },
+    remember(value) {
+      this.remember = value;
+    },
   },
   methods: {
     validPassword(value) {
@@ -96,7 +99,10 @@ export default {
     async auth() {
       // callout to login user
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('login', { email: this.email, password: this.password }, this.remember);
+      await this.$store.dispatch('login', {
+        remember: this.remember,
+        payload: { email: this.email, password: this.password },
+      });
       if (this.$store.state.loggedIn) {
         this.$router.push('/dashboard');
         this.$store.dispatch('getCurrentUser');

@@ -47,11 +47,10 @@ class Config:
     APP_DIR = os.path.dirname(__file__)
     ROOT_DIR = os.path.dirname(APP_DIR)
     DIST_DIR = os.path.join(ROOT_DIR, "dist")
+    SHOULD_PROXY = bool(int(os.getenv("SHOULD_PROXY", "0")))
+    if not os.path.exists(DIST_DIR) and SHOULD_PROXY:
+        raise Exception("DIST_DIR not found: {}. You should run `npm run build` first".format(DIST_DIR))
 
-    if not os.path.exists(DIST_DIR):
-        raise Exception("DIST_DIR not found: {}".format(DIST_DIR))
-
-    SHOULD_PROXY = bool(int(os.getenv("SHOULD_PROXY", "1")))
     MONGO_DB_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
 
 
