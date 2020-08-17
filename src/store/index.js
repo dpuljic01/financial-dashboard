@@ -37,12 +37,12 @@ const actions = {
       context.commit('setPortfolio', { portfolio: response.data });
     });
   },
-  login(context, userData, remember) {
+  login(context, userData) {
     return api
-      .login(userData)
+      .login(userData.payload)
       .then((response) => {
         context.commit('setJwtToken', { jwt: response.data });
-        if (remember) {
+        if (userData.remember) {
           setCookie(AUTH_COOKIE_NAME, state.jwt.access_token, '30d');
         } else {
           setCookie(AUTH_COOKIE_NAME, state.jwt.access_token);
