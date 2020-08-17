@@ -28,8 +28,6 @@ pip install -r requirements.txt
 
 ### Run
 
-<sub>I will add `.env.example` file soon so you can easily set this up locally.</sub>
-
 ```
 export FLASK_APP=wsgi.py
 flask run
@@ -94,8 +92,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 
 # Heroku
-
-<sub>NOTE: I will add `.env.example` file soon so you can easily set it up locally.</sub>
 
 * Set environmental variables (change `SECRET_KEY` value)
 
