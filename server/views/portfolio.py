@@ -7,6 +7,7 @@ from marshmallow import fields, validate
 from webargs.flaskparser import use_kwargs
 
 from server.apis.alpha_vantage import AlphaVantage
+from server.apis.iex import IEXFinance
 from server.decorators import check_confirmed
 from server.extensions import db
 from server.models import Portfolio, Holding, Stock
@@ -48,6 +49,26 @@ def create_portfolio(**payload):
 
     portfolio = Portfolio(name=payload["name"], user_id=current_identity, info=payload["info"])
     db.session.add(portfolio)
+    db.session.commit()
+    return jsonify(portfolio.json), 201
+
+
+@bp.route("/<int:portfolio_id>", methods=["PUT"])
+@jwt_required
+@check_confirmed
+@use_kwargs({
+    "name": fields.String(),
+    "info": fields.String(),
+})
+def update_portfolio(portfolio_id, **payload):
+    current_identity = get_jwt_identity()
+
+    portfolio_db = Portfolio.query.get_or_404(portfolio_id)
+    portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
+    if portfolio:
+        return jsonify({"message": "Portfolio with that name already exists."}), 409
+
+    portfolio_db.update(payload)
     db.session.commit()
     return jsonify(portfolio.json), 201
 
@@ -116,12 +137,20 @@ def add_symbol(portfolio_name, **payload):
         db.session.commit()
         return jsonify(stock_db.json), 201
 
-    params = {"function": "GLOBAL_QUOTE", "symbol": payload["symbol"]}
-    global_quote = AlphaVantage.fetch_data(params)
+    quote = IEXFinance.get_stock_quote(ticker=payload["symbol"])
+    if not quote:
+        params = {"function": "GLOBAL_QUOTE", "symbol": payload["symbol"]}
+        global_quote = AlphaVantage.fetch_data(params)
+        if 'Note' in global_quote:
+            print("AlphaVantage API limit exceeded")
+            quote = {}
+        else:
+            quote = AlphaVantage.filter_global_quote(global_quote)
+
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
-        info=AlphaVantage.filter_global_quote(global_quote),
+        info=quote,
     )
     portfolio.stocks.append(stock_db)
     db.session.add(portfolio)
