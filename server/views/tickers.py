@@ -5,13 +5,14 @@ import pymongo
 from bson.json_util import dumps
 from flask import Blueprint, jsonify, request
 from webargs import fields
-from webargs.flaskparser import use_args
+from webargs.flaskparser import use_args, use_kwargs
 
+from server.models import Stock
 from server.apis.iex import IEXFinance
 from server.apis.yfinance import fetch_stock_history, fetch_stock_info
 from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
-from server.extensions import cache
+from server.extensions import cache, db
 from server.mongo_db import mongo_db
 
 bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
@@ -19,6 +20,21 @@ bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
 
 def make_cache_key(*args, **kwargs):
     return request.url
+
+
+@bp.route("/<string:symbol>", methods=["GET"])
+@jwt_required
+@check_confirmed
+@cache.cached(timeout=300, key_prefix=make_cache_key)
+def get_stock(symbol):
+    symbol = symbol.upper()
+    stock_db = Stock.query.filter_by(ticker=symbol).first_or_404()
+
+    params = {"function": "GLOBAL_QUOTE", "symbol": symbol}
+    global_quote = AlphaVantage.fetch_data(params)
+    stock_db.info = AlphaVantage.filter_global_quote(global_quote)
+    db.session.commit()
+    return jsonify(stock_db.json)
 
 
 @bp.route("/iex/<string:symbol>", methods=["GET"])

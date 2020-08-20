@@ -8,7 +8,13 @@
             <md-table-row slot="md-table-row" slot-scope="{ item }">
               <md-table-cell md-label="Symbol" md-sort-by="symbol">{{ item.ticker }}</md-table-cell>
               <md-table-cell md-label="Name" md-sort-by="name">{{ item.short_name }}</md-table-cell>
-              <md-table-cell md-label="Price" md-sort-by="price">{{ item.info.price || 'NA' }}</md-table-cell>
+              <md-table-cell md-label="Price (USD)" md-sort-by="price">{{
+                item.info.latestPrice || item.info.price || 'NA'
+              }}</md-table-cell>
+              <md-table-cell md-label="Change (%)" md-sort-by="change">{{
+                +((item.info.change / item.info.latestPrice) * 100).toFixed(2) || 'NA'
+              }}</md-table-cell>
+              <md-table-cell md-label="Volume" md-sort-by="change">{{ item.info.volume || 'NA' }}</md-table-cell>
             </md-table-row>
           </md-table>
           <!--<portfolio-summary :stocks="stocks"></portfolio-summary>-->
@@ -60,7 +66,6 @@ export default {
     Search,
   },
   data() {
-    console.log(this.portfolio);
     return {
       tabId: 'tab-summary',
       stocks: this.portfolio.stocks,

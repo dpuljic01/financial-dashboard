@@ -46,7 +46,6 @@ def get_portfolio(name):
 })
 def create_portfolio(**payload):
     current_identity = get_jwt_identity()
-    print(current_identity)
     portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
     if portfolio:
         return jsonify({"message": "Portfolio with that name already exists."}), 409

@@ -40,6 +40,7 @@ markupsafe==1.1.1         # via jinja2, mako
 marshmallow==3.7.1        # via webargs
 multidict==4.7.6          # via aiohttp, yarl
 multitasking==0.0.9       # via yfinance
+newrelic==5.16.1.146      # via -r requirements.in
 numpy==1.19.0             # via -r requirements.in, pandas, scikit-learn, scipy, yfinance
 pandas-datareader==0.8.1  # via -r requirements.in
 pandas==1.0.5             # via -r requirements.in, iexfinance, pandas-datareader, yfinance
