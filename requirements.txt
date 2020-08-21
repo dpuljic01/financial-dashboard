@@ -12,6 +12,7 @@ attrs==19.3.0             # via aiohttp
 babel==2.8.0              # via flask-babelex
 bcrypt==3.1.7             # via -r requirements.in
 blinker==1.4              # via flask-mail
+brotli==1.0.7             # via flask-compress
 certifi==2020.6.20        # via requests
 cffi==1.14.0              # via bcrypt, cryptography
 chardet==3.0.4            # via aiohttp, requests
@@ -20,6 +21,7 @@ cryptography==2.9.2       # via -r requirements.in, pyopenssl
 dnspython==2.0.0          # via -r requirements.in
 flask-babelex==0.9.4      # via -r requirements.in
 flask-caching==1.9.0      # via -r requirements.in
+flask-compress==1.5.0     # via -r requirements.in
 flask-cors==3.0.8         # via -r requirements.in
 flask-jwt-extended==3.24.1  # via -r requirements.in
 flask-mail==0.9.1         # via -r requirements.in
@@ -27,7 +29,7 @@ flask-migrate==2.5.3      # via -r requirements.in
 flask-pymongo==2.3.0      # via -r requirements.in
 flask-script==2.0.6       # via -r requirements.in
 flask-sqlalchemy==2.4.3   # via -r requirements.in, flask-migrate
-flask==1.1.2              # via -r requirements.in, flask-babelex, flask-caching, flask-cors, flask-jwt-extended, flask-mail, flask-migrate, flask-pymongo, flask-script, flask-sqlalchemy
+flask==1.1.2              # via -r requirements.in, flask-babelex, flask-caching, flask-compress, flask-cors, flask-jwt-extended, flask-mail, flask-migrate, flask-pymongo, flask-script, flask-sqlalchemy
 gunicorn==20.0.4          # via -r requirements.in
 idna==2.9                 # via requests, yarl
 iexfinance==0.4.3         # via -r requirements.in

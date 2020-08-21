@@ -42,8 +42,9 @@ class Stock(db.Model, TimestampMixin):
 
     id = db.Column(db.Integer(), db.Sequence("stocks_id_seq"), primary_key=True)
     ticker = db.Column(db.String(15))
-    short_name = db.Column(db.String(255))   
-    info = db.Column(JSONB)
+    short_name = db.Column(db.String(255))
+    latest_market_data = db.Column(JSONB)
+    company_info = db.Column(JSONB)
 
     __table_args__ = (
         UniqueConstraint("ticker", name="uq_stocks_ticker"),
@@ -58,7 +59,8 @@ class Stock(db.Model, TimestampMixin):
             "id": self.id,
             "ticker": self.ticker,
             "short_name": self.short_name,
-            "info": self.info
+            "company_info": self.company_info,
+            "latest_market_data": self.latest_market_data
         }
 
 

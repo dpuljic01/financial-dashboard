@@ -104,22 +104,27 @@ def populate_tickers():
 
 
 @manager.command
-def update_stocks():  # this is called every 10 minutes using Heroku Scheduler add-on (cmd: python manage.py update_stocks)
+def update_stocks():
     import time
     from server.models import Stock
-    from server.apis.iex import IEXFinance
+    # from server.apis.iex import IEXFinance
+    from server.apis.yfinance import fetch_stock_history
 
     print("Updating stock information ...")
 
     start_time = time.time()
     stocks = Stock.query.all()
-    for stock in stocks:
-        quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
-        if not quote:
-            continue
-        stock.info = quote
-        db.session.commit()
-        print(f"{stock.ticker} updated")
+    tickers = [stock.ticker for stock in stocks]
+    stocks_data = fetch_stock_history(tickers=tickers, period="1d", interval="1d", include_info=True)
+    print("Fetched new information ...")
+    for k, v in stocks_data.items():
+        for stock in stocks:
+            if not stock.ticker.upper() == k.upper():
+                continue
+            stock.company_info = v["company_info"]
+            stock.latest_market_data = list(v.values())[0] 
+            db.session.commit()
+            print(f"{stock.ticker} updated")
 
     print(f"Stock update finished, elapsed time: {round(time.time() - start_time, 2)} seconds")
 

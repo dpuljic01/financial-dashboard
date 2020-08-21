@@ -48,7 +48,7 @@ def iex_stock_quote(symbol):
 @bp.route("/yfinance/<string:symbol>", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=300, key_prefix=make_cache_key)
+@cache.cached(timeout=10, key_prefix=make_cache_key)
 def yf_stock_quote(symbol):
     quote = fetch_stock_info(symbol)
     return jsonify(quote)
@@ -57,22 +57,23 @@ def yf_stock_quote(symbol):
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=300, key_prefix=make_cache_key)
+@cache.cached(timeout=60, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
     "symbols": fields.DelimitedList(fields.Str(), required=True),
     "start": fields.Str(missing=None),
     "end": fields.Str(missing=None),
+    "include_info": fields.Bool(missing=False)
 }, location="query")
 def yfinance_quote_history(args):
-    current_identity = get_jwt_identity()
     history = fetch_stock_history(
         tickers=args["symbols"],
         period=args["period"],
         interval=args["interval"],
         start=args["start"],
         end=args["end"],
+        include_info=args["include_info"]
     )
     return jsonify(history)
 

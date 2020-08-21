@@ -18,13 +18,16 @@ def create_app():
 
 
 def register_extensions(app):
-    from server.extensions import db
-    from server.extensions import migrate
-    from server.extensions import mail
-    from server.extensions import babel
-    from server.extensions import cors
-    from server.extensions import jwt
-    from server.extensions import cache
+    from server.extensions import (
+        db,
+        migrate,
+        mail,
+        babel,
+        cors,
+        jwt,
+        cache,
+        compress,
+    )
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -36,6 +39,7 @@ def register_extensions(app):
                   supports_credentials=True)
     jwt.init_app(app)
     cache.init_app(app)
+    compress.init_app(app)
 
     # Return validation errors as JSON
     @app.errorhandler(422)

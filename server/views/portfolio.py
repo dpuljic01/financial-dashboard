@@ -8,6 +8,7 @@ from webargs.flaskparser import use_kwargs
 
 from server.apis.alpha_vantage import AlphaVantage
 from server.apis.iex import IEXFinance
+from server.apis.yfinance import fetch_stock_history
 from server.decorators import check_confirmed
 from server.extensions import db
 from server.models import Portfolio, Holding, Stock
@@ -137,20 +138,23 @@ def add_symbol(portfolio_name, **payload):
         db.session.commit()
         return jsonify(stock_db.json), 201
 
-    quote = IEXFinance.get_stock_quote(ticker=payload["symbol"])
-    if not quote:
-        params = {"function": "GLOBAL_QUOTE", "symbol": payload["symbol"]}
-        global_quote = AlphaVantage.fetch_data(params)
-        if 'Note' in global_quote:
-            print("AlphaVantage API limit exceeded")
-            quote = {}
-        else:
-            quote = AlphaVantage.filter_global_quote(global_quote)
+    # quote = IEXFinance.get_stock_quote(ticker=payload["symbol"])
+    # if not quote:
+    #     params = {"function": "GLOBAL_QUOTE", "symbol": payload["symbol"]}
+    #     global_quote = AlphaVantage.fetch_data(params)
+    #     if 'Note' in global_quote:
+    #         print("AlphaVantage API limit exceeded")
+    #         quote = {}
+    #     else:
+    #         quote = AlphaVantage.filter_global_quote(global_quote)
+    data = fetch_stock_history(tickers=[payload["symbol"]], period="1d", interval="1d", include_info=True)
+    vals = list(data[payload["symbol"]].values())
 
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
-        info=quote,
+        company_info=data[payload["symbol"]].get("company_info", {}),
+        latest_market_data=vals[0]
     )
     portfolio.stocks.append(stock_db)
     db.session.add(portfolio)

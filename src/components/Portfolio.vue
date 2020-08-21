@@ -9,12 +9,17 @@
               <md-table-cell md-label="Symbol" md-sort-by="symbol">{{ item.ticker }}</md-table-cell>
               <md-table-cell md-label="Name" md-sort-by="name">{{ item.short_name }}</md-table-cell>
               <md-table-cell md-label="Price (USD)" md-sort-by="price">{{
-                item.info.latestPrice || item.info.price || 'NA'
+                item.latest_market_data.Close || 'NA'
               }}</md-table-cell>
               <md-table-cell md-label="Change (%)" md-sort-by="change">{{
-                +((item.info.change / item.info.latestPrice) * 100).toFixed(2) || 'NA'
+                +(
+                  ((item.latest_market_data.Close - item.latest_market_data.Open) / item.latest_market_data.Open) *
+                  100
+                ).toFixed(2) || 'NA'
               }}</md-table-cell>
-              <md-table-cell md-label="Volume" md-sort-by="change">{{ item.info.volume || 'NA' }}</md-table-cell>
+              <md-table-cell md-label="Volume" md-sort-by="change">{{
+                item.latest_market_data.Volume || 'NA'
+              }}</md-table-cell>
             </md-table-row>
           </md-table>
           <!--<portfolio-summary :stocks="stocks"></portfolio-summary>-->
