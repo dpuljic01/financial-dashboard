@@ -1,6 +1,6 @@
 import yfinance as yf
 import json
-
+import datetime
 from server.extensions import db
 # from server.models import StockHistory
 from server.models import Stock
@@ -9,7 +9,7 @@ from server.apis.iex import IEXFinance
 
 # probably not a smart idea to save this into DB due to database limits on Heroku free account :(
 # but I might be able to use Mongo Atlas to save only ones which user searches for.
-def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None):  # insert_into_db=False):
+def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None, include_info=False):  # insert_into_db=False):
     res = {}
 
     for ticker in tickers:
@@ -26,6 +26,11 @@ def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=Non
         # print(iex)
         history = data.history(period=period, interval=interval, start=start, end=end)
         res[ticker] = json.loads(history.to_json(orient="index"))
+        if include_info:
+            try:
+                res[ticker]["company_info"] = data.get_info()
+            except:
+                pass
 
     return res
 

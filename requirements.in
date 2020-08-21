@@ -32,3 +32,4 @@ flask-caching
 flask-pymongo
 dnspython
 newrelic
+flask-compress

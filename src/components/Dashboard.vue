@@ -2,15 +2,12 @@
   <div>
     <search />
     <trend-chart></trend-chart>
-    <portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>
-    <md-empty-state
-      v-else
-      md-label="Create your first portfolio"
-    >
+    <md-empty-state v-show="showEmpty" md-label="Create your first portfolio">
       <router-link to="portfolios">
         <md-button class="md-primary md-raised">Go to portfolios</md-button>
       </router-link>
     </md-empty-state>
+    <portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>
   </div>
 </template>
 
@@ -42,7 +39,7 @@ export default {
       const [firstPortfolio] = this.$store.getters.getPortfolios;
       this.portfolio = firstPortfolio;
     }
-    this.showEmpty = this.hasPortfolio || true;
+    this.showEmpty = !this.hasPortfolio;
   },
 };
 </script>
