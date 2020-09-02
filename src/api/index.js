@@ -27,21 +27,28 @@ export function changePassword(payload) {
 }
 
 export function fetchPortfolios(accessToken) {
-  return Vue.axios.get(`${API_URL}/users/self/portfolios`, { headers: { Authorization: `Bearer ${accessToken}` } });
+  return Vue.axios.get(`${API_URL}/portfolios`, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
-export function fetchPortfolio(portfolioId, accessToken) {
-  return Vue.axios.get(`${API_URL}/users/self/portfolios/${portfolioId}`, {
+export function fetchPortfolio(identifier, accessToken) {
+  return Vue.axios.get(`${API_URL}/portfolios/${identifier}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function fetchLatestStockPrices(params, accessToken) {
+  return Vue.axios.get(`${API_URL}/stocks/yfinance/latest`, {
+    params,
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
 
 export function createNewHolding(portfolioId, payload) {
-  return Vue.axios.post(`${API_URL}/users/self/portfolios/${portfolioId}/`, payload);
+  return Vue.axios.post(`${API_URL}/portfolios/${portfolioId}/`, payload);
 }
 
 export function createNewPortfolio(portfolio, accessToken) {
-  return Vue.axios.post(`${API_URL}/users/self/portfolios`, portfolio, {
+  return Vue.axios.post(`${API_URL}/portfolios`, portfolio, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }

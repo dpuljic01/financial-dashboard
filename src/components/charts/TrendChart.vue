@@ -1,8 +1,7 @@
 <template>
   <div v-if="!this.$store.getters.isLoading">
-    <h3>Market summary</h3>
     <div class="futures noselect">
-      <div class="md-content md-elevation-2" v-for="(value, index) in trendData" :key="index">
+      <div class="md-content" v-for="(value, index) in trendData" :key="index">
         <div class="md-layout-item md-size-30">
           {{ value.datasets[0].label.toUpperCase() }}<br />
           {{ value.datasets[0].price }}
@@ -71,6 +70,18 @@ export default {
             },
           ],
         },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+            },
+            zoom: {
+              enabled: true,
+              mode: 'x',
+            },
+          },
+        },
       },
     };
   },
@@ -90,6 +101,7 @@ export default {
       for (let i = 0; i < keys.length; i += 1) {
         this.setTrendData(keys[i], values[i]);
       }
+      this.$store.commit('setLoading', false);
     },
     setTrendData(symbol, symbolData) {
       const keys = Object.keys(symbolData);
@@ -113,9 +125,9 @@ export default {
           {
             label: this.nameFromSymbol(symbol),
             price: `$${data[data.length - 1].y.toString()}`, // last value is the newest
-            borderColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: positiveTrend ? 'rgb(29, 191, 172)' : 'rgb(191, 29, 99)',
             borderWidth: 1,
-            backgroundColor: positiveTrend ? 'rgb(0,154,128)' : 'rgb(200, 60, 90)',
+            backgroundColor: positiveTrend ? 'rgba(29, 191, 172, 0.4)' : 'rgba(191, 29, 99, 0.5)',
             pointRadius: 0,
             data,
           },
@@ -185,5 +197,11 @@ export default {
 }
 ::-webkit-scrollbar-thumb:window-inactive {
   background: rgba(144, 144, 144, 0.4);
+}
+
+.vertical-line {
+  height: 100px;
+  width: 1px;
+  border: 1px solid gray;
 }
 </style>

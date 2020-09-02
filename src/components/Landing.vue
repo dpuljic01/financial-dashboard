@@ -7,11 +7,11 @@
       md-description="We evaluate and analyze your investment portfolio,
       and provide advice on future investments based on a risk you can take"
     >
-      <router-link to="register">
+      <router-link to="/register">
         <md-button class="md-primary md-raised">Create account</md-button>
       </router-link>
       <br><span flex>Already a member?</span>
-      <router-link to="login">
+      <router-link to="/login">
         <md-button class="md-secondary md-raised">Log in</md-button>
       </router-link>
     </md-empty-state>

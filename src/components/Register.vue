@@ -32,7 +32,7 @@
         >
         <p>
           Already have an account?
-          <router-link to="login">Login</router-link>
+          <router-link to="/login">Login</router-link>
         </p>
       </form>
 
@@ -94,6 +94,7 @@ export default {
         last_name: this.lastName,
         email: this.email,
       });
+      this.$store.commit('setLoading', false);
     },
     onSubmit() {
       const valid = !this.msg.email && !this.msg.firstName && !this.msg.lastName;

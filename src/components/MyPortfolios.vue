@@ -1,21 +1,31 @@
 <template>
-  <div>
-    <md-table class="md-content" v-model="searched" md-sort="name" md-sort-order="asc">
-      <md-table-toolbar>
-        <md-field md-clearable class="md-toolbar-section-end">
-          <md-input placeholder="Search by name..." v-model="search" @input="searchOnTable" />
-        </md-field>
-      </md-table-toolbar>
-
-      <md-table-row slot="md-table-row" slot-scope="{ item }">
-        <md-table-cell md-label="Name" md-sort-by="name">{{ item.name }}</md-table-cell>
-        <md-table-cell md-label="Holdings">{{ item.stocks.length }}</md-table-cell>
-        <md-table-cell md-label="Shares">{{ item.holdings.length }}</md-table-cell>
-        <md-table-cell md-label="Worth (USD)">{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
+  <div v-if="loaded">
+    <div class="md-layout md-size-100 md-alignment-center-space-between">
+      <div class="md-layout-item md-size-40">
+        <h3>PORTFOLIOS</h3>
+      </div>
+      <div class="md-layout-item md-size-30">
+        <md-button v-if="this.hasPortfolio" class="md-fab md-mini md-primary" @click="open = true">
+          <md-icon>add</md-icon>
+        </md-button>
+      </div>
+    </div>
+    <md-table class="md-content tbl" md-sort="name" md-sort-order="asc">
+      <md-table-row>
+        <md-table-head>Name</md-table-head>
+        <md-table-head>Holdings</md-table-head>
+        <md-table-head>Shares</md-table-head>
+        <md-table-head>Worth (USD)</md-table-head>
       </md-table-row>
+      <router-link v-for="item in portfolios" :key="item.id" :to="`/portfolios/${item.id}`" tag="md-table-row">
+        <md-table-cell>{{ item.name }}</md-table-cell>
+        <md-table-cell>{{ item.stocks.length }}</md-table-cell>
+        <md-table-cell>{{ item.holdings.length }}</md-table-cell>
+        <md-table-cell>{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
+      </router-link>
     </md-table>
     <md-empty-state
-      v-if="searched.length == 0"
+      v-if="!this.hasPortfolio"
       md-icon="post_add"
       md-label="No portfolios found"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
@@ -26,10 +36,10 @@
     <md-dialog :md-active.sync="open" :md-fullscreen="false">
       <md-dialog-title
         >Create portfolio
-        <md-button class="md-icon" @click="open = false">close</md-button>
+        <md-button class="md-icon close-icon" @click="open = false">close</md-button>
       </md-dialog-title>
       <md-dialog-content>
-        <form novalidate @submit.prevent="submit">
+        <form @submit.prevent="submit">
           <md-field>
             <label for="portfolioName">Portfolio name</label>
             <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
@@ -51,40 +61,37 @@
 </template>
 
 <script>
-const toLower = (text) => text.toString().toLowerCase();
-
-const searchByName = (items, term) => {
-  if (term) {
-    return items.filter((item) => toLower(item.name).includes(toLower(term)));
-  }
-  return items;
-};
-
 export default {
   name: 'MyPortfolios',
   data() {
     return {
-      search: null,
-      searched: [],
       open: false,
       portfolioName: '',
       info: '',
       valid: false,
-      icon: this.$route.name === 'MyPortfolios' ? 'post_add' : '',
-      hasPortfolio: this.$store.getters.hasPortfolio,
-      portfolios: this.$store.getters.getPortfolios,
+      hasPortfolio: true,
+      portfolios: [],
+      loaded: false,
     };
+  },
+  async mounted() {
+    this.$store.commit('setLoading', true);
+    await this.$store.dispatch('loadPortfolios');
+    this.hasPortfolio = this.$store.getters.hasPortfolio;
+    this.portfolios = this.$store.getters.listPortfolios;
+    this.$store.commit('setLoading', false);
+    this.loaded = true;
   },
   methods: {
     async createPortfolio() {
       this.open = false;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      await this.$store.dispatch('getCurrentUser');
-      this.portfolios = this.$store.getters.getPortfolios;
-      this.searched = this.portfolios;
+      await this.$store.dispatch('loadPortfolios');
+      this.portfolios = this.$store.getters.listPortfolios;
       this.portfolioName = '';
       this.info = '';
+      this.$store.commit('setLoading', false);
     },
     submit() {
       if (this.valid) {
@@ -94,9 +101,6 @@ export default {
     validName(value) {
       return value.length > 1;
     },
-    searchOnTable() {
-      this.searched = searchByName(this.portfolios, this.search);
-    },
     calculatePortfolioValue(holdings) {
       let price = 0;
       for (let i = 0; i < holdings.length; i += 1) {
@@ -104,9 +108,6 @@ export default {
       }
       return price;
     },
-  },
-  created() {
-    this.searched = this.portfolios;
   },
   watch: {
     portfolioName: {
@@ -124,8 +125,14 @@ export default {
   text-align: left;
 }
 
-.md-icon {
+.close-icon {
   position: absolute;
   right: 4%;
+}
+.md-table .md-table-head {
+  text-align: left;
+}
+.md-table .md-table-cell {
+  text-align: left;
 }
 </style>

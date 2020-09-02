@@ -28,7 +28,7 @@
         <md-button class="md-raised md-primary" type="submit">Log in</md-button>
         <p>
           Don't have an account?
-          <router-link to="register">Register</router-link>
+          <router-link to="/register">Register</router-link>
         </p>
       </form>
       <md-dialog :md-active.sync="showDialog" :md-fullscreen="false">
@@ -107,11 +107,13 @@ export default {
         this.$router.push('/dashboard');
         this.$store.dispatch('getCurrentUser');
       }
+      this.$store.commit('setLoading', false);
     },
     async sendResetEmail() {
       this.$store.commit('setLoading', true);
       this.showDialog = false;
       await this.$store.dispatch('resetPassword', { email: this.resetEmail });
+      this.$store.commit('setLoading', false);
     },
     onModalSubmit() {
       if (!this.msg.resetEmail) {

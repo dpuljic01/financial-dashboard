@@ -56,6 +56,7 @@ export default {
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('changePassword', { token: this.passwordToken, password: this.password });
       this.$router.push('/login');
+      this.$store.commit('setLoading', false);
     },
     onSubmit() {
       if (this.msg === '') {

@@ -8,6 +8,7 @@ from webargs.flaskparser import use_kwargs
 
 from server.apis.alpha_vantage import AlphaVantage
 from server.apis.iex import IEXFinance
+from server.common.common import lowercase_keys
 from server.apis.yfinance import fetch_stock_history
 from server.decorators import check_confirmed
 from server.extensions import db
@@ -22,15 +23,19 @@ bp = Blueprint("portfolios", __name__, url_prefix="/api/portfolios")
 def list_portfolios():
     current_identity = get_jwt_identity()
     portfolios = Portfolio.query.filter_by(user_id=current_identity).order_by(Portfolio.created_at.desc()).all()
-    return jsonify([portfolio.json["name"] for portfolio in portfolios])
+    return jsonify([portfolio.json for portfolio in portfolios])
 
 
-@bp.route("/<string:name>", methods=["GET"])
+@bp.route("/<string:identifier>", methods=["GET"])
+@bp.route("/<int:identifier>", methods=["GET"])
 @jwt_required
 @check_confirmed
-def get_portfolio(name):
+def get_portfolio(identifier):
     current_identity = get_jwt_identity()
-    portfolio = Portfolio.query.filter_by(user_id=current_identity, name=name).first_or_404()
+    if isinstance(identifier, int):
+        portfolio = Portfolio.query.get_or_404(identifier)
+    else:
+        portfolio = Portfolio.query.filter_by(user_id=current_identity, name=identifier).first_or_404()
     return jsonify(portfolio.json)
 
 
@@ -62,8 +67,6 @@ def create_portfolio(**payload):
     "info": fields.String(),
 })
 def update_portfolio(portfolio_id, **payload):
-    current_identity = get_jwt_identity()
-
     portfolio_db = Portfolio.query.get_or_404(portfolio_id)
     portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
     if portfolio:
@@ -147,14 +150,14 @@ def add_symbol(portfolio_name, **payload):
     #         quote = {}
     #     else:
     #         quote = AlphaVantage.filter_global_quote(global_quote)
-    data = fetch_stock_history(tickers=[payload["symbol"]], period="1d", interval="1d", include_info=True)
+    data = fetch_stock_history(tickers=[payload["symbol"]], period="2d", interval="1d", include_info=True)
     vals = list(data[payload["symbol"]].values())
 
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
-        company_info=data[payload["symbol"]].get("company_info", {}),
-        latest_market_data=vals[0]
+        company_info=lowercase_keys(data[payload["symbol"]].get("company_info", {})),
+        latest_market_data=lowercase_keys(vals[0])
     )
     portfolio.stocks.append(stock_db)
     db.session.add(portfolio)

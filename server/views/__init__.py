@@ -1,5 +1,6 @@
 from server.views import (
     auth,
+    news,
     portfolio,
     user,
     tickers
@@ -7,6 +8,7 @@ from server.views import (
 
 blueprints = (
     auth,
+    news,
     portfolio,
     user,
     tickers

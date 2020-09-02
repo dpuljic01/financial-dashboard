@@ -60,7 +60,7 @@ class User(db.Model, TimestampMixin):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
-            "portfolios": [portfolio.json for portfolio in self.portfolios],
+            # "portfolios": [portfolio.json for portfolio in self.portfolios],
         }
 
     def __repr__(self):

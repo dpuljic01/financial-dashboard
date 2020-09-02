@@ -5,8 +5,9 @@ import pymongo
 from bson.json_util import dumps
 from flask import Blueprint, jsonify, request
 from webargs import fields
-from webargs.flaskparser import use_args, use_kwargs
+from webargs.flaskparser import use_args
 
+from server.common.common import lowercase_keys
 from server.models import Stock
 from server.apis.iex import IEXFinance
 from server.apis.yfinance import fetch_stock_history, fetch_stock_info
@@ -57,7 +58,7 @@ def yf_stock_quote(symbol):
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=60, key_prefix=make_cache_key)
+@cache.cached(timeout=60 * 60 * 15, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="1d"),
     "interval": fields.Str(missing="30m"),
@@ -129,6 +130,48 @@ def aggregate_search_mongodb(args):
     "end": fields.Str(missing=None),
 }, location="query")
 def alpha_vantage_info(args):
-    current_identity = get_jwt_identity()
     resp = AlphaVantage.fetch_data(args)
     return jsonify(resp)
+
+
+@bp.route("/yfinance/latest", methods=["GET"])
+@jwt_required
+@check_confirmed
+@cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
+@use_args({
+    "symbols": fields.DelimitedList(fields.Str(), required=True),
+}, location="query")
+def fetch_latest_stock_prices(args):
+    args["symbols"] = [symbol.upper() for symbol in args["symbols"]]
+    stocks = Stock.query.filter(Stock.ticker.in_(args["symbols"])).all()
+    if not stocks:
+        return jsonify({"message": "Symbols not found in database"}), 404
+
+    try:
+        stocks_data = fetch_stock_history(tickers=args["symbols"], period="1d", interval="1d", include_info=True)
+    except:
+        stocks_data = None
+        pass
+
+    for stock in stocks:
+        if stocks_data:
+            for k, v in stocks_data.items():
+                if not stock.ticker.upper() == k.upper():
+                    continue
+                stock.company_info = lowercase_keys(v["company_info"])
+                stock.latest_market_data = lowercase_keys(list(v.values())[0])
+                db.session.commit()
+        else:
+            quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
+            if not quote:
+                params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
+                global_quote = AlphaVantage.fetch_data(params)
+                if 'Note' in global_quote:
+                    print("AlphaVantage API limit exceeded")
+                    quote = {}
+                else:
+                    quote = AlphaVantage.filter_global_quote(global_quote)
+            stock.latest_market_data = lowercase_keys(quote)
+            db.session.commit()
+
+    return jsonify(), 204
