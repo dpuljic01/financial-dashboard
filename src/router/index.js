@@ -7,6 +7,7 @@ import Login from '../components/Login.vue';
 import Register from '../components/Register.vue';
 import ResetPassword from '../components/ResetPassword.vue';
 import MyPortfolios from '../components/MyPortfolios.vue';
+import Portfolio from '../components/Portfolio.vue';
 import Notifications from '../components/Notifications.vue';
 import Settings from '../components/Settings.vue';
 import store from '../store';
@@ -50,6 +51,11 @@ const router = new Router({
       path: '/portfolios',
       name: 'Portfolios',
       component: MyPortfolios,
+    },
+    {
+      path: '/portfolios/:portfolioId',
+      name: 'Portfolio',
+      component: Portfolio,
     },
     {
       path: '/notifications',

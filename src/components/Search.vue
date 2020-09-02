@@ -1,14 +1,14 @@
 <template>
   <div>
     <md-autocomplete
-      class="search"
+      class="search-box"
       v-model="selectedLabel"
       :md-options="getSanitizedLabels"
       @input="getTickers"
       @md-selected="onSelect"
       :md-layout="searchLayout"
     >
-      <label>Search for symbols</label>
+      <label>Search symbols</label>
       <template slot="md-autocomplete-item" slot-scope="{ item, term }">
         <md-highlight-text :md-term="term">{{ item.Symbol }} - {{ item.Name }}</md-highlight-text>
       </template>
@@ -35,9 +35,6 @@ export default {
       this.$emit('input', this.selectedLabel);
       this.$store.dispatch('search', { q }).then((resp) => {
         const results = [];
-        if (!resp || !resp.data) {
-          this.tickers = [{ id: 1, symbol: '---', name: '----' }];
-        }
         for (let i = 1; i < resp.data.length + 1; i += 1) {
           results.push({
             id: i,
@@ -68,7 +65,8 @@ export default {
 </script>
 
 <style scoped>
-.search {
+.search-box {
+  width: 100%;
   max-width: 100%;
 }
 </style>

@@ -12,7 +12,8 @@ const getDefaultState = function() {
   return {
     // single source of data
     userData: JSON.parse(localStorage.getItem('_currentUser')) || {},
-    portfolios: [],
+    portfolios: JSON.parse(localStorage.getItem('_portfolios')) || [],
+    currentPortfolio: JSON.parse(localStorage.getItem('_currentPortfolio')) || {},
     searchedSymbol: null,
     remember: false,
     loading: false,
@@ -32,8 +33,8 @@ const actions = {
       context.commit('setPortfolios', { portfolios: response.data });
     });
   },
-  loadPortfolio(context, id) {
-    return api.fetchPortfolio(id, context.state.jwt.access_token).then((response) => {
+  loadPortfolio(context, identifier) {
+    return api.fetchPortfolio(identifier, context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolio', { portfolio: response.data });
     });
   },
@@ -110,14 +111,19 @@ const actions = {
   errorMessage(context, message = "Something's wrong") {
     Vue.toasted.show(message, { type: 'error', duration: 1500 });
   },
+  fetchLatestStockPrices(context, params) {
+    return api.fetchLatestStockPrices(params, context.state.jwt.access_token);
+  },
 };
 
 const mutations = {
   // isolated data mutations
   setPortfolios(state, payload) {
+    localStorage.setItem('_portfolios', JSON.stringify(payload.portfolios));
     state.portfolios = payload.portfolios;
   },
-  setCurrentPortfolio(state, payload) {
+  setPortfolio(state, payload) {
+    localStorage.setItem('_currentPortfolio', JSON.stringify(payload.portfolio));
     state.currentPortfolio = payload.portfolio;
   },
   setUserData(state, payload) {
@@ -143,19 +149,20 @@ const getters = {
     return isValidJwt(state.jwt.access_token);
   },
   hasPortfolio(state) {
-    if (!state.userData.portfolios) {
-      return false;
-    }
-    return state.userData.portfolios.length > 0;
+    return state.portfolios.length > 0;
   },
-  getPortfolios(state) {
-    if (!state.userData.portfolios) {
+  listPortfolios(state) {
+    if (!state.portfolios.length > 0) {
       return [];
     }
-    if (!state.userData.portfolios.length > 0) {
-      return [];
-    }
-    return state.userData.portfolios;
+    return state.portfolios;
+  },
+  currentPortfolio(state) {
+    return state.currentPortfolio;
+  },
+  hasHoldings(state) {
+    const { holdings } = state.currentPortfolio.holdings;
+    return holdings && holdings.length > 0;
   },
   searchedSymbol(state) {
     return state.searchedSymbol;

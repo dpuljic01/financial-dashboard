@@ -2,7 +2,7 @@
   <div>
     <md-app>
       <md-app-toolbar class="md-primary">
-        <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
+        <md-button class="md-icon-button md-dense" @click="toggleMenu" v-if="!menuVisible">
           <md-icon>menu</md-icon>
         </md-button>
         <span class="md-title">{{ title }}</span>
@@ -19,17 +19,17 @@
         </md-toolbar>
 
         <md-list>
-          <md-list-item to="dashboard" @click="toggleMenu">
+          <md-list-item to="/dashboard" @click="toggleMenu">
             <md-icon>dashboard</md-icon>
             <span class="md-list-item-text">Dashboard</span>
           </md-list-item>
 
-          <md-list-item to="portfolios" @click="toggleMenu">
+          <md-list-item to="/portfolios" @click="toggleMenu">
             <md-icon>pie_chart</md-icon>
             <span class="md-list-item-text">Portfolios</span>
           </md-list-item>
 
-          <md-list-item to="notifications" @click="toggleMenu">
+          <md-list-item to="/notifications" @click="toggleMenu">
             <md-icon>notifications_none</md-icon>
             <span class="md-list-item-text">Notifications</span>
           </md-list-item>
@@ -41,7 +41,7 @@
               <md-icon>keyboard_arrow_right</md-icon>
             </md-list-item>
             <md-menu-content>
-              <md-menu-item to="settings" @click="toggleMenu">
+              <md-menu-item to="/settings" @click="toggleMenu">
                 Settings
               </md-menu-item>
               <md-menu-item @click="logout">
@@ -91,6 +91,7 @@ export default {
       await this.$store.dispatch('logout');
       this.$store.dispatch('resetState');
       this.$router.replace('/login');
+      this.$store.commit('setLoading', false);
     },
   },
 };

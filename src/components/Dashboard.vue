@@ -1,45 +1,110 @@
 <template>
-  <div>
+  <div v-if="loaded">
     <search />
+    <!--<div class="wsj" style="overflow: hidden; margin: 15px auto; max-width: 736px;">
+      <iframe
+      class="wsj"
+        src="https://www.wsj.com/articles/chinas-tesla-rival-nio-turns-to-state-for-financial-lifeline-11588162288"
+        style="border: 0px none; height: 500px; width: 100%; overflow: hidden ;margin-right: -40px; margin-top: -150px;"
+      >
+      </iframe>
+    </div>-->
     <trend-chart></trend-chart>
-    <md-empty-state v-show="showEmpty" md-label="Create your first portfolio">
-      <router-link to="portfolios">
-        <md-button class="md-primary md-raised">Go to portfolios</md-button>
-      </router-link>
-    </md-empty-state>
-    <portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>
+    <h3>PORTFOLIO SUMMARY</h3>
+    <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab">
+      <md-tab id="tab-allocation" md-label="Allocation">
+        <div class="md-layout allocation">
+          <div class="md-layout-item md-size-30">
+            <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>
+          </div>
+          <div class="md-layout-item md-size-30">
+            <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>
+          </div>
+        </div>
+        <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
+          <router-link to="/portfolios">
+            <md-button class="md-primary md-raised">Add holdings</md-button>
+          </router-link>
+        </md-empty-state>
+      </md-tab>
+
+      <md-tab id="tab-performance" md-label="Performance">
+        <!--<portfolio-news :portfolioId="portfolioId"></portfolio-news>-->
+        <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
+          <router-link to="/portfolios">
+            <md-button class="md-primary md-raised">Add holdings</md-button>
+          </router-link>
+        </md-empty-state>
+      </md-tab>
+    </md-tabs>
+    <!--<portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>-->
   </div>
 </template>
 
 <script>
-// import Vue from 'vue';
 import TrendChart from './charts/TrendChart.vue';
-import Portfolio from './Portfolio.vue';
 import Search from './Search.vue';
+import Doughnut from './charts/Doughnut';
 
 export default {
   name: 'Dashboard',
   components: {
+    Doughnut,
     TrendChart,
-    Portfolio,
     Search,
   },
   data() {
     return {
-      showEmpty: false,
-      hasPortfolio: false,
+      loaded: false,
+      hasHoldings: false,
       portfolio: [],
+      chartData: {
+        labels: ['MSFT', 'AAPL', 'TSLA', 'NIO'],
+        datasets: [
+          {
+            borderWidth: 1,
+            borderColor: [
+              'rgba(255,99,132,1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+            ],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+            ],
+            data: [2000, 500, 1500, 1000],
+          },
+        ],
+      },
+      activeTab: 'tab-allocation',
+      options: {
+        legend: {
+          display: true,
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+      },
     };
   },
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    this.hasPortfolio = this.$store.getters.hasPortfolio;
-    if (this.hasPortfolio) {
-      const [firstPortfolio] = this.$store.getters.getPortfolios;
-      this.portfolio = firstPortfolio;
-    }
-    this.showEmpty = !this.hasPortfolio;
+    await this.$store.dispatch('loadPortfolios');
+    const primaryPortfolio = this.$store.getters.listPortfolios[0].name; // return name of "primary" portfolio here
+    await this.$store.dispatch('loadPortfolio', primaryPortfolio);
+    this.hasHoldings = this.$store.getters.hasHoldings;
+    this.portfolio = this.$store.getters.currentPortfolio;
+    this.$store.commit('setLoading', false);
+    this.loaded = true;
+  },
+  methods: {
+    onPortfolioSummaryTabChange(id) {
+      this.activeTab = id;
+    },
   },
 };
 </script>
@@ -50,5 +115,15 @@ export default {
 }
 .md-menu.md-button {
   height: 100%;
+}
+iframe html {
+  overflow: hidden;
+}
+h3 {
+  text-align: left;
+}
+.allocation {
+  display: flex;
+  justify-content: space-around;
 }
 </style>

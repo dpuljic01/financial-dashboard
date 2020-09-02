@@ -6,10 +6,7 @@ axios.defaults.withCredentials = true;
 
 // doing something with the response
 axios.interceptors.response.use(
-  (response) => {
-    store.commit('setLoading', false);
-    return response;
-  },
+  (response) => response,
   (error) => {
     // all 4xx/5xx responses will end here
     let message = 'Unknown error';

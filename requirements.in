@@ -33,3 +33,4 @@ flask-pymongo
 dnspython
 newrelic
 flask-compress
+bs4
