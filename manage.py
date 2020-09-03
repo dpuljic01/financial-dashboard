@@ -116,7 +116,7 @@ def update_stocks():
     start_time = time.time()
     stocks = Stock.query.all()
     tickers = [stock.ticker for stock in stocks]
-    stocks_data = fetch_stock_history(tickers=tickers, period="1d", interval="1d", include_info=True)
+    stocks_data = fetch_stock_history(tickers=tickers, period="2d", interval="1d", include_info=True)
     print("Fetched new information ...")
     for k, v in stocks_data.items():
         for stock in stocks:

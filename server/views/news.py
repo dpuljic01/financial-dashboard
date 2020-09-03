@@ -65,5 +65,4 @@ def scrape_news(args):
             data.append(obj)
 
     # tickers_collection = pymongo.collection.Collection(mongo_db, "news")
-    print(data)
     return jsonify(data)

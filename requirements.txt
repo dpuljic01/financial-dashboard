@@ -4,6 +4,7 @@
 #
 #    pip-compile
 #
+-e git+https://github.com/ranaroussi/yfinance@refs/pull/430/head#egg=yfinance
 aiohttp==3.6.2            # via alpha-vantage
 alembic==1.4.2            # via -r requirements.in, flask-migrate
 alpha-vantage==2.2.0      # via -r requirements.in
@@ -74,7 +75,6 @@ urllib3==1.25.9           # via requests
 webargs==6.1.0            # via -r requirements.in
 werkzeug==1.0.1           # via flask, flask-jwt-extended
 yarl==1.4.2               # via aiohttp
-yfinance==0.1.54          # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

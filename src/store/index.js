@@ -28,13 +28,13 @@ const state = getDefaultState();
 
 const actions = {
   // asynchronous operations
-  loadPortfolios(context) {
-    return api.fetchPortfolios(context.state.jwt.access_token).then((response) => {
+  getPortfolios(context) {
+    return api.getPortfolios(context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolios', { portfolios: response.data });
     });
   },
-  loadPortfolio(context, identifier) {
-    return api.fetchPortfolio(identifier, context.state.jwt.access_token).then((response) => {
+  getPortfolio(context, identifier) {
+    return api.getPortfolio(identifier, context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolio', { portfolio: response.data });
     });
   },
@@ -111,8 +111,8 @@ const actions = {
   errorMessage(context, message = "Something's wrong") {
     Vue.toasted.show(message, { type: 'error', duration: 1500 });
   },
-  fetchLatestStockPrices(context, params) {
-    return api.fetchLatestStockPrices(params, context.state.jwt.access_token);
+  getLatestStockPrices(context, params) {
+    return api.getLatestStockPrices(params, context.state.jwt.access_token);
   },
 };
 

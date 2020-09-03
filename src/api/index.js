@@ -26,17 +26,17 @@ export function changePassword(payload) {
   return Vue.axios.put(`${API_URL}/reset-password`, payload);
 }
 
-export function fetchPortfolios(accessToken) {
+export function getPortfolios(accessToken) {
   return Vue.axios.get(`${API_URL}/portfolios`, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
-export function fetchPortfolio(identifier, accessToken) {
+export function getPortfolio(identifier, accessToken) {
   return Vue.axios.get(`${API_URL}/portfolios/${identifier}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
 
-export function fetchLatestStockPrices(params, accessToken) {
+export function getLatestStockPrices(params, accessToken) {
   return Vue.axios.get(`${API_URL}/stocks/yfinance/latest`, {
     params,
     headers: { Authorization: `Bearer ${accessToken}` },
