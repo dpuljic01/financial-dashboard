@@ -23,6 +23,11 @@ class IEXUrl:
             raise Exception("Symbol is required")
         return self.make(f"/v1/search/{symbol}")
 
+    def recommendations(self, symbol):
+        if not symbol:
+            raise Exception("Symbol is required")
+        return self.make(f"/v1/stock/{symbol}/recommendation-trends")
+
 
 class IEXFinanceApi:
     def __init__(self):
@@ -65,6 +70,11 @@ class IEXFinanceApi:
 
     def search(self, q):
         resp = requests.get(self.url.search(q), params={"token": self.token})
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_recommendations(self, symbol):
+        resp = requests.get(self.url.recommendations(symbol), params={"token": self.token})
         resp.raise_for_status()
         return resp.json()
 

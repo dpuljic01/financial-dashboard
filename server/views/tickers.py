@@ -10,7 +10,7 @@ from webargs.flaskparser import use_args
 from server.common.common import lowercase_keys
 from server.models import Stock
 from server.apis.iex import IEXFinance
-from server.apis.yfinance import fetch_stock_history, fetch_stock_info
+from server.apis.yfinance import fetch_stock_history, fetch_stock_info, get_quote, get_stock_recommendations
 from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
 from server.extensions import cache, db
@@ -51,8 +51,24 @@ def iex_stock_quote(symbol):
 @check_confirmed
 @cache.cached(timeout=10, key_prefix=make_cache_key)
 def yf_stock_quote(symbol):
-    quote = fetch_stock_info(symbol)
+    quote = get_stock_recommendations(symbol)
     return jsonify(quote)
+
+
+@bp.route("/yfinance/<string:symbol>/info", methods=["GET"])
+@jwt_required
+@check_confirmed
+@cache.cached(timeout=10, key_prefix=make_cache_key)
+def get_company_info(symbol):
+    symbol = symbol.upper()
+    company_info = lowercase_keys(fetch_stock_info(symbol))  # company profile
+    # recommendations = IEXFinance.get_recommendations(symbol)
+    # company_info.update({"recommendations": recommendations})
+    stock = Stock.query.filter_by(ticker=symbol).one_or_none()
+    if stock:
+        stock.company_info = company_info
+        db.session.commit()
+    return jsonify(company_info)
 
 
 @bp.route("/yfinance", methods=["GET"])
@@ -60,7 +76,7 @@ def yf_stock_quote(symbol):
 @check_confirmed
 @cache.cached(timeout=60 * 60 * 15, key_prefix=make_cache_key)
 @use_args({
-    "period": fields.Str(missing="1d"),
+    "period": fields.Str(missing="2d"),
     "interval": fields.Str(missing="30m"),
     "symbols": fields.DelimitedList(fields.Str(), required=True),
     "start": fields.Str(missing=None),
@@ -137,7 +153,7 @@ def alpha_vantage_info(args):
 @bp.route("/yfinance/latest", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
+@cache.cached(timeout=60, key_prefix=make_cache_key)
 @use_args({
     "symbols": fields.DelimitedList(fields.Str(), required=True),
 }, location="query")
@@ -147,31 +163,22 @@ def fetch_latest_stock_prices(args):
     if not stocks:
         return jsonify({"message": "Symbols not found in database"}), 404
 
-    try:
-        stocks_data = fetch_stock_history(tickers=args["symbols"], period="1d", interval="1d", include_info=True)
-    except:
-        stocks_data = None
-        pass
-
     for stock in stocks:
-        if stocks_data:
-            for k, v in stocks_data.items():
-                if not stock.ticker.upper() == k.upper():
-                    continue
-                stock.company_info = lowercase_keys(v["company_info"])
-                stock.latest_market_data = lowercase_keys(list(v.values())[0])
-                db.session.commit()
-        else:
-            quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
-            if not quote:
-                params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
-                global_quote = AlphaVantage.fetch_data(params)
-                if 'Note' in global_quote:
-                    print("AlphaVantage API limit exceeded")
-                    quote = {}
-                else:
-                    quote = AlphaVantage.filter_global_quote(global_quote)
-            stock.latest_market_data = lowercase_keys(quote)
+        quote = lowercase_keys(get_quote(stock.ticker)[stock.ticker])
+        if quote:
+            stock.latest_market_data = quote
             db.session.commit()
+        # else:
+        #     quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
+        #     if not quote:
+        #         params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
+        #         global_quote = AlphaVantage.fetch_data(params)
+        #         if 'Note' in global_quote:
+        #             print("AlphaVantage API limit exceeded")
+        #             quote = {}
+        #         else:
+        #             quote = AlphaVantage.filter_global_quote(global_quote)
+        #     stock.latest_market_data = lowercase_keys(quote)
+        #     db.session.commit()
 
     return jsonify(), 204

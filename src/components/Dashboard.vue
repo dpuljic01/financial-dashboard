@@ -1,14 +1,6 @@
 <template>
   <div v-if="loaded">
     <search />
-    <!--<div class="wsj" style="overflow: hidden; margin: 15px auto; max-width: 736px;">
-      <iframe
-      class="wsj"
-        src="https://www.wsj.com/articles/chinas-tesla-rival-nio-turns-to-state-for-financial-lifeline-11588162288"
-        style="border: 0px none; height: 500px; width: 100%; overflow: hidden ;margin-right: -40px; margin-top: -150px;"
-      >
-      </iframe>
-    </div>-->
     <trend-chart></trend-chart>
     <h3>PORTFOLIO SUMMARY</h3>
     <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab">
@@ -93,11 +85,13 @@ export default {
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    await this.$store.dispatch('loadPortfolios');
-    const primaryPortfolio = this.$store.getters.listPortfolios[0].name; // return name of "primary" portfolio here
-    await this.$store.dispatch('loadPortfolio', primaryPortfolio);
-    this.hasHoldings = this.$store.getters.hasHoldings;
-    this.portfolio = this.$store.getters.currentPortfolio;
+    await this.$store.dispatch('getPortfolios');
+    if (this.$store.getters.listPortfolios.length > 0) {
+      const primaryPortfolio = this.$store.getters.listPortfolios[0].name; // return name of "primary" portfolio here
+      await this.$store.dispatch('getPortfolio', primaryPortfolio);
+      this.hasHoldings = this.$store.getters.hasHoldings;
+      this.portfolio = this.$store.getters.currentPortfolio;
+    }
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
@@ -115,9 +109,6 @@ export default {
 }
 .md-menu.md-button {
   height: 100%;
-}
-iframe html {
-  overflow: hidden;
 }
 h3 {
   text-align: left;

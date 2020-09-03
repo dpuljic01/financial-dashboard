@@ -1,16 +1,16 @@
 <template>
   <div v-if="loaded">
-    <div class="md-layout md-size-100 md-alignment-center-space-between">
+    <div v-if="this.portfolios.length > 0" class="md-layout md-size-100 md-alignment-center-space-between">
       <div class="md-layout-item md-size-40">
         <h3>PORTFOLIOS</h3>
       </div>
       <div class="md-layout-item md-size-30">
-        <md-button v-if="this.hasPortfolio" class="md-fab md-mini md-primary" @click="open = true">
+        <md-button class="md-fab md-mini md-primary" @click="open = true">
           <md-icon>add</md-icon>
         </md-button>
       </div>
     </div>
-    <md-table class="md-content tbl" md-sort="name" md-sort-order="asc">
+    <md-table v-if="this.portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
       <md-table-row>
         <md-table-head>Name</md-table-head>
         <md-table-head>Holdings</md-table-head>
@@ -25,7 +25,7 @@
       </router-link>
     </md-table>
     <md-empty-state
-      v-if="!this.hasPortfolio"
+      v-if="this.portfolios.length === 0"
       md-icon="post_add"
       md-label="No portfolios found"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
@@ -69,15 +69,13 @@ export default {
       portfolioName: '',
       info: '',
       valid: false,
-      hasPortfolio: true,
       portfolios: [],
       loaded: false,
     };
   },
   async mounted() {
     this.$store.commit('setLoading', true);
-    await this.$store.dispatch('loadPortfolios');
-    this.hasPortfolio = this.$store.getters.hasPortfolio;
+    await this.$store.dispatch('getPortfolios');
     this.portfolios = this.$store.getters.listPortfolios;
     this.$store.commit('setLoading', false);
     this.loaded = true;
@@ -87,7 +85,7 @@ export default {
       this.open = false;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      await this.$store.dispatch('loadPortfolios');
+      await this.$store.dispatch('getPortfolios');
       this.portfolios = this.$store.getters.listPortfolios;
       this.portfolioName = '';
       this.info = '';

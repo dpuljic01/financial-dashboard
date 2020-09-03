@@ -105,7 +105,6 @@ export default {
       });
       if (this.$store.state.loggedIn) {
         this.$router.push('/dashboard');
-        this.$store.dispatch('getCurrentUser');
       }
       this.$store.commit('setLoading', false);
     },

@@ -6,10 +6,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields, validate
 from webargs.flaskparser import use_kwargs
 
-from server.apis.alpha_vantage import AlphaVantage
-from server.apis.iex import IEXFinance
+from server.apis.yfinance import fetch_stock_history, fetch_stock_info, get_quote
 from server.common.common import lowercase_keys
-from server.apis.yfinance import fetch_stock_history
 from server.decorators import check_confirmed
 from server.extensions import db
 from server.models import Portfolio, Holding, Stock
@@ -127,37 +125,35 @@ def create_portfolio_holding(**payload):
     "short_name": fields.String(),
 })
 def add_symbol(portfolio_name, **payload):
+    symbol = payload["symbol"].upper()
+
     current_identity = get_jwt_identity()
     portfolio = Portfolio.query.filter_by(user_id=current_identity, name=portfolio_name).first_or_404()
 
-    stock_db = Stock.query.filter_by(ticker=payload["symbol"]).first()
+    stock_db = Stock.query.filter_by(ticker=symbol).first()
     stock_in_portfolio = stock_db and (stock_db in portfolio.stocks)
 
     if stock_in_portfolio:
         return jsonify({"message": "Symbol already exists in this portfolio"}), 400
-    elif stock_db:
+
+    quote = lowercase_keys(get_quote(symbol)[symbol])
+    company_info = lowercase_keys(fetch_stock_info(stock_db.ticker))
+
+    if stock_db:
+        if quote:
+            stock_db.latest_market_data = quote
+        if company_info:
+            stock_db.company_info = company_info
         portfolio.stocks.append(stock_db)
         db.session.add(portfolio)
         db.session.commit()
         return jsonify(stock_db.json), 201
 
-    # quote = IEXFinance.get_stock_quote(ticker=payload["symbol"])
-    # if not quote:
-    #     params = {"function": "GLOBAL_QUOTE", "symbol": payload["symbol"]}
-    #     global_quote = AlphaVantage.fetch_data(params)
-    #     if 'Note' in global_quote:
-    #         print("AlphaVantage API limit exceeded")
-    #         quote = {}
-    #     else:
-    #         quote = AlphaVantage.filter_global_quote(global_quote)
-    data = fetch_stock_history(tickers=[payload["symbol"]], period="2d", interval="1d", include_info=True)
-    vals = list(data[payload["symbol"]].values())
-
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
-        company_info=lowercase_keys(data[payload["symbol"]].get("company_info", {})),
-        latest_market_data=lowercase_keys(vals[0])
+        company_info=company_info if company_info else {},
+        latest_market_data=quote if company_info else {}
     )
     portfolio.stocks.append(stock_db)
     db.session.add(portfolio)

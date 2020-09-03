@@ -24,7 +24,8 @@ export default {
     return {
       symbols: ['^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f'], // most popular market indexes
       trendData: [],
-      interval: '15m',
+      interval: '5m',
+      period: '1d',
       options: {
         animation: {
           duration: 0, // general animation time
@@ -95,6 +96,8 @@ export default {
       const resp = await this.$store.dispatch('getStockHistoryData', {
         symbols: this.symbols.join(),
         interval: this.interval,
+        period: this.period,
+        include_info: false,
       });
       const keys = Object.keys(resp.data);
       const values = Object.values(resp.data);
@@ -107,7 +110,7 @@ export default {
       const keys = Object.keys(symbolData);
       const values = Object.values(symbolData);
 
-      if (values.length < 5) {
+      if (values.length < 4) {
         // TODO: find better solution to handle graphs with small dataset
         return;
       }

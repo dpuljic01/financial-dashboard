@@ -5,6 +5,8 @@ from server.extensions import db
 # from server.models import StockHistory
 from server.models import Stock
 from server.apis.iex import IEXFinance
+import pandas_datareader as pdr
+import pandas as pd
 
 
 # probably not a smart idea to save this into DB due to database limits on Heroku free account :(
@@ -74,3 +76,16 @@ def create_stock(ticker):
 def fetch_stock_info(ticker):
     stock = yf.Ticker(ticker)
     return stock.info
+
+
+def get_stock_recommendations(ticker):
+    stock = yf.Ticker(ticker)
+    data = stock.recommendations
+    if isinstance(data, pd.DataFrame):
+        data = json.loads(data.to_json(orient="index"))
+    return data
+
+
+def get_quote(ticker):
+    data = pdr.get_quote_yahoo(ticker)
+    return json.loads(data.to_json(orient="index"))
