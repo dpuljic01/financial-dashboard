@@ -1,3 +1,4 @@
+# -e git+https://github.com/dpuljic01/yfinance.git@upstream-fix-no-holders#egg=yfinance
 flask
 flask-cors
 flask-mail
@@ -34,3 +35,4 @@ dnspython
 newrelic
 flask-compress
 bs4
+yfinance
