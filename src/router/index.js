@@ -8,6 +8,9 @@ import Register from '../components/Register.vue';
 import ResetPassword from '../components/ResetPassword.vue';
 import MyPortfolios from '../components/MyPortfolios.vue';
 import Portfolio from '../components/Portfolio.vue';
+import Holdings from '../components/portfolio/Holdings.vue';
+import Summary from '../components/portfolio/Summary.vue';
+import News from '../components/portfolio/News.vue';
 import Notifications from '../components/Notifications.vue';
 import Settings from '../components/Settings.vue';
 import store from '../store';
@@ -56,6 +59,23 @@ const router = new Router({
       path: '/portfolios/:portfolioId',
       name: 'Portfolio',
       component: Portfolio,
+      children: [
+        {
+          name: 'Holdings',
+          path: 'holdings',
+          component: Holdings,
+        },
+        {
+          name: 'Summary',
+          path: 'summary',
+          component: Summary,
+        },
+        {
+          name: 'News',
+          path: 'news',
+          component: News,
+        },
+      ],
     },
     {
       path: '/notifications',

@@ -1,23 +1,33 @@
 <template>
   <div v-if="loaded">
-    <div v-if="this.portfolios.length > 0" class="md-layout md-size-100 md-alignment-center-space-between">
-      <div class="md-layout-item md-size-40">
+    <div v-if="this.portfolios.length > 0" class="md-layout md-subheader md-size-100 md-alignment-center-space-between">
+      <div class="md-size-40">
         <h3>PORTFOLIOS</h3>
       </div>
-      <div class="md-layout-item md-size-30">
-        <md-button class="md-fab md-mini md-primary" @click="open = true">
-          <md-icon>add</md-icon>
-        </md-button>
-      </div>
+      <md-speed-dial class="md-size-40"
+        md-direction="bottom"
+        md-event="click"
+        md-effect="scale"
+      >
+        <md-speed-dial-target class="md-primary md-fab md-mini">
+          <md-icon class="md-morph-initial">add</md-icon>
+          <md-icon class="md-morph-final">close</md-icon>
+        </md-speed-dial-target>
+
+        <md-speed-dial-content style="margin-left:-50px;margin-bottom:-90px;">
+          <md-button @click="open = true">Portfolio</md-button>
+          <md-button>Shares</md-button>
+        </md-speed-dial-content>
+      </md-speed-dial>
     </div>
     <md-table v-if="this.portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
       <md-table-row>
         <md-table-head>Name</md-table-head>
-        <md-table-head>Holdings</md-table-head>
+        <md-table-head>Symbols</md-table-head>
         <md-table-head>Shares</md-table-head>
         <md-table-head>Worth (USD)</md-table-head>
       </md-table-row>
-      <router-link v-for="item in portfolios" :key="item.id" :to="`/portfolios/${item.id}`" tag="md-table-row">
+      <router-link v-for="item in portfolios" :key="item.id" :to="`/portfolios/${item.id}/summary`" tag="md-table-row">
         <md-table-cell>{{ item.name }}</md-table-cell>
         <md-table-cell>{{ item.stocks.length }}</md-table-cell>
         <md-table-cell>{{ item.holdings.length }}</md-table-cell>

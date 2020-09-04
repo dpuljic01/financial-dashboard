@@ -43,7 +43,6 @@ def get_news():
     "symbols": fields.DelimitedList(fields.Str(), required=True),
 }, location="query")
 def scrape_news(args):
-    current_identity = get_jwt_identity()
     data = []
     for symbol in args["symbols"]:
         url = f"https://www.wsj.com/market-data/quotes/{symbol}"
@@ -57,6 +56,7 @@ def scrape_news(args):
             headline = article.find(attrs={"class": "headline"})
             link = headline.a["href"]
             obj = {
+                "symbol": symbol,
                 "date_posted": date,
                 "provider": provider,
                 "headline": headline.a.text,

@@ -136,8 +136,12 @@ def add_symbol(portfolio_name, **payload):
     if stock_in_portfolio:
         return jsonify({"message": "Symbol already exists in this portfolio"}), 400
 
-    quote = lowercase_keys(get_quote(symbol)[symbol])
-    company_info = lowercase_keys(fetch_stock_info(stock_db.ticker))
+    quote, company_info = '', ''
+    try:
+        quote = lowercase_keys(get_quote(symbol)[symbol])
+        company_info = lowercase_keys(fetch_stock_info(symbol))
+    except:
+        pass
 
     if stock_db:
         if quote:

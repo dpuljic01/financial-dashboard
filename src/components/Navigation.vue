@@ -37,7 +37,7 @@
           <md-menu :md-offset-x="200" :md-offset-y="-110">
             <md-list-item @click="toggleSubmenu" md-menu-trigger>
               <md-icon>person_outline</md-icon>
-              <span class="md-list-item-text">Profile</span>
+              <span class="md-list-item-text">{{ this.$store.getters.getCurrentUser.email }}</span>
               <md-icon>keyboard_arrow_right</md-icon>
             </md-list-item>
             <md-menu-content>
