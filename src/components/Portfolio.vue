@@ -1,93 +1,63 @@
 <template>
   <div v-if="loaded" class="portfolio">
     <div>
-      <router-link to="/portfolios">Portfolios</router-link><span> > {{ portfolio.name }}</span>
+      <Search @search="addSymbol($event)" v-bind:search-layout="'box'" v-bind:placeholder="'Add symbol'"></Search>
     </div>
-    <md-tabs @md-changed="onTabChange" :md-active-tab="tabId">
-      <md-tab id="tab-summary" md-label="Summary">
-        <md-table v-model="stocks">
-          <md-table-row slot="md-table-row" slot-scope="{ item }">
-            <md-table-cell md-label="Symbol" md-sort-by="symbol">{{ item.ticker }}</md-table-cell>
-            <md-table-cell md-label="Name" md-sort-by="name">{{ item.short_name }}</md-table-cell>
-            <md-table-cell md-label="Price (USD)" md-sort-by="price">{{
-              item.latest_market_data.price || 'NA'
-            }}</md-table-cell>
-            <md-table-cell md-label="Change (%)">{{
-              +(
-                item.latest_market_data.changepercent
-              ).toFixed(2) || 'NA'
-            }}</md-table-cell>
-            <md-table-cell md-label="Volume">{{ item.latest_market_data.volume || 'NA' }}</md-table-cell>
-          </md-table-row>
-        </md-table>
-        <!--<portfolio-summary :stocks="stocks"></portfolio-summary>-->
-      </md-tab>
-
-      <md-tab id="tab-holdings" md-label="Holdings">
-        <!--<portfolio-holdings :holdings="holdings"></portfolio-holdings>-->
-      </md-tab>
-
-      <md-tab id="tab-news" md-label="News">
-        <div v-if="!showIframe" class="wsj" style="overflow: hidden; margin: 15px auto; max-width: 736px;">
-          <iframe
-            class="wsj"
-            :src="articleUrl"
-          >
-          </iframe>
-        </div>
-        <md-list>
-          <md-list-item @click="loadArticle(url)">
-            <span class="md-caption">08/31/20 Press Release</span><br />
-            <p>
-              Thinking about buying stock in Apple, Alexion Pharmaceuticals, Nio Inc, Advanced Micro Devices, or Whiting
-              Petroleum Corp?
-            </p>
-          </md-list-item>
-        </md-list>
-        <!--<portfolio-news :portfolioId="portfolioId"></portfolio-news>-->
-      </md-tab>
-      <md-tab id="tab-add-symbol" md-label="Add symbol">
-        <search @search="addSymbol($event)" v-bind:search-layout="'floating'"></search>
-      </md-tab>
-    </md-tabs>
-    <md-card v-if="this.$route.name == 'Portfolios'">
-      <md-table class="md-content table" v-model="stocks" md-sort="name" md-sort-order="asc">
+    <div style="md-layout md-size-100">
+      <h3 class="md-title md-layout-item md-alignment-center-center">
+        Portfolio: <strong>{{ portfolio.name }}</strong>
+      </h3>
+    </div>
+    <md-tabs :md-active-tab="'tab-' + this.$route.path.slice(1)" md-sync-route md-alignment="fixed">
+      <md-tab id="tab-summary" md-label="Summary" :to="`/portfolios/${portfolio.id}/summary`">
         <md-empty-state
-          v-if="portfolio.stocks.length == 0"
+          v-if="stocks.length == 0"
           md-description="Your list is empty. Add symbols to get relevant info."
         >
-          <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Add symbol</md-button>
         </md-empty-state>
-        <md-table-toolbar>
-          <div class="md-toolbar-section-start">
-            <h3>Holdings</h3>
-          </div>
-        </md-table-toolbar>
+        <Summary v-else :stocks="stocks"></Summary>
+      </md-tab>
 
-        <md-table-row slot="md-table-row" slot-scope="{ item }">
-          <md-table-cell md-label="Name" md-sort-by="name">{{ item.name }}</md-table-cell>
-          <md-table-cell md-label="Holdings">{{ item.holdings.length }}</md-table-cell>
-          <md-table-cell md-label="Worth (USD)">{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
-        </md-table-row>
-      </md-table>
-    </md-card>
+      <md-tab id="tab-holdings" md-label="Holdings" :to="`/portfolios/${portfolio.id}/holdings`">
+        <md-empty-state
+          v-if="portfolio.holdings.length == 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <Holdings v-else :portfolio="portfolio"></Holdings>
+      </md-tab>
+
+      <md-tab id="tab-news" md-label="News" :to="`/portfolios/${portfolio.id}/news`">
+        <md-empty-state
+          v-if="stocks.length == 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <News v-else :tickers="tickers"></News>
+      </md-tab>
+    </md-tabs>
   </div>
 </template>
 
 <script>
 import Search from './Search.vue';
+import Holdings from './portfolio/Holdings.vue';
+import Summary from './portfolio/Summary.vue';
+import News from './portfolio/News.vue';
 
 export default {
   name: 'Portfolio',
   components: {
+    Holdings,
+    Summary,
     Search,
+    News,
   },
   created() {
     this.portfolioId = this.$route.params.portfolioId;
   },
   data() {
     return {
-      tabId: 'tab-summary',
       stocks: [],
       open: false,
       valid: false,
@@ -95,23 +65,27 @@ export default {
       portfolio: [],
       newSymbol: null,
       loaded: false,
-      articleUrl: '#',
-      showIframe: true,
+      tickers: [],
     };
   },
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getPortfolio', this.portfolioId);
-    const tickers = this.$store.getters.currentPortfolio.stocks.map((stock) => stock.ticker);
-    console.log(tickers.join());
-    await this.$store.dispatch('getLatestStockPrices', { symbols: tickers.join() });
-    await this.$store.dispatch('getPortfolio', this.portfolioId);
+    this.getTickers();
+    if (this.tickers.length > 0) {
+      await this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
+      await this.$store.dispatch('getPortfolio', this.portfolioId);
+    }
     this.portfolio = this.$store.getters.currentPortfolio;
     this.stocks = this.portfolio.stocks;
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
   methods: {
+    getTickers() {
+      const tickers = this.$store.getters.currentPortfolio.stocks.map((stock) => stock.ticker);
+      this.tickers = tickers;
+    },
     async createPortfolio() {
       this.open = false;
       this.$store.commit('setLoading', true);
@@ -119,9 +93,6 @@ export default {
       this.portfolioName = '';
       this.info = '';
       this.$store.commit('setLoading', false);
-    },
-    onTabChange(id) {
-      this.tabId = id;
     },
     submit() {
       if (this.valid) {
@@ -142,6 +113,7 @@ export default {
       });
       this.$store.dispatch('successMessage');
       this.updateUserDetails();
+      this.getTickers();
       this.$store.commit('setLoading', false);
     },
     async updateUserDetails() {
@@ -149,17 +121,18 @@ export default {
       await this.$store.dispatch('getPortfolio', this.portfolioId);
       this.portfolio = this.$store.getters.currentPortfolio;
       this.stocks = this.portfolio.stocks;
-      this.tabId = 'tab-summary';
-    },
-    loadArticle(url) {
-      this.articleUrl = url;
     },
   },
 };
 </script>
 <style scoped>
 iframe {
-  border: 0px none; height: 500px; width: 100%; overflow: hidden ;margin-right: -40px; margin-top: -150px;
+  border: 0px none;
+  height: 500px;
+  width: 100%;
+  overflow: hidden;
+  margin-right: -40px;
+  margin-top: -150px;
 }
 iframe html {
   overflow: hidden;
@@ -175,9 +148,5 @@ iframe html {
 
 .md-tab {
   padding: 0;
-}
-
-* {
-  text-align: left;
 }
 </style>

@@ -164,21 +164,35 @@ def fetch_latest_stock_prices(args):
         return jsonify({"message": "Symbols not found in database"}), 404
 
     for stock in stocks:
-        quote = lowercase_keys(get_quote(stock.ticker)[stock.ticker])
+        quote = {}
+        try:
+            quote = get_quote(stock.ticker)[stock.ticker]
+        except:
+            pass
+        print(quote)
         if quote:
-            stock.latest_market_data = quote
+            stock.latest_market_data = lowercase_keys(quote)
             db.session.commit()
-        # else:
-        #     quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
-        #     if not quote:
-        #         params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
-        #         global_quote = AlphaVantage.fetch_data(params)
-        #         if 'Note' in global_quote:
-        #             print("AlphaVantage API limit exceeded")
-        #             quote = {}
-        #         else:
-        #             quote = AlphaVantage.filter_global_quote(global_quote)
-        #     stock.latest_market_data = lowercase_keys(quote)
-        #     db.session.commit()
+            continue
+
+        params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
+        global_quote = AlphaVantage.fetch_data(params)
+        print("GLOBAL : ", global_quote)
+        if global_quote.get('Global Quote', {}):
+            quote = AlphaVantage.filter_global_quote(global_quote)
+            print(quote)
+            stock.latest_market_data = lowercase_keys(quote)
+            db.session.commit()
+            continue
+
+        quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
+        if not quote:
+            print("IEXFinance quote fetch failed")
+
+        if quote["changePercent"]:
+            quote["changePercent"] = quote["changePercent"] * 100
+        stock.latest_market_data = lowercase_keys(quote)
+        db.session.commit()
+    db.session.commit()
 
     return jsonify(), 204

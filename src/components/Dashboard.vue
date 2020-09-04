@@ -14,8 +14,8 @@
           </div>
         </div>
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
-          <router-link to="/portfolios">
-            <md-button class="md-primary md-raised">Add holdings</md-button>
+          <router-link :to="`/portfolios/${portfolio.id}/holdings`">
+            <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
       </md-tab>
@@ -23,8 +23,8 @@
       <md-tab id="tab-performance" md-label="Performance">
         <!--<portfolio-news :portfolioId="portfolioId"></portfolio-news>-->
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
-          <router-link to="/portfolios">
-            <md-button class="md-primary md-raised">Add holdings</md-button>
+          <router-link :to="`/portfolios/${portfolio.id}/holdings`">
+            <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
       </md-tab>

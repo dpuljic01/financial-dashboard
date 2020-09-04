@@ -8,7 +8,7 @@
       @md-selected="onSelect"
       :md-layout="searchLayout"
     >
-      <label>Search symbols</label>
+      <label>{{ this.placeholder }}</label>
       <template slot="md-autocomplete-item" slot-scope="{ item, term }">
         <md-highlight-text :md-term="term">{{ item.Symbol }} - {{ item.Name }}</md-highlight-text>
       </template>
@@ -23,6 +23,10 @@ export default {
     searchLayout: {
       type: String,
       default: 'box',
+    },
+    placeholder: {
+      type: String,
+      default: 'Search symbols',
     },
   },
   data: () => ({

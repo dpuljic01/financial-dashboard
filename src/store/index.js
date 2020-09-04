@@ -114,6 +114,9 @@ const actions = {
   getLatestStockPrices(context, params) {
     return api.getLatestStockPrices(params, context.state.jwt.access_token);
   },
+  getNews(context, params) {
+    return api.getNews(params, context.state.jwt.access_token);
+  },
 };
 
 const mutations = {
@@ -147,6 +150,9 @@ const getters = {
   // reusable data accessors
   isAuthenticated(state) {
     return isValidJwt(state.jwt.access_token);
+  },
+  getCurrentUser(state) {
+    return state.userData;
   },
   hasPortfolio(state) {
     return state.portfolios.length > 0;

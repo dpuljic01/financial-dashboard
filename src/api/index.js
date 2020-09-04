@@ -43,6 +43,13 @@ export function getLatestStockPrices(params, accessToken) {
   });
 }
 
+export function getNews(params, accessToken) {
+  return Vue.axios.get(`${API_URL}/news/scrape`, {
+    params,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function createNewHolding(portfolioId, payload) {
   return Vue.axios.post(`${API_URL}/portfolios/${portfolioId}/`, payload);
 }
