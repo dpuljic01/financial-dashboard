@@ -8,7 +8,7 @@
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
     </div>
-    <md-tabs :md-active-tab="'tab-' + this.$route.path.slice(1)" md-sync-route md-alignment="fixed">
+    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed">
       <md-tab id="tab-summary" md-label="Summary" :to="`/portfolios/${portfolio.id}/summary`">
         <md-empty-state
           v-if="stocks.length == 0"
@@ -53,20 +53,22 @@ export default {
     Search,
     News,
   },
-  created() {
-    this.portfolioId = this.$route.params.portfolioId;
-  },
   data() {
     return {
       stocks: [],
       open: false,
       valid: false,
       hasPortfolio: this.$store.getters.hasPortfolio,
-      portfolio: [],
+      portfolio: {},
       newSymbol: null,
       loaded: false,
       tickers: [],
+      path: 'summary',
     };
+  },
+  created() {
+    this.portfolioId = this.$route.params.portfolioId;
+    this.path = this.$route.path.slice(1);
   },
   async mounted() {
     this.$store.commit('setLoading', true);

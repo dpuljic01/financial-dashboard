@@ -25,7 +25,9 @@ def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=Non
         # iex = IEXFinance.get_stock_quote(ticker)
         # print(iex)
         history = data.history(period=period, interval=interval, start=start, end=end)
-        res[ticker] = json.loads(history.to_json(orient="index"))
+        history = history[~history.index.duplicated(keep="last")]
+        history_json = history.to_json(orient="index", date_format="iso")
+        res[ticker] = json.loads(history_json)
         if include_info:
             try:
                 res[ticker]["company_info"] = data.get_info()

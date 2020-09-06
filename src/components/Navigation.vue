@@ -29,9 +29,9 @@
             <span class="md-list-item-text">Portfolios</span>
           </md-list-item>
 
-          <md-list-item to="/notifications" @click="toggleMenu">
-            <md-icon>notifications_none</md-icon>
-            <span class="md-list-item-text">Notifications</span>
+          <md-list-item to="/compare" @click="toggleMenu">
+            <md-icon>multiline_chart</md-icon>
+            <span class="md-list-item-text">Compare</span>
           </md-list-item>
 
           <md-menu :md-offset-x="200" :md-offset-y="-110">
@@ -73,6 +73,11 @@ export default {
       submenuVisible: false,
       title: this.$route.name,
     };
+  },
+  watch: {
+    $route(to) {
+      this.title = to.name;
+    },
   },
   methods: {
     toggleMenu() {

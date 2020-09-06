@@ -11,7 +11,7 @@ import Portfolio from '../components/Portfolio.vue';
 import Holdings from '../components/portfolio/Holdings.vue';
 import Summary from '../components/portfolio/Summary.vue';
 import News from '../components/portfolio/News.vue';
-import Notifications from '../components/Notifications.vue';
+import Compare from '../components/Compare.vue';
 import Settings from '../components/Settings.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
@@ -78,9 +78,9 @@ const router = new Router({
       ],
     },
     {
-      path: '/notifications',
-      name: 'Notifications',
-      component: Notifications,
+      path: '/compare',
+      name: 'Compare',
+      component: Compare,
     },
     {
       path: '/settings',
