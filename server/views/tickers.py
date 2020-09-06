@@ -74,7 +74,7 @@ def get_company_info(symbol):
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=60 * 60 * 15, key_prefix=make_cache_key)
+@cache.cached(timeout=60 * 15, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="2d"),
     "interval": fields.Str(missing="30m"),

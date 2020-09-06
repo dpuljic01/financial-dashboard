@@ -4,6 +4,7 @@ import VueAxios from 'vue-axios';
 import Toasted from 'vue-toasted';
 import VueCookies from 'vue-cookies';
 import VueMaterial from 'vue-material';
+import VueApexCharts from 'vue-apexcharts';
 import 'vue-material/dist/vue-material.min.css';
 import 'vue-material/dist/theme/default.css';
 import VueSimpleAlert from 'vue-simple-alert';
@@ -18,6 +19,7 @@ import './assets/theme.scss';
 Vue.config.productionTip = false;
 Vue.use(Vuex);
 Vue.use(VueAxios, axios);
+Vue.use(VueApexCharts);
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
 Vue.use(VueSimpleAlert);
@@ -27,6 +29,7 @@ Vue.use(Toasted, {
   type: 'success',
 });
 Vue.component('navigation', Navigation);
+Vue.component('apexchart', VueApexCharts);
 
 // eslint-disable-next-line
 new Vue({

@@ -108,7 +108,6 @@ def populate_tickers():
 def update_stocks():
     import time
     from server.models import Stock
-    # from server.apis.iex import IEXFinance
     from server.apis.yfinance import fetch_stock_history
 
     print("Updating stock information ...")

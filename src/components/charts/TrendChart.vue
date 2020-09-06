@@ -117,7 +117,7 @@ export default {
       const data = [];
       for (let i = 0; i < keys.length; i += 1) {
         const item = {
-          x: keys[i] * 1000,
+          x: new Date(keys[i]).getTime(),
           y: values[i].Open,
         };
         data.push(item);
