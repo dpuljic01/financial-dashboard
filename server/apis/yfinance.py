@@ -11,30 +11,22 @@ import pandas as pd
 # but I might be able to use Mongo Atlas to save only ones which user searches for.
 def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None, include_info=False):  # insert_into_db=False):
     res = {}
-
-    for ticker in tickers:
-        data = yf.Ticker(ticker)
-        # data = yf.download(
-        #     tickers=ticker,
-        #     period=period,
-        #     interval=interval,
-        #     group_by="ticker",
-        #     threads=True,
-        # )
-        # name = data.info
-        # iex = IEXFinance.get_stock_quote(ticker)
-        # print(iex)
-        history = data.history(period=period, interval=interval, start=start, end=end)
-        history = history[~history.index.duplicated(keep="last")]
-        history_json = history.to_json(orient="index", date_format="iso")
-        res[ticker] = json.loads(history_json)
-        if include_info:
-            try:
-                res[ticker]["company_info"] = data.get_info()
-            except:
-                pass
-
-    return res
+    data = yf.Tickers(tickers)
+    print(data)
+    # for ticker in tickers:
+    #     data = yf.Ticker(ticker)
+    #     history = data.history(period=period, interval=interval, start=start, end=end)
+    #     history = history[~history.index.duplicated(keep="last")]
+    #     history_json = history.to_json(orient="index", date_format="iso")
+    #     res[ticker] = json.loads(history_json)
+    #     if include_info:
+    #         try:
+    #             res[ticker]["company_info"] = data.get_info()
+    #         except:
+    #             pass
+    history = data.history(period=period, interval=interval, start=start, end=end, group_by="ticker")
+    history = history[~history.index.duplicated(keep="last")]
+    return json.loads(history.to_json(orient="columns", date_format="iso"))
 
 
 def create_stock(ticker):
