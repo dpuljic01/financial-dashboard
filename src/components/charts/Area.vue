@@ -1,6 +1,6 @@
 <template>
-  <div class="example">
-    <apexchart type="area" height="300" :options="options" :series="series"></apexchart>
+  <div class="chart">
+    <apexchart type="area" ref="chart" id="main-chart" :options="options" :series="series"></apexchart>
   </div>
 </template>
 
@@ -17,3 +17,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.chart, .apexcharts-canvas {
+  width: 100%;
+  max-width: 800px;
+  min-height: 40px;
+  height: 600px;
+  margin: 0 auto;
+  padding: 0 !important;
+  margin-left: 0 !important;
+}
+</style>

@@ -4,7 +4,7 @@
     <trend-chart></trend-chart>
     <h3>PORTFOLIO SUMMARY</h3>
     <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab">
-      <md-tab id="tab-allocation" md-label="Allocation">
+      <md-tab id="tab-allocation" class="dp-primary" md-label="Allocation">
         <div class="md-layout allocation">
           <div class="md-layout-item md-size-30">
             <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>

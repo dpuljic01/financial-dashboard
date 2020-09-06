@@ -1,11 +1,33 @@
 <template>
   <div>
     <h3 class="md-title">Compare multiple tickers and analyze their movement.</h3>
-    <md-chips class="md-primary" v-model="symbols" :md-auto-insert="true" @md-insert="compare">
+    <md-chips
+      class="md-accent"
+      v-model="symbols"
+      :md-auto-insert="true"
+      :md-format="toUppercase"
+      @md-insert="compare"
+      @md-delete="delayedCompare"
+    >
       <label>Enter ticker symbols</label>
     </md-chips>
-    <div v-if="!this.$store.getters.isLoading" class="chart">
-      <Area :options="options" :series="series" />
+    <div class="chart">
+      <h3>COMPARISON CHART</h3>
+      <md-tabs
+        class="md-elevation-2"
+        style="overflow-x: auto; margin-bottom: 10px;"
+        :md-active-tab="activeTab"
+        @md-changed="onTabChange"
+      >
+        <md-tab id="tab-1d" class="md-raised" md-label="1D"></md-tab>
+        <md-tab id="tab-5d" class="md-elevation-1" md-label="5D"> </md-tab>
+        <md-tab id="tab-1mo" class="md-elevation-1" md-label="1M"> </md-tab>
+        <md-tab id="tab-6mo" class="md-elevation-1" md-label="6M"> </md-tab>
+        <md-tab id="tab-1y" class="md-elevation-1" md-label="1Y"> </md-tab>
+        <md-tab id="tab-5y" class="md-elevation-1" md-label="5Y"> </md-tab>
+        <md-tab id="tab-max" class="md-elevation-1" md-label="MAX"> </md-tab>
+      </md-tabs>
+      <Area :options="options" :series="series" ref="chart" />
     </div>
   </div>
 </template>
@@ -13,7 +35,7 @@
 <script>
 import Area from './charts/Area.vue';
 import { QUOTE_OPTIONS } from '../consts';
-import { setQuoteSeries, setYAxis } from '../utils';
+import { setQuoteSeries, setYAxis, formatDateTime } from '../utils';
 
 export default {
   name: 'Compare',
@@ -23,17 +45,49 @@ export default {
   data() {
     return {
       symbols: ['GOOGL', 'TSLA'],
-      period: '1mo',
-      interval: '1d',
+      period: '1d',
+      interval: '2m',
       options: QUOTE_OPTIONS,
       series: [],
-      categories: [],
+      activeTab: 'tab-1d',
     };
   },
-  mounted() {
-    this.compare();
+  async mounted() {
+    await this.compare();
+    this.$store.commit('setLoading', false);
   },
   methods: {
+    async onTabChange(tabId) {
+      this.activeTab = tabId;
+      [, this.period] = this.activeTab.split('-');
+      switch (this.period) {
+        case '5d':
+          this.interval = '15m';
+          break;
+        case '1mo':
+          this.interval = '1d';
+          break;
+        case '6mo':
+          this.interval = '1d';
+          break;
+        case '1y':
+          this.interval = '1d';
+          break;
+        case '5y':
+          this.interval = '1wk';
+          break;
+        case 'max':
+          this.interval = '1wk';
+          break;
+        default:
+          this.interval = '2m';
+      }
+      this.compare();
+    },
+    toUppercase(str) {
+      const newStr = str.toUpperCase();
+      return newStr;
+    },
     async compare() {
       this.$store.commit('setLoading', true);
       if (this.symbols.length > 1) {
@@ -45,19 +99,30 @@ export default {
               type: 'datetime',
             },
             yaxis: setYAxis(this.series),
-            title: {
-              text: 'COMPARISON CHART',
-            },
             legend: {
               position: 'top',
+            },
+            tooltip: {
+              x: {
+                formatter: function f(val) {
+                  return formatDateTime(new Date(val));
+                },
+              },
+              shared: true,
+            },
+            chart: {
+              animations: {
+                enabled: false,
+              },
+              height: 'auto',
             },
           },
         };
       }
+      this.$forceUpdate();
       this.$store.commit('setLoading', false);
     },
     async getQuoteHistory() {
-      this.$store.commit('setLoading', true);
       const resp = await this.$store.dispatch('getStockHistoryData', {
         symbols: this.symbols.join(),
         interval: this.interval,
@@ -66,6 +131,9 @@ export default {
       });
       this.series = setQuoteSeries(resp.data);
       this.$store.commit('setLoading', false);
+    },
+    async delayedCompare() {
+      await this.compare();
     },
   },
 };

@@ -31,7 +31,7 @@ export function formatTime(date) {
 }
 
 export function formatDateTime(date) {
-  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`;
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${date.getMinutes()}`;
 }
 
 export function isValidDate(d) {
@@ -39,26 +39,45 @@ export function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
 
+export function parseTuple(t) {
+  const newT = t
+    .replace(/'/g, '"')
+    .replace('(', '[')
+    .replace(')', ']');
+  return JSON.parse(newT);
+}
+
 export function setQuoteSeries(data) {
   const series = [];
   const symbols = Object.keys(data);
 
   for (let i = 0; i < symbols.length; i += 1) {
-    const symbol = symbols[i];
-    const values = Object.values(data[symbol]);
-    const keys = Object.keys(data[symbol]);
-    const quoteSeries = {
-      name: symbol,
-      data: [],
-    };
-    for (let j = 0; j < values.length; j += 1) {
-      if (values[j].Close) {
-        quoteSeries.data.push({ x: new Date(keys[j]).getTime(), y: values[j].Close });
-      }
+    const key = symbols[i];
+    const symbol = parseTuple(key)[0];
+    const field = parseTuple(key)[1];
+
+    if (field === 'Close') {
+      const values = Object.values(data[key]);
+      const keys = Object.keys(data[key]);
+      const quoteSeries = {
+        name: symbol,
+        data: keys
+          .filter((e, j) => {
+            if (!values[j]) {
+              return false; // skip
+            }
+            return true;
+          })
+          .map((e, j) => [e, values[j]]), // fix this to be filtered right
+      };
+      // for (let j = 0; j < values.length; j += 1) {
+      //   if (values[j].Close) {
+      //     quoteSeries.data.push({ x: new Date(keys[j]).getTime(), y: values[j].Close });
+      //   }
+      // }
+      series.push(quoteSeries);
     }
-    series.push(quoteSeries);
   }
-  console.log(series);
   return series;
 }
 
@@ -66,14 +85,14 @@ export function setYAxis(series) {
   const yAxes = [];
 
   for (let i = 0; i < series.length; i += 1) {
-    let minPrice = series[i].data[0].y;
+    let minPrice = series[i].data[0][1];
     let maxPrice = minPrice;
     for (let j = 0; j < series[i].data.length; j += 1) {
-      if (series[i].data[j].y < minPrice) {
-        minPrice = series[i].data[j].y;
+      if (series[i].data[j][1] < minPrice) {
+        [, minPrice] = series[i].data[j];
       }
-      if (series[i].data[j].y > maxPrice) {
-        maxPrice = series[i].data[j].y;
+      if (series[i].data[j][1] > maxPrice) {
+        [, maxPrice] = series[i].data[j];
       }
     }
     yAxes.push({

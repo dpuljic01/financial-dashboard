@@ -24,19 +24,19 @@ const QUOTE_OPTIONS = {
     type: 'datetime',
     labels: {
       show: true,
-      format: 'dd/MM',
     },
   },
   tooltip: {
     shared: true,
   },
+  markers: {
+    size: 0,
+  },
   chart: {
     animations: {
       enabled: false,
     },
-  },
-  markers: {
-    size: 0,
+    height: 'auto',
   },
 };
 
