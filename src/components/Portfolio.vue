@@ -8,7 +8,7 @@
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
     </div>
-    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed">
+    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed" :md-swipeable="true">
       <md-tab id="tab-summary" md-label="Summary" :to="`/portfolios/${portfolio.id}/summary`">
         <md-empty-state
           v-if="stocks.length == 0"

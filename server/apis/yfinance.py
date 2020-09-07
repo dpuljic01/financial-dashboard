@@ -1,32 +1,25 @@
 import yfinance as yf
 import json
-import datetime
 from server.extensions import db
 from server.models import Stock
 import pandas_datareader as pdr
 import pandas as pd
 
 
-# probably not a smart idea to save this into DB due to database limits on Heroku free account :(
-# but I might be able to use Mongo Atlas to save only ones which user searches for.
-def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None, include_info=False):  # insert_into_db=False):
+def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None, include_info=False):
     res = {}
-    data = yf.Tickers(tickers)
-    print(data)
-    # for ticker in tickers:
-    #     data = yf.Ticker(ticker)
-    #     history = data.history(period=period, interval=interval, start=start, end=end)
-    #     history = history[~history.index.duplicated(keep="last")]
-    #     history_json = history.to_json(orient="index", date_format="iso")
-    #     res[ticker] = json.loads(history_json)
-    #     if include_info:
-    #         try:
-    #             res[ticker]["company_info"] = data.get_info()
-    #         except:
-    #             pass
-    history = data.history(period=period, interval=interval, start=start, end=end, group_by="ticker")
-    history = history[~history.index.duplicated(keep="last")]
-    return json.loads(history.to_json(orient="columns", date_format="iso"))
+    for ticker in tickers:
+        data = yf.Ticker(ticker)
+        history = data.history(period=period, interval=interval, start=start, end=end, group_by="ticker")
+        history = history[~history.index.duplicated(keep="last")]
+        history_json = json.loads(history.to_json(orient="columns", date_format="iso"))
+        if include_info:
+            try:
+                history_json["company_info"] = data.get_info()
+            except:
+                pass
+        res[ticker] = history_json
+    return res
 
 
 def create_stock(ticker):

@@ -39,70 +39,88 @@ export function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
 
-export function parseTuple(t) {
-  const newT = t
-    .replace(/'/g, '"')
-    .replace('(', '[')
-    .replace(')', ']');
-  return JSON.parse(newT);
-}
+// export function parseTuple(t) {
+//   const newT = t
+//     .replace(/'/g, '"')
+//     .replace('(', '[')
+//     .replace(')', ']');
+//   return JSON.parse(newT);
+// }
 
 export function setQuoteSeries(data) {
   const series = [];
   const symbols = Object.keys(data);
 
   for (let i = 0; i < symbols.length; i += 1) {
-    const key = symbols[i];
-    const symbol = parseTuple(key)[0];
-    const field = parseTuple(key)[1];
+    const symbol = symbols[i];
+    const closeKeys = Object.keys(data[symbol].Close);
+    const closeValues = Object.values(data[symbol].Close);
+    const quoteSeries = {
+      name: symbol,
+      data: [],
+    };
 
-    if (field === 'Close') {
-      const values = Object.values(data[key]);
-      const keys = Object.keys(data[key]);
-      const quoteSeries = {
-        name: symbol,
-        data: keys
-          .filter((e, j) => {
-            if (!values[j]) {
-              return false; // skip
-            }
-            return true;
-          })
-          .map((e, j) => [e, values[j]]), // fix this to be filtered right
-      };
-      // for (let j = 0; j < values.length; j += 1) {
-      //   if (values[j].Close) {
-      //     quoteSeries.data.push({ x: new Date(keys[j]).getTime(), y: values[j].Close });
-      //   }
-      // }
-      series.push(quoteSeries);
+    // this below fixes the problem where one line chart ends too soon
+    for (let j = 0; j < closeValues.length; j += 1) {
+      if (closeValues[j]) {
+        quoteSeries.data.push([closeKeys[j], closeValues[j]]);
+      }
     }
+    series.push(quoteSeries);
   }
   return series;
 }
 
+function seriesMinMax(series) {
+  let minPrice = series.data[0][1];
+  let maxPrice = minPrice;
+  for (let j = 0; j < series.data.length; j += 1) {
+    if (series.data[j][1] < minPrice) {
+      [, minPrice] = series.data[j];
+    }
+    if (series.data[j][1] > maxPrice) {
+      [, maxPrice] = series.data[j];
+    }
+  }
+  return [minPrice, maxPrice];
+}
+
 export function setYAxis(series) {
+  if (!Array.isArray(series)) {
+    const [smin, smax] = seriesMinMax(series);
+    const yAxis = {
+      floating: true,
+      axisTicks: {
+        show: false,
+      },
+      axisBorder: {
+        show: false,
+      },
+      labels: {
+        show: false,
+      },
+      seriesName: series.name,
+      min: smin - smax / 100,
+      max: smax + smax / 100,
+    };
+    return yAxis;
+  }
   const yAxes = [];
 
   for (let i = 0; i < series.length; i += 1) {
-    let minPrice = series[i].data[0][1];
-    let maxPrice = minPrice;
-    for (let j = 0; j < series[i].data.length; j += 1) {
-      if (series[i].data[j][1] < minPrice) {
-        [, minPrice] = series[i].data[j];
-      }
-      if (series[i].data[j][1] > maxPrice) {
-        [, maxPrice] = series[i].data[j];
-      }
-    }
+    const [smin, smax] = seriesMinMax(series[i]);
     yAxes.push({
+      floating: true,
       labels: {
         show: false,
         maxWidth: 0,
       },
+      tooltip: {
+        shared: true,
+      },
       seriesName: series[i].name,
-      min: minPrice - minPrice / 10,
-      max: maxPrice + maxPrice / 10,
+      min: smin - smax / 10,
+      max: smax + smax / 10,
     });
   }
   return yAxes;

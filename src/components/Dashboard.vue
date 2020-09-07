@@ -3,7 +3,7 @@
     <search />
     <trend-chart></trend-chart>
     <h3>PORTFOLIO SUMMARY</h3>
-    <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab">
+    <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab" :md-swipeable="true">
       <md-tab id="tab-allocation" class="dp-primary" md-label="Allocation">
         <div class="md-layout allocation">
           <div class="md-layout-item md-size-30">

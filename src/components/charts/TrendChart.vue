@@ -1,24 +1,22 @@
 <template>
-  <div v-if="!this.$store.getters.isLoading">
+  <div>
     <div class="futures noselect">
       <div class="md-content" v-for="(value, index) in trendData" :key="index">
-        <div class="md-layout-item md-size-30">
-          {{ value.datasets[0].label.toUpperCase() }}<br />
-          {{ value.datasets[0].price }}
-        </div>
-        <trend-line class="md-layout-item md-size-70" :chart-data="value" :options="options"></trend-line>
+        <Area :height="100" :series="[value.serie]" :options="value.options" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import TrendLine from './TrendLine';
+import { setQuoteSeries, setYAxis } from '../../utils';
+import Area from './Area.vue';
+import { QUOTE_OPTIONS } from '../../consts';
 
 export default {
   name: 'TrendChart',
   components: {
-    TrendLine,
+    Area,
   },
   data() {
     return {
@@ -26,64 +24,7 @@ export default {
       trendData: [],
       interval: '5m',
       period: '1d',
-      options: {
-        animation: {
-          duration: 0, // general animation time
-        },
-        responsiveAnimationDuration: 0, // animation duration after a resize
-        legend: { display: false },
-        tooltips: {
-          callbacks: {
-            title() {
-              return '';
-            },
-            label(tooltipItem, data) {
-              return data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
-            },
-          },
-          displayColors: false,
-          mode: 'index',
-          intersect: false,
-        },
-        hover: {
-          animationDuration: 0, // duration of animations when hovering an item
-          mode: 'index',
-          intersect: false,
-        },
-        events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove', 'touchend'],
-        scales: {
-          xAxes: [
-            {
-              gridLines: { display: false },
-              ticks: { display: false },
-              type: 'time',
-              time: {
-                unit: 'minute',
-                stepSize: 15,
-              },
-              distribution: 'series',
-            },
-          ],
-          yAxes: [
-            {
-              gridLines: { display: false },
-              ticks: { display: false },
-            },
-          ],
-        },
-        plugins: {
-          zoom: {
-            pan: {
-              enabled: true,
-              mode: 'x',
-            },
-            zoom: {
-              enabled: true,
-              mode: 'x',
-            },
-          },
-        },
-      },
+      options: QUOTE_OPTIONS,
     };
   },
   mounted() {
@@ -99,43 +40,24 @@ export default {
         period: this.period,
         include_info: false,
       });
-      const keys = Object.keys(resp.data);
-      const values = Object.values(resp.data);
-      for (let i = 0; i < keys.length; i += 1) {
-        this.setTrendData(keys[i], values[i]);
-      }
+      const series = setQuoteSeries(resp.data);
+      this.setTrendData(series);
       this.$store.commit('setLoading', false);
     },
-    setTrendData(symbol, symbolData) {
-      const keys = Object.keys(symbolData);
-      const values = Object.values(symbolData);
-
-      if (values.length < 4) {
-        // TODO: find better solution to handle graphs with small dataset
-        return;
-      }
-      const data = [];
-      for (let i = 0; i < keys.length; i += 1) {
-        const item = {
-          x: new Date(keys[i]).getTime(),
-          y: values[i].Open,
+    setTrendData(series) {
+      for (let i = 0; i < series.length; i += 1) {
+        const symbol = this.nameFromSymbol(series[i].name);
+        const latestPrice = series[i].data[Object.keys(series[i].data).length - 1][1];
+        /* eslint-disable-next-line no-param-reassign */
+        series[i].name = symbol;
+        const chartData = {
+          label: symbol,
+          price: `$${latestPrice.toString()}`, // last value is the newest
+          serie: series[i],
+          options: this.setOptions(series[i], symbol, latestPrice),
         };
-        data.push(item);
+        this.trendData.push(chartData);
       }
-      const positiveTrend = data[0].y < data[data.length - 1].y;
-      this.trendData.push({
-        datasets: [
-          {
-            label: this.nameFromSymbol(symbol),
-            price: `$${data[data.length - 1].y.toString()}`, // last value is the newest
-            borderColor: positiveTrend ? 'rgb(29, 191, 172)' : 'rgb(191, 29, 99)',
-            borderWidth: 1,
-            backgroundColor: positiveTrend ? 'rgba(29, 191, 172, 0.4)' : 'rgba(191, 29, 99, 0.5)',
-            pointRadius: 0,
-            data,
-          },
-        ],
-      });
     },
     nameFromSymbol(symbol) {
       const mapping = {
@@ -149,6 +71,69 @@ export default {
       };
       return mapping[symbol];
     },
+    setOptions(serie, symbol, price) {
+      const positiveTrend = serie.data[0][1] < serie.data[Object.keys(serie.data).length - 1][1];
+      const yAxis = setYAxis(serie);
+      return {
+        ...this.options,
+        ...{
+          stroke: {
+            curve: 'straight',
+            width: 1,
+          },
+          xaxis: {
+            type: 'datetime',
+            floating: true,
+            axisTicks: {
+              show: false,
+            },
+            axisBorder: {
+              show: false,
+            },
+            labels: {
+              show: false,
+            },
+          },
+          yaxis: yAxis,
+          legend: {
+            show: false,
+          },
+          tooltip: {
+            x: {
+              show: false,
+            },
+            y: {
+              formatter: function f(val) {
+                return +val.toFixed(2);
+              },
+            },
+          },
+          grid: {
+            show: false,
+            padding: {
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+            },
+          },
+          colors: positiveTrend ? ['rgba(29, 191, 172, 0.4)'] : ['rgba(191, 29, 99, 0.5)'],
+          subtitle: {
+            text: `${symbol} - $${price}`,
+          },
+          chart: {
+            height: '100%',
+            animations: {
+              enabled: false,
+            },
+            toolbar: {
+              maxHeight: 0,
+              show: false,
+            },
+          },
+        },
+      };
+    },
   },
 };
 </script>
@@ -157,14 +142,15 @@ export default {
 .futures {
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden;
   justify-content: flex-start;
   align-items: center;
 }
 
 .md-content {
-  width: 150px;
+  width: 200px;
   height: 100px;
-  max-height: 100px;
+  max-height: 150px;
   min-width: 150px;
   margin: 15px;
   padding: 5px;
@@ -202,9 +188,4 @@ export default {
   background: rgba(144, 144, 144, 0.4);
 }
 
-.vertical-line {
-  height: 100px;
-  width: 1px;
-  border: 1px solid gray;
-}
 </style>
