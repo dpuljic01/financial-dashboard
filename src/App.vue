@@ -26,12 +26,4 @@ export default {
 #app .md-app {
   min-height: 100vh;
 }
-.apexcharts-canvas {
-  width: 100%;
-  min-height: 400px;
-  height: 600px;
-  margin: 0 auto;
-  padding: 0 !important;
-  margin-left: 0 !important;
-}
 </style>

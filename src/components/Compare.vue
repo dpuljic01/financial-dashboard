@@ -1,31 +1,32 @@
 <template>
   <div>
-    <h3 class="md-title">Compare multiple tickers and analyze their movement.</h3>
-    <md-chips
-      class="md-accent"
-      v-model="symbols"
-      :md-auto-insert="true"
-      :md-format="toUppercase"
-      @md-insert="compare"
-      @md-delete="delayedCompare"
-    >
-      <label>Enter ticker symbols</label>
-    </md-chips>
     <div class="chart">
+      <h3 class="md-title">Compare multiple tickers and analyze their movement.</h3>
+      <md-chips
+        class="md-accent"
+        v-model="symbols"
+        :md-auto-insert="true"
+        :md-format="toUppercase"
+        @md-insert="compare"
+        @md-delete="delayedCompare"
+      >
+        <label>Enter ticker symbols</label>
+      </md-chips>
+
       <h3>COMPARISON CHART</h3>
       <md-tabs
-        class="md-elevation-2"
+        class="tabs md-elevation-1"
         style="overflow-x: auto; margin-bottom: 10px;"
         :md-active-tab="activeTab"
         @md-changed="onTabChange"
       >
-        <md-tab id="tab-1d" class="md-raised" md-label="1D"></md-tab>
-        <md-tab id="tab-5d" class="md-elevation-1" md-label="5D"> </md-tab>
-        <md-tab id="tab-1mo" class="md-elevation-1" md-label="1M"> </md-tab>
-        <md-tab id="tab-6mo" class="md-elevation-1" md-label="6M"> </md-tab>
-        <md-tab id="tab-1y" class="md-elevation-1" md-label="1Y"> </md-tab>
-        <md-tab id="tab-5y" class="md-elevation-1" md-label="5Y"> </md-tab>
-        <md-tab id="tab-max" class="md-elevation-1" md-label="MAX"> </md-tab>
+        <md-tab id="tab-1d" md-label="1D"></md-tab>
+        <md-tab id="tab-5d" md-label="5D"> </md-tab>
+        <md-tab id="tab-1mo" md-label="1M"> </md-tab>
+        <md-tab id="tab-6mo" md-label="6M"> </md-tab>
+        <md-tab id="tab-1y" md-label="1Y"> </md-tab>
+        <md-tab id="tab-5y" md-label="5Y"> </md-tab>
+        <md-tab id="tab-max" md-label="MAX"> </md-tab>
       </md-tabs>
       <Area :options="options" :series="series" ref="chart" />
     </div>
@@ -33,9 +34,10 @@
 </template>
 
 <script>
+import moment from 'moment';
 import Area from './charts/Area.vue';
 import { QUOTE_OPTIONS } from '../consts';
-import { setQuoteSeries, setYAxis, formatDateTime } from '../utils';
+import { setQuoteSeries, setYAxis } from '../utils';
 
 export default {
   name: 'Compare',
@@ -44,9 +46,9 @@ export default {
   },
   data() {
     return {
-      symbols: ['GOOGL', 'TSLA'],
+      symbols: ['GOOG', 'TSLA'],
       period: '1d',
-      interval: '2m',
+      interval: '5m',
       options: QUOTE_OPTIONS,
       series: [],
       activeTab: 'tab-1d',
@@ -61,8 +63,11 @@ export default {
       this.activeTab = tabId;
       [, this.period] = this.activeTab.split('-');
       switch (this.period) {
+        case '1d':
+          this.interval = '5m';
+          break;
         case '5d':
-          this.interval = '15m';
+          this.interval = '30m';
           break;
         case '1mo':
           this.interval = '1d';
@@ -80,7 +85,8 @@ export default {
           this.interval = '1wk';
           break;
         default:
-          this.interval = '2m';
+          this.period = '1d';
+          this.interval = '5m';
       }
       this.compare();
     },
@@ -89,8 +95,8 @@ export default {
       return newStr;
     },
     async compare() {
-      this.$store.commit('setLoading', true);
-      if (this.symbols.length > 1) {
+      if (this.symbols.length > 0) {
+        this.$store.commit('setLoading', true);
         await this.getQuoteHistory();
         this.options = {
           ...this.options,
@@ -101,14 +107,22 @@ export default {
             yaxis: setYAxis(this.series),
             legend: {
               position: 'top',
+              horizontalAlign: 'left',
             },
             tooltip: {
               x: {
                 formatter: function f(val) {
-                  return formatDateTime(new Date(val));
+                  return moment(val).format('LLL');
                 },
               },
-              shared: true,
+              y: {
+                formatter: function f(val) {
+                  return +val.toFixed(4);
+                },
+              },
+            },
+            title: {
+              text: 'COMPARISON CHART',
             },
             chart: {
               animations: {
@@ -118,9 +132,8 @@ export default {
             },
           },
         };
+        this.$store.commit('setLoading', false);
       }
-      this.$forceUpdate();
-      this.$store.commit('setLoading', false);
     },
     async getQuoteHistory() {
       const resp = await this.$store.dispatch('getStockHistoryData', {
@@ -138,3 +151,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.chart {
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+}
+</style>
