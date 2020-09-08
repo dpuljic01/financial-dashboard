@@ -2,7 +2,7 @@
   <div>
     <div class="futures noselect">
       <div class="md-content" v-for="(value, index) in trendData" :key="index">
-        <Area :height="100" :series="[value.serie]" :options="value.options" />
+        <Area :series="[value.serie]" :options="value.options" />
       </div>
     </div>
   </div>

@@ -169,7 +169,7 @@ def fetch_latest_stock_prices(args):
             quote = get_quote(stock.ticker)[stock.ticker]
         except:
             pass
-        print(quote)
+
         if quote:
             stock.latest_market_data = lowercase_keys(quote)
             db.session.commit()
@@ -180,7 +180,6 @@ def fetch_latest_stock_prices(args):
         print("GLOBAL : ", global_quote)
         if global_quote.get('Global Quote', {}):
             quote = AlphaVantage.filter_global_quote(global_quote)
-            print(quote)
             stock.latest_market_data = lowercase_keys(quote)
             db.session.commit()
             continue

@@ -50,8 +50,13 @@ export function getNews(params, accessToken) {
   });
 }
 
-export function createNewHolding(portfolioId, payload) {
-  return Vue.axios.post(`${API_URL}/portfolios/${portfolioId}/`, payload);
+export function createNewHolding(data, accessToken) {
+  return Vue.axios({
+    method: 'post',
+    url: `${API_URL}/portfolios/${data.portfolio}/holdings`,
+    headers: { Authorization: `Bearer ${accessToken}` },
+    data: data.payload,
+  });
 }
 
 export function createNewPortfolio(portfolio, accessToken) {

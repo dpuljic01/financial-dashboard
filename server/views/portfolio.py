@@ -1,12 +1,10 @@
 from flask import Blueprint, jsonify
-from types import SimpleNamespace
-
-from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields, validate
 from webargs.flaskparser import use_kwargs
+from datetime import datetime
 
-from server.apis.yfinance import fetch_stock_history, fetch_stock_info, get_quote
+from server.apis.yfinance import fetch_stock_info, get_quote
 from server.common.common import lowercase_keys
 from server.decorators import check_confirmed
 from server.extensions import db
@@ -47,7 +45,7 @@ def get_portfolio(identifier):
 def create_portfolio(**payload):
     current_identity = get_jwt_identity()
 
-    portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
+    portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
     if portfolio:
         return jsonify({"message": "Portfolio with that name already exists."}), 409
 
@@ -65,70 +63,84 @@ def create_portfolio(**payload):
     "info": fields.String(),
 })
 def update_portfolio(portfolio_id, **payload):
-    portfolio_db = Portfolio.query.get_or_404(portfolio_id)
-    portfolio = Portfolio.query.filter_by(name=payload["name"]).first()
-    if portfolio:
-        return jsonify({"message": "Portfolio with that name already exists."}), 409
+    current_identity = get_jwt_identity()
+    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+
+    # portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
+    # if portfolio:
+    #     return jsonify({"message": "Portfolio with that name already exists."}), 409
 
     portfolio_db.update(payload)
     db.session.commit()
-    return jsonify(portfolio.json), 201
+    return jsonify(portfolio_db.json), 201
 
 
-@bp.route("/holdings", methods=["POST"])
+@bp.route("/<int:portfolio_id>", methods=["DELETE"])
+@jwt_required
+@check_confirmed
+def delete_portfolio(portfolio_id):
+    current_identity = get_jwt_identity()
+    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    db.session.delete(portfolio_db)
+    db.session.commit()
+    return jsonify(), 204
+
+
+@bp.route("/<int:portfolio_id>/holdings", methods=["POST"])
 @jwt_required
 @check_confirmed
 @use_kwargs({
-    "portfolio": fields.String(required=True),
     "symbol": fields.String(required=True),
+    "shares": fields.Decimal(required=True),
     "price": fields.Decimal(required=True),
-    "purchased_at": fields.DateTime(required=True),
+    "purchased_at": fields.DateTime(required=False, missing=datetime.now()),
 })
-def create_portfolio_holding(**payload):
+def create_portfolio_holding(portfolio_id, **payload):
     current_identity = get_jwt_identity()
+    portfolio = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
 
-    portfolio = Portfolio.query.filter_by(name=payload["portfolio"], user_id=current_identity).first()
-    if not portfolio:
-        return jsonify({"message": "Portfolio not found"}), 404
+    symbol = payload["symbol"].upper()
+    stock_db = Stock.query.filter_by(ticker=symbol).first_or_404()
 
-    # here call actual api to fetch company details based on symbol
-    stock = SimpleNamespace(  # mocked!
-        symbol="AAPL",
-        company_name="Apple Inc.",
-        company_details={"CEO": "Domagoj Puljic", "Exchange": "NYSE", "Price": 456.43}
-    )
-
-    stock_db = Stock(
-        ticker=stock.symbol,
-        short_name=stock.company_name,
-        info=stock.company_details,
-    )
-    db.session.add(stock_db)
-    db.session.flush()
+    if stock_db not in portfolio.stocks:
+        return jsonify({"message": "Symbol does not exist in current portfolio"})
 
     holding_db = Holding(
-        portfolio_id=portfolio.id,
+        portfolio_id=portfolio_id,
+        user_id=current_identity,
         stock_id=stock_db.id,
         price=payload["price"],
         purchased_at=payload["purchased_at"],
+        shares=payload["shares"]
     )
     db.session.add(holding_db)
     db.session.commit()
-    return jsonify(portfolio.json), 201
+    return jsonify(holding_db.json), 201
 
 
-@bp.route("/<string:portfolio_name>/symbols", methods=["POST"])
+@bp.route("/<int:holding_id>", methods=["DELETE"])
+@jwt_required
+@check_confirmed
+def delete_portfolio_holding(holding_id):
+    current_identity = get_jwt_identity()
+    holding_db = Holding.query.filter_by(id=holding_id, user_id=current_identity).first_or_404()
+    db.session.delete(holding_db)
+    db.session.commit()
+    return jsonify(), 204
+
+
+@bp.route("/<string:portfolio_id>/symbols", methods=["POST"])
 @jwt_required
 @check_confirmed
 @use_kwargs({
     "symbol": fields.String(required=True),
     "short_name": fields.String(),
 })
-def add_symbol(portfolio_name, **payload):
+def add_symbol(portfolio_id, **payload):
     symbol = payload["symbol"].upper()
 
     current_identity = get_jwt_identity()
-    portfolio = Portfolio.query.filter_by(user_id=current_identity, name=portfolio_name).first_or_404()
+    portfolio = Portfolio.query.filter_by(user_id=current_identity, id=portfolio_id).first_or_404()
 
     stock_db = Stock.query.filter_by(ticker=symbol).first()
     stock_in_portfolio = stock_db and (stock_db in portfolio.stocks)

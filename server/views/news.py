@@ -50,7 +50,7 @@ def scrape_news(args):
         r = requests.get(url, headers=headers)
         news = BeautifulSoup(r.text, "html.parser")
         articles = news.find_all("li", attrs={"class": "cr_pressRelease"})
-        for article in articles:
+        for article in articles[:4]:
             date = article.find(attrs={"class": "cr_dateStamp"}).text
             provider = article.find(attrs={"class": "cr_provider"}).text
             headline = article.find(attrs={"class": "headline"})

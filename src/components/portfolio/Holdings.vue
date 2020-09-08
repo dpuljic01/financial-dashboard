@@ -1,31 +1,52 @@
 <template>
   <div v-if="loaded">
-    <table>
-      <thead>
-        <td>Symbol</td>
-        <td>Shares</td>
-        <td>Worth (USD)</td>
-      </thead>
-      <tbody v-for="item in portfolio.stocks" :key="item.id">
-        <tr>
-          <td>{{ item.ticker }}</td>
-          <td>{{ portfolio.holdings.length }}</td>
-          <td>{{ calculatePortfolioValue(portfolio.holdings, item.id) }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!--<md-table v-if="this.portfolio.stocks.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
+    <md-table>
       <md-table-row>
+        <md-table-head style="max-width:50px;padding:0;margin:0;">Add</md-table-head>
         <md-table-head>Symbol</md-table-head>
         <md-table-head>Shares</md-table-head>
         <md-table-head>Worth (USD)</md-table-head>
       </md-table-row>
-      <router-link v-for="item in portfolio.stocks" :key="item.id" tag="md-table-row">
-        <md-table-cell>{{ item.ticker }}</md-table-cell>
-        <md-table-cell>{{ portfolio.holdings.length }}</md-table-cell>
-        <md-table-cell>{{ calculatePortfolioValue(portfolio.holdings, item.id) }}</md-table-cell>
-      </router-link>
-    </md-table>-->
+      <md-table-row v-for="stock in currentPortfolio.stocks" :key="stock.id">
+        <md-table-cell style="max-width:40px;padding:0;margin:0;"
+          ><md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button
+          ></md-table-cell
+        >
+        <md-table-cell>{{ stock.ticker }}</md-table-cell>
+        <md-table-cell>{{ getNumberOfShares(stock.id) }}</md-table-cell>
+        <md-table-cell>{{ calculatePortfolioValue(currentPortfolio.holdings, stock.id) }}</md-table-cell>
+      </md-table-row>
+    </md-table>
+    <md-dialog :md-active.sync="open" :md-fullscreen="false">
+      <md-dialog-title
+        >Add holding
+        <md-button class="md-icon close-icon" @click="open = false">close</md-button>
+      </md-dialog-title>
+      <md-dialog-content>
+        <form @submit.prevent="submit">
+          <md-field>
+            <label for="shares">Number of shares</label>
+            <md-input type="number" step="any" v-model="newShares" name="shares" id="shares" autofocus></md-input>
+          </md-field>
+          <p class="dp-error" v-if="!valid">Must be greater than zero</p>
+
+          <md-field>
+            <label for="average">Average price (USD)</label>
+            <md-input type="number" step="any" v-model="average" name="average" id="average"></md-input>
+          </md-field>
+          <p class="dp-error" v-if="!valid">Must be greater than zero</p>
+
+          <md-field>
+            <label for="purchased">Purchased on</label>
+            <md-datepicker name="purchased" v-model="purchasedOn" />
+          </md-field>
+          <md-dialog-actions>
+            <md-button class="md-raised" @click="open = false">Cancel</md-button>
+            <md-button class="md-raised md-primary" type="submit">Save</md-button>
+          </md-dialog-actions>
+        </form>
+      </md-dialog-content>
+    </md-dialog>
   </div>
 </template>
 
@@ -42,49 +63,70 @@ export default {
       open: false,
       portfolioName: '',
       info: '',
-      valid: false,
+      valid: true,
       portfolios: [],
       loaded: false,
+      newShares: 1,
+      average: 1,
+      purchasedOn: new Date(),
+      currentPortfolio: this.portfolio,
+      portfolioId: this.portfolio.id,
+      symbol: '',
     };
   },
   async mounted() {
+    this.currentPortfolio = this.portfolio;
     this.loaded = true;
   },
   methods: {
-    async createPortfolio() {
+    add(ticker) {
+      this.open = true;
+      this.symbol = ticker;
+    },
+    async createHolding() {
       this.open = false;
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      await this.$store.dispatch('getPortfolios');
-      this.portfolios = this.$store.getters.listPortfolios;
-      this.portfolioName = '';
-      this.info = '';
+      await this.$store.dispatch('createNewHolding', {
+        portfolio: this.portfolioId,
+        payload: {
+          symbol: this.symbol,
+          shares: parseFloat(this.newShares),
+          price: parseFloat(this.average),
+          purchased_at: this.purchasedOn,
+        },
+      });
+      await this.$store.dispatch('getPortfolio', this.portfolioId);
+      this.currentPortfolio = this.$store.getters.currentPortfolio;
+      console.log(this.currentPortfolio);
       this.$store.commit('setLoading', false);
     },
     submit() {
+      this.valid = this.validNumber(this.newShares) && this.validNumber(this.average);
       if (this.valid) {
-        this.createPortfolio();
+        this.createHolding();
       }
     },
-    validName(value) {
-      return value.length > 1;
+    validNumber(value) {
+      return value > 0;
     },
     calculatePortfolioValue(holdings, stockId) {
       let price = 0;
       for (let i = 0; i < holdings.length; i += 1) {
         if (holdings[i].stock_id === stockId) {
-          price += parseFloat(holdings[i].price);
+          price += holdings[i].price * holdings[i].shares;
         }
       }
       return price;
     },
-  },
-  watch: {
-    portfolioName: {
-      handler: function portfolioName(value) {
-        this.portfolioName = value;
-        this.valid = this.validName(value);
-      },
+    getNumberOfShares(stockId) {
+      const { holdings } = this.currentPortfolio;
+      let shares = 0;
+      for (let i = 0; i < holdings.length; i += 1) {
+        if (holdings[i].stock_id === stockId) {
+          shares += holdings[i].shares;
+        }
+      }
+      return shares;
     },
   },
 };
