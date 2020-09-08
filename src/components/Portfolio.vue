@@ -20,7 +20,7 @@
 
       <md-tab id="tab-holdings" md-label="Holdings" :to="`/portfolios/${portfolio.id}/holdings`">
         <md-empty-state
-          v-if="portfolio.holdings.length == 0"
+          v-if="portfolio.stocks.length === 0"
           md-description="Your list is empty. Add symbols to get relevant info."
         >
         </md-empty-state>
@@ -29,7 +29,7 @@
 
       <md-tab id="tab-news" md-label="News" :to="`/portfolios/${portfolio.id}/news`">
         <md-empty-state
-          v-if="stocks.length == 0"
+          v-if="stocks.length === 0"
           md-description="Your list is empty. Add symbols to get relevant info."
         >
         </md-empty-state>
@@ -107,22 +107,34 @@ export default {
     async addSymbol(payload) {
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('addSymbol', {
-        portfolio: this.portfolio.name,
+        portfolio: this.portfolio.id,
         payload: {
           symbol: payload.symbol,
           short_name: payload.short_name,
         },
       });
+      console.log(this.portfolioId);
+      await this.updateUserDetails();
       this.$store.dispatch('successMessage');
-      this.updateUserDetails();
-      this.getTickers();
       this.$store.commit('setLoading', false);
     },
     async updateUserDetails() {
-      await this.$store.dispatch('getCurrentUser');
+      await this.$store.dispatch('getPortfolios');
       await this.$store.dispatch('getPortfolio', this.portfolioId);
+      this.getTickers();
       this.portfolio = this.$store.getters.currentPortfolio;
       this.stocks = this.portfolio.stocks;
+    },
+  },
+  watch: {
+    portfolio: function portfolio(val) {
+      this.portfolio = val;
+    },
+    stocks: function stocks(val) {
+      this.stocks = val;
+    },
+    tickers: function tickers(val) {
+      this.tickers = val;
     },
   },
 };

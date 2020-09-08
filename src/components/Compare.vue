@@ -1,7 +1,7 @@
 <template>
   <div>
+    <h3 class="md-title">Compare multiple tickers and analyze their movement.</h3>
     <div class="chart">
-      <h3 class="md-title">Compare multiple tickers and analyze their movement.</h3>
       <md-chips
         class="md-accent"
         v-model="symbols"
@@ -28,7 +28,7 @@
         <md-tab id="tab-5y" md-label="5Y"> </md-tab>
         <md-tab id="tab-max" md-label="MAX"> </md-tab>
       </md-tabs>
-      <Area :options="options" :series="series" ref="chart" />
+      <Area v-if="loaded" :options="options" :series="series" />
     </div>
   </div>
 </template>
@@ -51,17 +51,18 @@ export default {
       interval: '5m',
       options: QUOTE_OPTIONS,
       series: [],
+      loaded: false,
       activeTab: 'tab-1d',
     };
   },
   async mounted() {
     await this.compare();
     this.$store.commit('setLoading', false);
+    this.loaded = true;
   },
   methods: {
-    async onTabChange(tabId) {
-      this.activeTab = tabId;
-      [, this.period] = this.activeTab.split('-');
+    onTabChange(tabId) {
+      [, this.period] = tabId.split('-');
       switch (this.period) {
         case '1d':
           this.interval = '5m';
@@ -82,7 +83,7 @@ export default {
           this.interval = '1wk';
           break;
         case 'max':
-          this.interval = '1wk';
+          this.interval = '1mo';
           break;
         default:
           this.period = '1d';
@@ -120,9 +121,6 @@ export default {
                   return +val.toFixed(4);
                 },
               },
-            },
-            title: {
-              text: 'COMPARISON CHART',
             },
             chart: {
               animations: {

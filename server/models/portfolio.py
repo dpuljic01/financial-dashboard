@@ -1,9 +1,8 @@
 from server.extensions import db
-from sqlalchemy import Numeric, Table
+from sqlalchemy import Numeric
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from server.models.mixin import TimestampMixin
 from sqlalchemy import (
-    ForeignKeyConstraint,
     UniqueConstraint,
 )
 
@@ -68,9 +67,11 @@ class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, 
     __tablename__ = "holdings"
 
     id = db.Column(db.Integer(), db.Sequence("holdings_id_seq"), primary_key=True)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), nullable=False)
     stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False)
-    price = db.Column(Numeric, nullable=False)
+    shares = db.Column(Numeric(asdecimal=False), nullable=False)
+    price = db.Column(Numeric(asdecimal=False), nullable=False)
     purchased_at = db.Column(db.DateTime(), nullable=False)
 
     def __init__(self, *args, **kwargs):
@@ -80,23 +81,13 @@ class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, 
     def json(self):
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "portfolio_id": self.portfolio_id,
             "stock_id": self.stock_id,
-            "price": str(self.price),
+            "price": self.price,
             "purchased_at": self.purchased_at,
+            "shares": self.shares,
         }
-
-
-# class StockHistory(db.Model):
-#     id = db.Column(db.Integer(), db.Sequence("stock_history_id_seq"), primary_key=True)
-#     stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"))
-#     date = db.Column(db.DateTime())
-#     close = db.Column(Numeric)
-#     open = db.Column(Numeric)
-#     high = db.Column(Numeric)
-#     low = db.Column(Numeric)
-#     dividends = db.Column(Numeric)
-#     volume = db.Column(Numeric)
 
 
 class PortfolioStocks(db.Model):

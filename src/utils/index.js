@@ -55,18 +55,21 @@ export function setQuoteSeries(data) {
     const symbol = symbols[i];
     const closeKeys = Object.keys(data[symbol].Close);
     const closeValues = Object.values(data[symbol].Close);
-    const quoteSeries = {
-      name: symbol,
-      data: [],
-    };
 
-    // this below fixes the problem where one line chart ends too soon
-    for (let j = 0; j < closeValues.length; j += 1) {
-      if (closeValues[j]) {
-        quoteSeries.data.push([closeKeys[j], closeValues[j]]);
+    if (closeValues.length > 0) {
+      const quoteSeries = {
+        name: symbol,
+        data: [],
+      };
+
+      // this below fixes the problem where one line chart ends too soon
+      for (let j = 0; j < closeValues.length; j += 1) {
+        if (closeValues[j]) {
+          quoteSeries.data.push([closeKeys[j], closeValues[j]]);
+        }
       }
+      series.push(quoteSeries);
     }
-    series.push(quoteSeries);
   }
   return series;
 }

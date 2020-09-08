@@ -2,9 +2,14 @@
   <div v-if="loaded">
     <search />
     <trend-chart></trend-chart>
-    <h3>PORTFOLIO SUMMARY</h3>
-    <md-tabs @md-changed="onPortfolioSummaryTabChange" :md-active-tab="activeTab" :md-swipeable="true">
-      <md-tab id="tab-allocation" class="dp-primary" md-label="Allocation">
+    <md-tabs
+      v-if="Object.keys(portfolio).length !== 0"
+      @md-changed="onPortfolioSummaryTabChange"
+      :md-active-tab="activeTab"
+      :md-swipeable="true"
+    >
+      <h3>PORTFOLIO SUMMARY</h3>
+      <md-tab id="tab-allocation" md-label="Allocation">
         <div class="md-layout allocation">
           <div class="md-layout-item md-size-30">
             <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>
@@ -29,6 +34,16 @@
         </md-empty-state>
       </md-tab>
     </md-tabs>
+    <md-empty-state
+      v-else
+      md-icon="post_add"
+      md-label="No portfolios found"
+      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
+    >
+      <router-link to="/portfolios">
+        <md-button class="md-primary md-raised">Go to portfolios</md-button>
+      </router-link>
+    </md-empty-state>
     <!--<portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>-->
   </div>
 </template>
@@ -49,7 +64,7 @@ export default {
     return {
       loaded: false,
       hasHoldings: false,
-      portfolio: [],
+      portfolio: {},
       chartData: {
         labels: ['MSFT', 'AAPL', 'TSLA', 'NIO'],
         datasets: [
@@ -87,7 +102,7 @@ export default {
     await this.$store.dispatch('getCurrentUser');
     await this.$store.dispatch('getPortfolios');
     if (this.$store.getters.listPortfolios.length > 0) {
-      const primaryPortfolio = this.$store.getters.listPortfolios[0].name; // return name of "primary" portfolio here
+      const primaryPortfolio = this.$store.getters.listPortfolios[0].id; // return name of "primary" portfolio here
       await this.$store.dispatch('getPortfolio', primaryPortfolio);
       this.hasHoldings = this.$store.getters.hasHoldings;
       this.portfolio = this.$store.getters.currentPortfolio;

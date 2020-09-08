@@ -16,7 +16,6 @@
 
         <md-speed-dial-content style="margin-left:-50px;margin-bottom:-90px;">
           <md-button @click="open = true">Portfolio</md-button>
-          <md-button>Shares</md-button>
         </md-speed-dial-content>
       </md-speed-dial>
     </div>
@@ -36,11 +35,9 @@
     </md-table>
     <md-empty-state
       v-if="this.portfolios.length === 0"
-      md-icon="post_add"
-      md-label="No portfolios found"
-      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
+      md-label="Create your first portfolio"
     >
-      <md-button class="md-primary md-raised" @click="open = true">Create portfolio</md-button>
+      <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Create portfolio</md-button>
     </md-empty-state>
 
     <md-dialog :md-active.sync="open" :md-fullscreen="false">
@@ -112,7 +109,7 @@ export default {
     calculatePortfolioValue(holdings) {
       let price = 0;
       for (let i = 0; i < holdings.length; i += 1) {
-        price += parseFloat(holdings[i].price);
+        price += holdings[i].price;
       }
       return price;
     },

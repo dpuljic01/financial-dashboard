@@ -91,6 +91,11 @@ const actions = {
       context.dispatch('successMessage');
     });
   },
+  createNewHolding(context, data) {
+    return api.createNewHolding(data, context.state.jwt.access_token).then(() => {
+      context.dispatch('successMessage');
+    });
+  },
   getStockHistoryData(context, params) {
     return api.getStockHistoryData(params, context.state.jwt.access_token);
   },
@@ -122,15 +127,15 @@ const actions = {
 const mutations = {
   // isolated data mutations
   setPortfolios(state, payload) {
-    localStorage.setItem('_portfolios', JSON.stringify(payload.portfolios));
+    // localStorage.setItem('_portfolios', JSON.stringify(payload.portfolios));
     state.portfolios = payload.portfolios;
   },
   setPortfolio(state, payload) {
-    localStorage.setItem('_currentPortfolio', JSON.stringify(payload.portfolio));
+    // localStorage.setItem('_currentPortfolio', JSON.stringify(payload.portfolio));
     state.currentPortfolio = payload.portfolio;
   },
   setUserData(state, payload) {
-    localStorage.setItem('_currentUser', JSON.stringify(payload.user));
+    // localStorage.setItem('_currentUser', JSON.stringify(payload.user));
     state.userData = payload.user;
   },
   setJwtToken(state, payload) {

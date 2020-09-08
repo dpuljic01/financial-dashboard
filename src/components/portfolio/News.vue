@@ -1,6 +1,13 @@
 <template>
-  <div v-if="loaded">
-    <div v-if="news.length > 0">
+  <div>
+    <md-progress-spinner v-if="!loaded" :md-diameter="50" :md-stroke="4" md-mode="indeterminate"></md-progress-spinner>
+    <md-empty-state
+      v-else-if="news.length === 0 && loaded"
+      md-icon="announcement"
+      md-label="No news related to your portfolio holdings"
+    >
+    </md-empty-state>
+    <div v-else>
       <md-field style="max-width: 400px;">
         <label for="symbols">Filter by symbols:</label>
         <md-select v-model="selected" name="Symbols" id="symbols" md-dense>
@@ -30,8 +37,6 @@
         </md-card-actions>
       </md-card>
     </div>
-    <md-empty-state v-else md-icon="announcement" md-label="No news related to your portfolio holdings">
-    </md-empty-state>
   </div>
 </template>
 
@@ -53,13 +58,9 @@ export default {
     };
   },
   async mounted() {
-    this.$store.commit('setLoading', true);
     if (this.tickers.length > 0) {
-      const resp = await this.$store.dispatch('getNews', { symbols: this.tickers.join() });
-      this.news = resp.data;
-      this.filteredNews = this.news;
+      await this.getNews();
     }
-    this.$store.commit('setLoading', false);
     this.loaded = true;
   },
   watch: {
@@ -73,9 +74,12 @@ export default {
       },
     },
   },
-  updated() {
-    this.$store.commit('setLoading', false);
-    this.loaded = true;
+  methods: {
+    async getNews() {
+      const resp = await this.$store.dispatch('getNews', { symbols: this.tickers.join() });
+      this.news = resp.data;
+      this.filteredNews = this.news;
+    },
   },
 };
 </script>
