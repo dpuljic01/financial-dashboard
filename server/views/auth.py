@@ -127,8 +127,8 @@ def reset(**payload):
 def reset_password(**payload):
     email = confirm_token(payload["token"])
 
-    if not email or email in [True, 1]:
-        jsonify({"message": "Link is invalid or has expired."}), 400
+    if not email:
+        return jsonify({"message": "Link is invalid or has expired."}), 400
 
     user = User.query.filter_by(email=email).first_or_404()
     user.password = payload["password"]

@@ -3,7 +3,7 @@ const PUBLIC_ROUTES = ['Login', 'Register', 'Landing', 'ResetPassword'];
 const PROTECTED_ROUTES = [
   'Dashboard',
   'Portfolios',
-  'Settings',
+  'Profile',
   'Compare',
   'Portfolio',
   'Holdings',

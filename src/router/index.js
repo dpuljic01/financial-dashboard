@@ -11,8 +11,9 @@ import Portfolio from '../components/Portfolio.vue';
 import Holdings from '../components/portfolio/Holdings.vue';
 import Summary from '../components/portfolio/Summary.vue';
 import News from '../components/portfolio/News.vue';
+import Quote from '../components/Quote.vue';
 import Compare from '../components/Compare.vue';
-import Settings from '../components/Settings.vue';
+import Profile from '../components/Profile.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
 
@@ -78,14 +79,19 @@ const router = new Router({
       ],
     },
     {
+      path: '/quote/:quote',
+      name: 'Quote',
+      component: Quote,
+    },
+    {
       path: '/compare',
       name: 'Compare',
       component: Compare,
     },
     {
-      path: '/settings',
-      name: 'Settings',
-      component: Settings,
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
     },
     {
       path: '/reset/:passwordToken',

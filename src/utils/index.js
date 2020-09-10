@@ -59,6 +59,7 @@ export function setQuoteSeries(data) {
     if (closeValues.length > 0) {
       const quoteSeries = {
         name: symbol,
+        openPrice: Object.values(data[symbol].Open)[0],
         data: [],
       };
 
@@ -127,4 +128,20 @@ export function setYAxis(series) {
     });
   }
   return yAxes;
+}
+
+export function groupBy(xs, key) {
+  return xs.reduce((rv, x) => {
+    /* eslint-disable-next-line no-param-reassign */
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+}
+
+export function percentChange(first, last) {
+  return ((last - first) / first) * 100;
+}
+
+export function percent(number, total) {
+  return (number / total) * 100;
 }

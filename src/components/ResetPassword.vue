@@ -2,9 +2,10 @@
   <div class="centered-container dp-bg">
     <md-content class="md-elevation-3">
       <div>
-        <router-link to="/landing" style="text-decoration: none">
+        <div style="text-align: right;"><router-link to="/landing">Back to home</router-link></div>
+        <div>
           <md-icon class="md-size-3x md-primary">enhanced_encryption</md-icon>
-        </router-link>
+        </div>
         <h1 class="dp-primary">SET PASSWORD</h1>
       </div>
 
@@ -54,7 +55,7 @@ export default {
     async reset() {
       // callout to login user
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('changePassword', { token: this.passwordToken, password: this.password });
+      await this.$store.dispatch('setPassword', { token: this.passwordToken, password: this.password });
       this.$router.push('/login');
       this.$store.commit('setLoading', false);
     },

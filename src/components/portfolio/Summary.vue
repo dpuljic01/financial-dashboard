@@ -1,16 +1,36 @@
 <template>
   <div v-if="loaded">
-    <md-table v-model="stocks">
-      <md-table-row slot="md-table-row" slot-scope="{ item }">
-        <md-table-cell md-label="Symbol" md-sort-by="symbol">{{ item.ticker }}</md-table-cell>
-        <md-table-cell md-label="Name" md-sort-by="name">{{ item.short_name }}</md-table-cell>
-        <md-table-cell md-label="Price (USD)" md-sort-by="price">{{
+    <md-table v-model="stonks">
+      <md-table-row>
+        <md-table-head style="max-width:40px;padding:0;margin:0;">Del</md-table-head>
+        <md-table-head>Symbol</md-table-head>
+        <md-table-head>Name</md-table-head>
+        <md-table-head>Price (USD)</md-table-head>
+        <md-table-head>Change (%)</md-table-head>
+        <md-table-head>Volume</md-table-head>
+      </md-table-row>
+      <md-table-row v-for="item in stonks" :key="item.id">
+        <md-table-cell style="max-width:50px;"
+          ><md-button
+            class="md-icon md-primary md-raised"
+            style="background-color: #d00000;"
+            @click="deleteSymbol(item.id)"
+            >remove</md-button
+          ></md-table-cell
+        >
+        <router-link tag="td" class="md-table-cell" :to="`/quote/${item.ticker}`"
+          ><strong>{{ item.ticker }}</strong></router-link
+        >
+        <router-link tag="td" class="md-table-cell" :to="`/quote/${item.ticker}`">{{ item.short_name }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/quote/${item.ticker}`">{{
           roundFloat(item.latest_market_data.price) || roundFloat(item.latest_market_data.delayedprice) || 'NA'
-        }}</md-table-cell>
-        <md-table-cell md-label="Change (%)">{{
+        }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/quote/${item.ticker}`">{{
           roundFloat(item.latest_market_data.changepercent) || 'NA'
-        }}</md-table-cell>
-        <md-table-cell md-label="Volume">{{ item.latest_market_data.volume || 'NA' }}</md-table-cell>
+        }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/quote/${item.ticker}`">{{
+          item.latest_market_data.volume || 'NA'
+        }}</router-link>
       </md-table-row>
     </md-table>
   </div>
@@ -27,9 +47,13 @@ export default {
   data() {
     return {
       loaded: false,
+      stonks: this.stocks,
+      portfolioId: this.$route.params.portfolioId,
     };
   },
   async mounted() {
+    this.stonks = this.stocks;
+    this.portfolioId = this.$route.params.portfolioId;
     this.loaded = true;
   },
   methods: {
@@ -37,23 +61,31 @@ export default {
       if (val) return +val.toFixed(2);
       return val;
     },
+    deleteSymbol(stockId) {
+      this.$confirm('Are you sure about that?').then(async () => {
+        await this.$store.dispatch('deleteSymbol', { portfolioId: this.portfolioId, stockId });
+        const resp = this.$store.dispatch('getPortfolio', this.portfolioId);
+        this.stonks = resp.stocks;
+      });
+    },
+  },
+  watch: {
+    stonks(val) {
+      this.stonks = val;
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.md-card {
-  text-align: left;
-}
-
 .close-icon {
   position: absolute;
   right: 4%;
 }
-.md-table .md-table-head {
-  text-align: left;
+.md-table-head {
+  text-align: center;
 }
-.md-table .md-table-cell {
-  text-align: left;
+.md-table-cell {
+  text-align: center;
 }
 </style>

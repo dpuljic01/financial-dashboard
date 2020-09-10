@@ -4,39 +4,40 @@
       <div class="md-size-40">
         <h3>PORTFOLIOS</h3>
       </div>
-      <md-speed-dial class="md-size-40"
-        md-direction="bottom"
-        md-event="click"
-        md-effect="scale"
-      >
-        <md-speed-dial-target class="md-primary md-fab md-mini">
-          <md-icon class="md-morph-initial">add</md-icon>
-          <md-icon class="md-morph-final">close</md-icon>
-        </md-speed-dial-target>
-
-        <md-speed-dial-content style="margin-left:-50px;margin-bottom:-90px;">
-          <md-button @click="open = true">Portfolio</md-button>
-        </md-speed-dial-content>
-      </md-speed-dial>
+      <md-button class="md-size-40 md-fab md-mini md-primary" @click="open = true">
+        <md-icon>add</md-icon>
+      </md-button>
     </div>
     <md-table v-if="this.portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
-      <md-table-row>
+      <md-table-row style="max-width:40px;padding:0;margin:0;">
+        <md-table-head style="max-width:40px;padding:0;margin:0;">Del</md-table-head>
         <md-table-head>Name</md-table-head>
         <md-table-head>Symbols</md-table-head>
         <md-table-head>Shares</md-table-head>
         <md-table-head>Worth (USD)</md-table-head>
       </md-table-row>
-      <router-link v-for="item in portfolios" :key="item.id" :to="`/portfolios/${item.id}/summary`" tag="md-table-row">
-        <md-table-cell>{{ item.name }}</md-table-cell>
-        <md-table-cell>{{ item.stocks.length }}</md-table-cell>
-        <md-table-cell>{{ item.holdings.length }}</md-table-cell>
-        <md-table-cell>{{ calculatePortfolioValue(item.holdings) }}</md-table-cell>
-      </router-link>
+      <md-table-row v-for="item in portfolios" :key="item.id">
+        <md-table-cell style="max-width:40px;padding:0;margin:0;"
+          ><md-button
+            class="md-icon md-raised md-primary"
+            style="background-color: #d00000;"
+            @click="deletePortfolio(item.id)"
+            >remove</md-button
+          ></md-table-cell
+        >
+        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{ item.name }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
+          item.stocks.length
+        }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
+          item.holdings.length
+        }}</router-link>
+        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
+          calculatePortfolioValue(item.holdings)
+        }}</router-link>
+      </md-table-row>
     </md-table>
-    <md-empty-state
-      v-if="this.portfolios.length === 0"
-      md-label="Create your first portfolio"
-    >
+    <md-empty-state v-if="this.portfolios.length === 0" md-label="Create your first portfolio">
       <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Create portfolio</md-button>
     </md-empty-state>
 
@@ -113,13 +114,23 @@ export default {
       }
       return price;
     },
+    deletePortfolio(pId) {
+      this.$confirm('Are you sure about that?').then(async () => {
+        this.$store.commit('setLoading', true);
+        await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
+        await this.$store.dispatch('getPortfolios');
+        this.portfolios = this.$store.getters.listPortfolios;
+        this.$store.commit('setLoading', false);
+      });
+    },
   },
   watch: {
-    portfolioName: {
-      handler: function portfolioName(value) {
-        this.portfolioName = value;
-        this.valid = this.validName(value);
-      },
+    portfolioName(value) {
+      this.portfolioName = value;
+      this.valid = this.validName(value);
+    },
+    portfolios(val) {
+      this.portfolios = val;
     },
   },
 };
@@ -134,10 +145,10 @@ export default {
   position: absolute;
   right: 4%;
 }
-.md-table .md-table-head {
-  text-align: left;
+.md-table-head {
+  text-align: center;
 }
-.md-table .md-table-cell {
-  text-align: left;
+.md-table-cell {
+  text-align: center;
 }
 </style>

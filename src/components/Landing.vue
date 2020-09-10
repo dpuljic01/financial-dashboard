@@ -4,8 +4,8 @@
       class="md-primary"
       md-icon="attach_money"
       md-label="Financial Dashboard"
-      md-description="We evaluate and analyze your investment portfolio,
-      and provide advice on future investments based on a risk you can take"
+      md-description="Evaluate and analyze your investment portfolio,
+      keep track of your earnings and use our tools for smarter future investments."
     >
       <router-link to="/register">
         <md-button class="md-primary md-raised">Create account</md-button>

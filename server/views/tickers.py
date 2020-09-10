@@ -55,29 +55,39 @@ def yf_stock_quote(symbol):
     return jsonify(quote)
 
 
-@bp.route("/yfinance/<string:symbol>/info", methods=["GET"])
+@bp.route("/<string:symbol>/company-info", methods=["GET"])
 @jwt_required
 @check_confirmed
 @cache.cached(timeout=10, key_prefix=make_cache_key)
 def get_company_info(symbol):
     symbol = symbol.upper()
-    company_info = lowercase_keys(fetch_stock_info(symbol))  # company profile
+    stock = Stock.query.filter_by(ticker=symbol).one_or_none()
+
+    # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
+    if stock:
+        if not stock.company_info:
+            stock.company_info = lowercase_keys(fetch_stock_info(symbol))  # company profile
+        return jsonify(stock.company_info)
+
     # recommendations = IEXFinance.get_recommendations(symbol)
     # company_info.update({"recommendations": recommendations})
-    stock = Stock.query.filter_by(ticker=symbol).one_or_none()
-    if stock:
-        stock.company_info = company_info
-        db.session.commit()
+    company_info = lowercase_keys(fetch_stock_info(symbol))
+    stock_db = Stock(
+        ticker=symbol,
+        short_name=company_info["shortname"],
+        company_info=company_info,
+    )
+    db.session.add(stock_db)
+    db.session.commit()
     return jsonify(company_info)
 
 
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=60 * 15, key_prefix=make_cache_key)
 @use_args({
     "period": fields.Str(missing="2d"),
-    "interval": fields.Str(missing="30m"),
+    "interval": fields.Str(missing="15m"),
     "symbols": fields.DelimitedList(fields.Str(), required=True),
     "start": fields.Str(missing=None),
     "end": fields.Str(missing=None),
@@ -163,6 +173,7 @@ def fetch_latest_stock_prices(args):
     if not stocks:
         return jsonify({"message": "Symbols not found in database"}), 404
 
+    res = []
     for stock in stocks:
         quote = {}
         try:
@@ -171,15 +182,16 @@ def fetch_latest_stock_prices(args):
             pass
 
         if quote:
+            res.append(quote)
             stock.latest_market_data = lowercase_keys(quote)
             db.session.commit()
             continue
 
         params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
         global_quote = AlphaVantage.fetch_data(params)
-        print("GLOBAL : ", global_quote)
         if global_quote.get('Global Quote', {}):
             quote = AlphaVantage.filter_global_quote(global_quote)
+            res.append(quote)
             stock.latest_market_data = lowercase_keys(quote)
             db.session.commit()
             continue
@@ -187,11 +199,13 @@ def fetch_latest_stock_prices(args):
         quote = IEXFinance.get_stock_quote(ticker=stock.ticker)
         if not quote:
             print("IEXFinance quote fetch failed")
+            continue
 
         if quote["changePercent"]:
             quote["changePercent"] = quote["changePercent"] * 100
+        res.append(quote)
         stock.latest_market_data = lowercase_keys(quote)
         db.session.commit()
     db.session.commit()
 
-    return jsonify(), 204
+    return jsonify(res), 204

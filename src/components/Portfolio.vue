@@ -113,7 +113,6 @@ export default {
           short_name: payload.short_name,
         },
       });
-      console.log(this.portfolioId);
       await this.updateUserDetails();
       this.$store.dispatch('successMessage');
       this.$store.commit('setLoading', false);

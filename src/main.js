@@ -22,7 +22,7 @@ Vue.use(VueAxios, axios);
 Vue.use(VueApexCharts);
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
-Vue.use(VueSimpleAlert);
+Vue.use(VueSimpleAlert, { reverseButtons: true });
 Vue.use(Toasted, {
   router,
   duration: 5000,

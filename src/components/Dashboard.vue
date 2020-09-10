@@ -1,28 +1,38 @@
 <template>
   <div v-if="loaded">
-    <search />
-    <trend-chart></trend-chart>
+    <div>
+      <Search @search="searchQuote($event)"></Search>
+    </div>
+    <h2 class="md-heading">Market overview</h2>
+    <TrendChart />
+    <h2 class="md-heading">Portfolio summary</h2>
+    <div style="text-align: left;">
+      <label
+        >Choose portfolio: <strong>{{ portfolio.name }}</strong></label
+      >
+      <md-menu :md-offset-x="150" :md-offset-y="-50">
+        <md-button class="md-icon md-accent" md-menu-trigger>
+          keyboard_arrow_down
+        </md-button>
+        <md-menu-content>
+          <md-menu-item v-for="p in portfolios" :key="p.id" @click="switchPortfolio(p.id)">
+            {{ p.name }}
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
+    </div>
     <md-tabs
       v-if="Object.keys(portfolio).length !== 0"
       @md-changed="onPortfolioSummaryTabChange"
       :md-active-tab="activeTab"
-      :md-swipeable="true"
     >
-      <h3>PORTFOLIO SUMMARY</h3>
       <md-tab id="tab-allocation" md-label="Allocation">
-        <div class="md-layout allocation">
-          <div class="md-layout-item md-size-30">
-            <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>
-          </div>
-          <div class="md-layout-item md-size-30">
-            <doughnut class="md-layout-item" :chart-data="chartData" :options="options"></doughnut>
-          </div>
-        </div>
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
           <router-link :to="`/portfolios/${portfolio.id}/holdings`">
             <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
+        <Allocation v-else class="allocation" :portfolio="portfolio" />
       </md-tab>
 
       <md-tab id="tab-performance" md-label="Performance">
@@ -35,7 +45,7 @@
       </md-tab>
     </md-tabs>
     <md-empty-state
-      v-else
+      v-else-if="loaded"
       md-icon="post_add"
       md-label="No portfolios found"
       md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
@@ -44,19 +54,18 @@
         <md-button class="md-primary md-raised">Go to portfolios</md-button>
       </router-link>
     </md-empty-state>
-    <!--<portfolio v-if="hasPortfolio" :portfolioId="0" :portfolio="portfolio"></portfolio>-->
   </div>
 </template>
 
 <script>
 import TrendChart from './charts/TrendChart.vue';
 import Search from './Search.vue';
-import Doughnut from './charts/Doughnut';
+import Allocation from './portfolio/Allocation.vue';
 
 export default {
   name: 'Dashboard',
   components: {
-    Doughnut,
+    Allocation,
     TrendChart,
     Search,
   },
@@ -64,48 +73,40 @@ export default {
     return {
       loaded: false,
       hasHoldings: false,
+      portfolios: [],
       portfolio: {},
-      chartData: {
-        labels: ['MSFT', 'AAPL', 'TSLA', 'NIO'],
-        datasets: [
+      industrySeries: [30, 40, 30],
+      series: [44, 55, 41, 17, 15],
+      chartOptions: {
+        chart: {
+          type: 'donut',
+        },
+        responsive: [
           {
-            borderWidth: 1,
-            borderColor: [
-              'rgba(255,99,132,1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-            ],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.2)',
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(255, 206, 86, 0.2)',
-              'rgba(75, 192, 192, 0.2)',
-              'rgba(153, 102, 255, 0.2)',
-            ],
-            data: [2000, 500, 1500, 1000],
+            breakpoint: 480,
+            options: {
+              chart: {
+                width: '100%',
+              },
+              legend: {
+                position: 'top',
+              },
+            },
           },
         ],
       },
       activeTab: 'tab-allocation',
-      options: {
-        legend: {
-          display: true,
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-      },
     };
   },
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    await this.$store.dispatch('getPortfolios');
+    const resp = await this.$store.dispatch('getPortfolios');
+    this.portfolios = resp;
     if (this.$store.getters.listPortfolios.length > 0) {
       const primaryPortfolio = this.$store.getters.listPortfolios[0].id; // return name of "primary" portfolio here
-      await this.$store.dispatch('getPortfolio', primaryPortfolio);
+      this.portfolio = await this.$store.dispatch('getPortfolio', primaryPortfolio);
       this.hasHoldings = this.$store.getters.hasHoldings;
-      this.portfolio = this.$store.getters.currentPortfolio;
     }
     this.$store.commit('setLoading', false);
     this.loaded = true;
@@ -114,20 +115,26 @@ export default {
     onPortfolioSummaryTabChange(id) {
       this.activeTab = id;
     },
+    switchPortfolio(id) {
+      if (this.portfolio.id !== id) {
+        for (let i = 0; i < this.portfolios.length; i += 1) {
+          if (this.portfolios[i].id === id) {
+            this.portfolio = this.portfolios[i];
+          }
+        }
+      }
+    },
+    toggleSubmenu() {
+      this.submenuVisible = !this.submenuVisible;
+    },
+    searchQuote(event) {
+      this.$router.push(`/quote/${event.symbol}`);
+    },
   },
 };
 </script>
 
 <style scoped>
-.md-drawer {
-  max-width: 250px;
-}
-.md-menu.md-button {
-  height: 100%;
-}
-h3 {
-  text-align: left;
-}
 .allocation {
   display: flex;
   justify-content: space-around;
