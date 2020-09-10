@@ -4,7 +4,7 @@
       <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
     </div>
     <div class="md-layout-item md-size-45 md-xsmall-size-80 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
-      <apexchart type="donut" :options="industryChart" :series="industryChart.series"></apexchart>
+      <apexchart type="donut" :options="sectorChart" :series="sectorChart.series"></apexchart>
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@ export default {
           text: 'Holdings',
         },
       },
-      industryChart: {
+      sectorChart: {
         series: [],
         labels: [],
         legend: {
@@ -40,7 +40,7 @@ export default {
           floating: false,
         },
         title: {
-          text: 'Industry',
+          text: 'Sector',
         },
       },
     };
@@ -86,8 +86,19 @@ export default {
     },
     mapIndustries() {
       for (let i = 0; i < this.portfolio.stocks.length; i += 1) {
-        this.industryChart.series.push(1);
-        this.industryChart.labels.push(this.portfolio.stocks[i].company_info.sector);
+        const { sector } = this.portfolio.stocks[i].company_info;
+        if (!sector) {
+          this.sectorChart.series.push(1);
+          this.sectorChart.labels.push('Other');
+          break;
+        }
+        const sectorIndex = this.sectorChart.labels.indexOf(sector);
+        if (sectorIndex === -1) {
+          this.sectorChart.series.push(1);
+          this.sectorChart.labels.push(sector);
+        } else {
+          this.sectorChart.series[sectorIndex] += 1;
+        }
       }
     },
   },
@@ -95,8 +106,8 @@ export default {
     allocationChart(val) {
       this.allocationChart = val;
     },
-    industryChart(val) {
-      this.industryChart = val;
+    sectorChart(val) {
+      this.sectorChart = val;
     },
   },
 };
