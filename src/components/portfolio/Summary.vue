@@ -1,6 +1,6 @@
 <template>
   <div v-if="loaded">
-    <md-table v-model="stonks">
+    <md-table>
       <md-table-row>
         <md-table-head style="max-width:40px;padding:0;margin:0;">Del</md-table-head>
         <md-table-head>Symbol</md-table-head>
@@ -70,7 +70,7 @@ export default {
     },
   },
   watch: {
-    stonks(val) {
+    stocks(val) {
       this.stonks = val;
     },
   },

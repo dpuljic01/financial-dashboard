@@ -1,9 +1,9 @@
 <template>
   <div class="md-layout md-gutter">
-    <div class="md-layout-item md-size-45 md-xsmall-size-100 md-gutter" id="chart">
+    <div class="md-layout-item md-size-45 md-xsmall-size-90 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
       <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
     </div>
-    <div class="md-layout-item md-size-45 md-xsmall-size-100 md-gutter" id="chart">
+    <div class="md-layout-item md-size-45 md-xsmall-size-80 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
       <apexchart type="donut" :options="industryChart" :series="industryChart.series"></apexchart>
     </div>
   </div>
@@ -20,10 +20,28 @@ export default {
       allocationChart: {
         series: [],
         labels: [],
+        legend: {
+          show: true,
+          position: 'bottom',
+          horizontalAlign: 'center',
+          floating: false,
+        },
+        title: {
+          text: 'Holdings',
+        },
       },
       industryChart: {
         series: [],
         labels: [],
+        legend: {
+          show: true,
+          position: 'bottom',
+          horizontalAlign: 'center',
+          floating: false,
+        },
+        title: {
+          text: 'Industry',
+        },
       },
     };
   },

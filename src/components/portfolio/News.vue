@@ -12,7 +12,7 @@
         <label for="symbols">Filter by symbols:</label>
         <md-select v-model="selected" name="Symbols" id="symbols" md-dense>
           <md-option value="ALL">All</md-option>
-          <md-option v-for="(ticker, id) in tickers" :key="id" :value="ticker">{{ ticker }}</md-option>
+          <md-option v-for="(ticker, id) in symbols" :key="id" :value="ticker">{{ ticker }}</md-option>
         </md-select>
       </md-field>
       <md-card
@@ -51,6 +51,7 @@ export default {
   data() {
     return {
       loaded: false,
+      symbols: this.tickers,
       news: [],
       filteredNews: [],
       url: '#',
@@ -58,6 +59,7 @@ export default {
     };
   },
   async mounted() {
+    this.symbols = this.tickers;
     if (this.tickers.length > 0) {
       await this.getNews();
     }
@@ -72,6 +74,9 @@ export default {
           this.filteredNews = this.news;
         }
       },
+    },
+    tickers(val) {
+      this.symbols = val;
     },
   },
   methods: {
