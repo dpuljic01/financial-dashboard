@@ -119,10 +119,10 @@ export default {
     },
     async updateUserDetails() {
       await this.$store.dispatch('getPortfolios');
-      await this.$store.dispatch('getPortfolio', this.portfolioId);
+      const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
       this.getTickers();
       this.portfolio = this.$store.getters.currentPortfolio;
-      this.stocks = this.portfolio.stocks;
+      this.stocks = resp.stocks;
     },
   },
   watch: {
