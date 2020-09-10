@@ -9,8 +9,7 @@
       </md-table-row>
       <md-table-row v-for="stock in currentPortfolio.stocks" :key="stock.id">
         <md-table-cell style="max-width:40px;padding:0;margin:0;"
-          ><md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button
-          ></md-table-cell
+          ><md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button></md-table-cell
         >
         <md-table-cell>{{ stock.ticker }}</md-table-cell>
         <md-table-cell>{{ getNumberOfShares(stock.id) }}</md-table-cell>
@@ -97,7 +96,6 @@ export default {
       });
       await this.$store.dispatch('getPortfolio', this.portfolioId);
       this.currentPortfolio = this.$store.getters.currentPortfolio;
-      console.log(this.currentPortfolio);
       this.$store.commit('setLoading', false);
     },
     submit() {
@@ -127,6 +125,11 @@ export default {
         }
       }
       return shares;
+    },
+  },
+  watch: {
+    currentPortfolio(val) {
+      this.currentPortfolio = val;
     },
   },
 };

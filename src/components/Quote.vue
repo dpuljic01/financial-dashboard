@@ -1,21 +1,13 @@
 <template>
-  <div>
-    <h2 class="md-heading">Compare multiple tickers and analyze their movement.</h2>
+  <div v-if="loaded">
+    <div>
+      <Search @search="searchQuote($event)"></Search>
+    </div>
+    <h3 class="md-title">{{ this.quote }}</h3>
     <div class="chart">
-      <p class="md-body-2" style="text-align:left;">Enter exact ticker symbols:</p>
-      <md-chips
-        v-model="symbols"
-        :md-auto-insert="true"
-        :md-format="toUppercase"
-        @md-insert="compare"
-        @md-delete="delayedCompare"
-      >
-      </md-chips>
-
-      <h3>COMPARISON CHART</h3>
       <md-tabs
-        class="tabs md-elevation-2"
-        style="overflow-x: auto; margin-bottom: 15px;"
+        class="tabs md-elevation-1"
+        style="overflow-x: auto; margin-bottom: 10px;"
         :md-active-tab="activeTab"
         @md-changed="onTabChange"
       >
@@ -35,17 +27,19 @@
 <script>
 import moment from 'moment';
 import Area from './charts/Area.vue';
+import Search from './Search.vue';
 import { QUOTE_OPTIONS } from '../consts';
 import { setQuoteSeries, setYAxis } from '../utils';
 
 export default {
-  name: 'Compare',
+  name: 'Quote',
   components: {
     Area,
+    Search,
   },
   data() {
     return {
-      symbols: ['GOOG', 'TSLA'],
+      quote: this.$route.params.quote,
       period: '1d',
       interval: '5m',
       options: QUOTE_OPTIONS,
@@ -55,7 +49,7 @@ export default {
     };
   },
   async mounted() {
-    await this.compare();
+    await this.loadQuote();
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
@@ -70,7 +64,7 @@ export default {
           this.interval = '30m';
           break;
         case '1mo':
-          this.interval = '1h';
+          this.interval = '1d';
           break;
         case '6mo':
           this.interval = '1d';
@@ -88,14 +82,14 @@ export default {
           this.period = '1d';
           this.interval = '5m';
       }
-      this.compare();
+      this.loadQuote();
     },
     toUppercase(str) {
       const newStr = str.toUpperCase();
       return newStr;
     },
-    async compare() {
-      if (this.symbols.length > 0) {
+    async loadQuote() {
+      if (this.quote) {
         this.$store.commit('setLoading', true);
         await this.getQuoteHistory();
         this.options = {
@@ -114,15 +108,15 @@ export default {
                 formatter: function f(val) {
                   return moment(val).format('LLL');
                 },
-                tooltip: {
-                  shared: true,
-                },
               },
               y: {
                 formatter: function f(val) {
                   return +val.toFixed(4);
                 },
               },
+            },
+            title: {
+              text: this.toUppercase(this.quote),
             },
             chart: {
               animations: {
@@ -135,9 +129,14 @@ export default {
         this.$store.commit('setLoading', false);
       }
     },
+    async searchQuote(event) {
+      this.$router.push(`/quote/${event.symbol}`);
+      this.quote = this.$route.params.quote;
+      await this.loadQuote(this.quote);
+    },
     async getQuoteHistory() {
       const resp = await this.$store.dispatch('getStockHistoryData', {
-        symbols: this.symbols.join(),
+        symbols: this.quote,
         interval: this.interval,
         period: this.period,
         include_info: false,

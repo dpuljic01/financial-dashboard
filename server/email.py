@@ -32,15 +32,3 @@ def send_verify_email(**kwargs):
 def send_password_reset_email(**kwargs):
     html_message = _render_email("reset.html", **kwargs)
     send_mail("Password reset", [kwargs["email"]], html_message)
-
-
-# def send_email(html, redirect, recipients, subject, token):
-#     url = url_for(redirect, token=token, _external=True)
-#     template = render_template(html, url=url)
-#     msg = Message(
-#         subject=subject,
-#         recipients=[recipients],
-#         html=template,
-#         sender=current_app.config.get("MAIL_DEFAULT_SENDER")
-#     )
-#     mail.send(msg)

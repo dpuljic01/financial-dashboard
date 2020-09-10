@@ -16,7 +16,6 @@ from webargs.flaskparser import use_args, use_kwargs
 from server.decorators import check_confirmed
 from server.extensions import cache
 from server.models import Portfolio
-from server.mongo_db import mongo_db
 
 bp = Blueprint("news", __name__, url_prefix="/api/news")
 
@@ -50,7 +49,7 @@ def scrape_news(args):
         r = requests.get(url, headers=headers)
         news = BeautifulSoup(r.text, "html.parser")
         articles = news.find_all("li", attrs={"class": "cr_pressRelease"})
-        for article in articles[:4]:
+        for article in articles[:4]:  # just first 4 is enough
             date = article.find(attrs={"class": "cr_dateStamp"}).text
             provider = article.find(attrs={"class": "cr_provider"}).text
             headline = article.find(attrs={"class": "headline"})

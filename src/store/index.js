@@ -31,11 +31,13 @@ const actions = {
   getPortfolios(context) {
     return api.getPortfolios(context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolios', { portfolios: response.data });
+      return response.data;
     });
   },
   getPortfolio(context, identifier) {
     return api.getPortfolio(identifier, context.state.jwt.access_token).then((response) => {
       context.commit('setPortfolio', { portfolio: response.data });
+      return response.data;
     });
   },
   login(context, userData) {
@@ -58,6 +60,7 @@ const actions = {
   getCurrentUser(context) {
     return api.getUser(state.jwt.access_token).then((response) => {
       context.commit('setUserData', { user: response.data });
+      return response.data;
     });
   },
   logout(context) {
@@ -80,8 +83,8 @@ const actions = {
       Vue.toasted.show('Check your email to set up a new password', { type: 'success' });
     });
   },
-  changePassword(context, payload) {
-    return api.changePassword(payload).then(() => {
+  setPassword(context, payload) {
+    return api.setPassword(payload).then(() => {
       context.commit('resetState');
       Vue.toasted.show('You can now log in');
     });
@@ -121,6 +124,27 @@ const actions = {
   },
   getNews(context, params) {
     return api.getNews(params, context.state.jwt.access_token);
+  },
+  deleteSymbol(context, params) {
+    return api.deleteSymbol(params, state.jwt.access_token).then(() => {
+      context.dispatch('successMessage', 'Deleted');
+    });
+  },
+  deletePortfolio(context, params) {
+    return api.deletePortfolio(params, state.jwt.access_token).then(() => {
+      context.dispatch('successMessage', 'Deleted');
+    });
+  },
+  changePassword(context, payload) {
+    return api.changePassword(payload, state.jwt.access_token).then(() => {
+      context.dispatch('successMessage', 'Password updated');
+    });
+  },
+  updateUser(context, payload) {
+    return api.updateUser(payload, state.jwt.access_token).then((response) => {
+      context.dispatch('successMessage', 'User details updated');
+      return response.data;
+    });
   },
 };
 
@@ -172,7 +196,7 @@ const getters = {
     return state.currentPortfolio;
   },
   hasHoldings(state) {
-    const { holdings } = state.currentPortfolio.holdings;
+    const { holdings } = state.currentPortfolio;
     return holdings && holdings.length > 0;
   },
   searchedSymbol(state) {

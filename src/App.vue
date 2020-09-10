@@ -26,4 +26,10 @@ export default {
 #app .md-app {
   min-height: 100vh;
 }
+h4 {
+  text-align: left;
+}
+.md-heading {
+  margin: 30px auto;
+}
 </style>

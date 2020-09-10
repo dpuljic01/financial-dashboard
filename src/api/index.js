@@ -22,8 +22,18 @@ export function resetPassword(payload) {
   return Vue.axios.post(`${API_URL}/reset-password`, payload);
 }
 
-export function changePassword(payload) {
+export function setPassword(payload) {
   return Vue.axios.put(`${API_URL}/reset-password`, payload);
+}
+
+export function changePassword(payload, accessToken) {
+  return Vue.axios.put(`${API_URL}/users/self/change-password`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function updateUser(payload, accessToken) {
+  return Vue.axios.put(`${API_URL}/users/self`, payload, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
 export function getPortfolios(accessToken) {
@@ -39,6 +49,12 @@ export function getPortfolio(identifier, accessToken) {
 export function getLatestStockPrices(params, accessToken) {
   return Vue.axios.get(`${API_URL}/stocks/yfinance/latest`, {
     params,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function getCompanyInfo(symbol, accessToken) {
+  return Vue.axios.get(`${API_URL}/stocks/${symbol}/company-info`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
@@ -85,5 +101,18 @@ export function addSymbol(data, accessToken) {
     url: `${API_URL}/portfolios/${data.portfolio}/symbols`,
     headers: { Authorization: `Bearer ${accessToken}` },
     data: data.payload,
+  });
+}
+
+// this only unlinks symbol from portfolio, not completely from Stock table
+export function deleteSymbol(params, accessToken) {
+  return Vue.axios.delete(`${API_URL}/portfolios/${params.portfolioId}/${params.stockId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function deletePortfolio(params, accessToken) {
+  return Vue.axios.delete(`${API_URL}/portfolios/${params.portfolioId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
 }

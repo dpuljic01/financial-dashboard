@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields, validate
 from webargs.flaskparser import use_kwargs
@@ -8,7 +8,7 @@ from server.apis.yfinance import fetch_stock_info, get_quote
 from server.common.common import lowercase_keys
 from server.decorators import check_confirmed
 from server.extensions import db
-from server.models import Portfolio, Holding, Stock
+from server.models import Portfolio, Holding, Stock, PortfolioStocks
 
 bp = Blueprint("portfolios", __name__, url_prefix="/api/portfolios")
 
@@ -22,7 +22,6 @@ def list_portfolios():
     return jsonify([portfolio.json for portfolio in portfolios])
 
 
-@bp.route("/<string:identifier>", methods=["GET"])
 @bp.route("/<int:identifier>", methods=["GET"])
 @jwt_required
 @check_confirmed
@@ -32,6 +31,17 @@ def get_portfolio(identifier):
         portfolio = Portfolio.query.get_or_404(identifier)
     else:
         portfolio = Portfolio.query.filter_by(user_id=current_identity, name=identifier).first_or_404()
+    return jsonify(portfolio.json)
+
+
+@bp.route("/<int:portfolio_id>/value", methods=["GET"])
+@jwt_required
+@check_confirmed
+def calculate_value(portfolio_id):
+    current_identity = get_jwt_identity()
+    portfolio = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+
+
     return jsonify(portfolio.json)
 
 
@@ -82,6 +92,26 @@ def delete_portfolio(portfolio_id):
     current_identity = get_jwt_identity()
     portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
     db.session.delete(portfolio_db)
+    db.session.commit()
+    return jsonify(), 204
+
+
+@bp.route("/<int:portfolio_id>/<int:stock_id>", methods=["DELETE"])
+@jwt_required
+@check_confirmed
+def delete_portfolio_stock(portfolio_id, stock_id):
+    current_identity = get_jwt_identity()
+    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    stock_db = None
+    for stock in portfolio_db.stocks:
+        if stock.id != stock_id:
+            continue
+        stock_db = stock
+
+    if not stock_db:
+        abort(404)
+
+    db.session.delete(stock_db)
     db.session.commit()
     return jsonify(), 204
 

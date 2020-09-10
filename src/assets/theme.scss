@@ -53,6 +53,10 @@ input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px white inset !important;
 }
 
+.dp-primary-error {
+  background-color: red;
+}
+
 .dp-error {
   color: red;
   text-align: left;

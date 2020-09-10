@@ -1,15 +1,27 @@
 <template>
   <div>
     <div class="futures noselect">
-      <div class="md-content" v-for="(value, index) in trendData" :key="index">
+      <a
+        class="charts"
+        v-for="(value, index) in trendData"
+        :key="index"
+        :href="`/quote/${value.name}`"
+        style="text-decoration: none;"
+      >
+        <div style="margin: 0;padding: 0; height: 0;text-align:left;">
+          <span class="md-subheading">{{ value.label }}</span
+          ><br />
+          <strong>{{ value.price }}</strong>
+          <span :style="`color:${value.color}`"> ({{ value.change }}%)</span>
+        </div>
         <Area :series="[value.serie]" :options="value.options" />
-      </div>
+      </a>
     </div>
   </div>
 </template>
 
 <script>
-import { setQuoteSeries, setYAxis } from '../../utils';
+import { setQuoteSeries, setYAxis, percentChange } from '../../utils';
 import Area from './Area.vue';
 import { QUOTE_OPTIONS } from '../../consts';
 
@@ -20,9 +32,9 @@ export default {
   },
   data() {
     return {
-      symbols: ['^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f'], // most popular market indexes
+      symbols: ['EURUSD=X', '^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f', '^vix'], // most popular indexes
       trendData: [],
-      interval: '5m',
+      interval: '1m',
       period: '1d',
       options: QUOTE_OPTIONS,
     };
@@ -46,15 +58,23 @@ export default {
     },
     setTrendData(series) {
       for (let i = 0; i < series.length; i += 1) {
+        const serieLength = Object.keys(series[i].data).length;
         const symbol = this.nameFromSymbol(series[i].name);
-        const latestPrice = series[i].data[Object.keys(series[i].data).length - 1][1];
+        const latestPrice = series[i].data[serieLength - 1][1];
+        const { openPrice } = series[i];
+        const positiveTrend = openPrice < latestPrice;
+        const changePercent = percentChange(openPrice, latestPrice);
+        const { name } = series[i];
         /* eslint-disable-next-line no-param-reassign */
         series[i].name = symbol;
         const chartData = {
+          name,
           label: symbol,
           price: `$${latestPrice.toString()}`, // last value is the newest
+          color: positiveTrend ? 'green' : 'red',
+          change: changePercent ? changePercent.toFixed(2) : 'NA',
           serie: series[i],
-          options: this.setOptions(series[i], symbol, latestPrice),
+          options: this.setOptions(series[i]),
         };
         this.trendData.push(chartData);
       }
@@ -68,10 +88,12 @@ export default {
         'cl=f': 'Crude Oil',
         'gc=f': 'Gold',
         'si=f': 'Silver',
+        'EURUSD=X': 'EUR/USD',
+        '^vix': 'Vix',
       };
       return mapping[symbol];
     },
-    setOptions(serie, symbol, price) {
+    setOptions(serie) {
       const positiveTrend = serie.data[0][1] < serie.data[Object.keys(serie.data).length - 1][1];
       const yAxis = setYAxis(serie);
       return {
@@ -92,6 +114,7 @@ export default {
             },
             labels: {
               show: false,
+              format: 'HH:MM',
             },
           },
           yaxis: yAxis,
@@ -101,8 +124,13 @@ export default {
           tooltip: {
             x: {
               show: false,
+              formatter: function f(val) {
+                const formattedDate = new Date(val);
+                return `${formattedDate.getHours()}:${formattedDate.getMinutes()}`;
+              },
             },
             y: {
+              show: false,
               formatter: function f(val) {
                 return +val.toFixed(2);
               },
@@ -117,12 +145,16 @@ export default {
               bottom: 0,
             },
           },
-          colors: positiveTrend ? ['rgba(29, 191, 172, 0.4)'] : ['rgba(191, 29, 99, 0.5)'],
-          subtitle: {
-            text: `${symbol} - $${price}`,
-          },
+          colors: positiveTrend ? ['rgba(29, 191, 172)'] : ['rgba(191, 29, 99)'],
           chart: {
-            height: '100%',
+            zoom: {
+              enabled: false,
+            },
+            selection: {
+              enabled: false,
+            },
+            width: '100%',
+            height: 300,
             animations: {
               enabled: false,
             },
@@ -143,25 +175,23 @@ export default {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
+  flex-direction: row;
   justify-content: flex-start;
   align-items: center;
 }
-
-.md-content {
-  width: 200px;
-  height: 100px;
-  max-height: 150px;
-  min-width: 150px;
-  margin: 15px;
-  padding: 5px;
-  display: flex;
-  font-size: 10px;
-  font-weight: 600;
+a {
+  text-decoration: none;
 }
-
-.refresh {
-  position: absolute;
-  right: 20px;
+.charts {
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  height: 160px;
+  min-height: 150px;
+  padding: 5px;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 ::-webkit-scrollbar {
@@ -187,5 +217,4 @@ export default {
 ::-webkit-scrollbar-thumb:window-inactive {
   background: rgba(144, 144, 144, 0.4);
 }
-
 </style>
