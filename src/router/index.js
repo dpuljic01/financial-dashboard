@@ -38,13 +38,11 @@ const router = new Router({
       path: '/dashboard',
       name: 'Dashboard',
       component: Dashboard,
-      props: { title: 'Dashboard' },
     },
     {
       path: '/login',
       name: 'Login',
       component: Login,
-      props: { title: 'Dashboard' },
     },
     {
       path: '/register',

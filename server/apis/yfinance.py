@@ -6,11 +6,15 @@ import pandas_datareader as pdr
 import pandas as pd
 
 
-def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=None, include_info=False):
+def fetch_stock_history(
+    tickers, period="1y", interval="1d", start=None, end=None, include_info=False
+):
     res = {}
     for ticker in tickers:
         data = yf.Ticker(ticker)
-        history = data.history(period=period, interval=interval, start=start, end=end, group_by="ticker")
+        history = data.history(
+            period=period, interval=interval, start=start, end=end, group_by="ticker"
+        )
         history = history[~history.index.duplicated(keep="last")]
         history_json = json.loads(history.to_json(orient="columns", date_format="iso"))
         if include_info:
@@ -24,11 +28,7 @@ def fetch_stock_history(tickers, period="1y", interval="1d", start=None, end=Non
 
 def create_stock(ticker):
     data = yf.Ticker(ticker)
-    stock = Stock(
-        ticker=ticker,
-        short_name=data.info["shortName"],
-        info=data.info
-    )
+    stock = Stock(ticker=ticker, short_name=data.info["shortName"], info=data.info)
     db.session.add(stock)
     db.session.commit()
     return stock.json

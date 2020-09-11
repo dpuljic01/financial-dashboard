@@ -18,7 +18,7 @@ def send_mail(subject, recipients, html_body):
     msg = Message(
         subject,
         recipients=recipients,
-        sender=current_app.config.get("MAIL_DEFAULT_SENDER")
+        sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
     )
     msg.html = html_body
     mail.send(msg)

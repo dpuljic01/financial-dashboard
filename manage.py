@@ -32,7 +32,7 @@ def create_user():
             last_name=last_name,
             password=password,
             confirmed=True,
-            email_confirmed_at=datetime.utcnow()
+            email_confirmed_at=datetime.utcnow(),
         )
         role = Role(name=role)
         user.roles.append(role)
@@ -94,10 +94,7 @@ def populate_tickers():
             ("symbol", TEXT),
             ("name", TEXT),
         ],
-        weights={
-            "symbol": 20,
-            "name": 1
-        },
+        weights={"symbol": 20, "name": 1},
         name="SymbolIndex",
     )
 
@@ -115,7 +112,9 @@ def update_stocks():
     start_time = time.time()
     stocks = Stock.query.all()
     tickers = [stock.ticker for stock in stocks]
-    stocks_data = fetch_stock_history(tickers=tickers, period="2d", interval="1d", include_info=True)
+    stocks_data = fetch_stock_history(
+        tickers=tickers, period="2d", interval="1d", include_info=True
+    )
     print("Fetched new information ...")
     for k, v in stocks_data.items():
         for stock in stocks:
@@ -126,7 +125,9 @@ def update_stocks():
             db.session.commit()
             print(f"{stock.ticker} updated")
 
-    print(f"Stock update finished, elapsed time: {round(time.time() - start_time, 2)} seconds")
+    print(
+        f"Stock update finished, elapsed time: {round(time.time() - start_time, 2)} seconds"
+    )
 
 
 if __name__ == "__main__":

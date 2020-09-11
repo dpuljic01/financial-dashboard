@@ -8,14 +8,14 @@
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
     </div>
-    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed" :md-swipeable="true">
+    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed">
       <md-tab id="tab-summary" md-label="Summary" :to="`/portfolios/${portfolio.id}/summary`">
         <md-empty-state
-          v-if="stocks.length == 0"
+          v-if="portfolio.stocks.length == 0"
           md-description="Your list is empty. Add symbols to get relevant info."
         >
         </md-empty-state>
-        <Summary v-else :stocks="stocks"></Summary>
+        <Summary v-else :stocks="portfolio.stocks"></Summary>
       </md-tab>
 
       <md-tab id="tab-holdings" md-label="Holdings" :to="`/portfolios/${portfolio.id}/holdings`">
@@ -24,12 +24,12 @@
           md-description="Your list is empty. Add symbols to get relevant info."
         >
         </md-empty-state>
-        <Holdings v-else :portfolio="portfolio"></Holdings>
+        <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
       </md-tab>
 
       <md-tab id="tab-news" md-label="News" :to="`/portfolios/${portfolio.id}/news`">
         <md-empty-state
-          v-if="stocks.length === 0"
+          v-if="portfolio.stocks.length === 0"
           md-description="Your list is empty. Add symbols to get relevant info."
         >
         </md-empty-state>
@@ -55,10 +55,8 @@ export default {
   },
   data() {
     return {
-      stocks: [],
       open: false,
       valid: false,
-      hasPortfolio: this.$store.getters.hasPortfolio,
       portfolio: {},
       newSymbol: null,
       loaded: false,
@@ -72,20 +70,17 @@ export default {
   },
   async mounted() {
     this.$store.commit('setLoading', true);
-    await this.$store.dispatch('getPortfolio', this.portfolioId);
+    this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
     this.getTickers();
     if (this.tickers.length > 0) {
       await this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
-      await this.$store.dispatch('getPortfolio', this.portfolioId);
     }
-    this.portfolio = this.$store.getters.currentPortfolio;
-    this.stocks = this.portfolio.stocks;
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
   methods: {
     getTickers() {
-      const tickers = this.$store.getters.currentPortfolio.stocks.map((stock) => stock.ticker);
+      const tickers = this.portfolio.stocks.map((stock) => stock.ticker);
       this.tickers = tickers;
     },
     async createPortfolio() {
@@ -113,24 +108,18 @@ export default {
           short_name: payload.short_name,
         },
       });
-      await this.updateUserDetails();
+      this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
+      this.getTickers();
       this.$store.dispatch('successMessage');
       this.$store.commit('setLoading', false);
     },
-    async updateUserDetails() {
-      await this.$store.dispatch('getPortfolios');
-      const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
+    onDelete() {
       this.getTickers();
-      this.portfolio = this.$store.getters.currentPortfolio;
-      this.stocks = resp.stocks;
     },
   },
   watch: {
     portfolio: function portfolio(val) {
       this.portfolio = val;
-    },
-    stocks: function stocks(val) {
-      this.stocks = val;
     },
     tickers: function tickers(val) {
       this.tickers = val;

@@ -47,8 +47,8 @@ export default {
   data() {
     return {
       loaded: false,
-      stonks: this.stocks,
       portfolioId: this.$route.params.portfolioId,
+      stonks: this.stocks,
     };
   },
   async mounted() {
@@ -62,10 +62,11 @@ export default {
       return val;
     },
     deleteSymbol(stockId) {
-      this.$confirm('Are you sure about that?').then(async () => {
+      this.$confirm('Delete?').then(async () => {
         await this.$store.dispatch('deleteSymbol', { portfolioId: this.portfolioId, stockId });
-        const resp = this.$store.dispatch('getPortfolio', this.portfolioId);
+        const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
         this.stonks = resp.stocks;
+        this.$emit('deletedSymbol');
       });
     },
   },

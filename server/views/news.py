@@ -1,17 +1,10 @@
-from flask import Blueprint, jsonify
-from types import SimpleNamespace
 import requests
 from bs4 import BeautifulSoup
 
-from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from marshmallow import fields, validate
-
-import pymongo
-from bson.json_util import dumps
 from flask import Blueprint, jsonify, request
-from webargs import fields, validate
-from webargs.flaskparser import use_args, use_kwargs
+from webargs import fields
+from webargs.flaskparser import use_args
 
 from server.decorators import check_confirmed
 from server.extensions import cache
@@ -30,7 +23,11 @@ def make_cache_key(*args, **kwargs):
 @cache.cached(timeout=60 * 60 * 2, key_prefix=make_cache_key)  # 2 hours cached
 def get_news():
     current_identity = get_jwt_identity()
-    portfolios = Portfolio.query.filter_by(user_id=current_identity).order_by(Portfolio.created_at.desc()).all()
+    portfolios = (
+        Portfolio.query.filter_by(user_id=current_identity)
+        .order_by(Portfolio.created_at.desc())
+        .all()
+    )
     return jsonify([portfolio.json["name"] for portfolio in portfolios])
 
 
@@ -38,9 +35,12 @@ def get_news():
 @jwt_required
 @check_confirmed
 @cache.cached(timeout=60 * 60 * 2, key_prefix=make_cache_key)  # 2 hours cached
-@use_args({
-    "symbols": fields.DelimitedList(fields.Str(), required=True),
-}, location="query")
+@use_args(
+    {
+        "symbols": fields.DelimitedList(fields.Str(), required=True),
+    },
+    location="query",
+)
 def scrape_news(args):
     data = []
     for symbol in args["symbols"]:

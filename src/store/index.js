@@ -151,15 +151,15 @@ const actions = {
 const mutations = {
   // isolated data mutations
   setPortfolios(state, payload) {
-    // localStorage.setItem('_portfolios', JSON.stringify(payload.portfolios));
+    localStorage.setItem('_portfolios', JSON.stringify(payload.portfolios));
     state.portfolios = payload.portfolios;
   },
   setPortfolio(state, payload) {
-    // localStorage.setItem('_currentPortfolio', JSON.stringify(payload.portfolio));
+    localStorage.setItem('_currentPortfolio', JSON.stringify(payload.portfolio));
     state.currentPortfolio = payload.portfolio;
   },
   setUserData(state, payload) {
-    // localStorage.setItem('_currentUser', JSON.stringify(payload.user));
+    localStorage.setItem('_currentUser', JSON.stringify(payload.user));
     state.userData = payload.user;
   },
   setJwtToken(state, payload) {

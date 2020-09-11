@@ -30,17 +30,17 @@ compress = Compress()
 
 @jwt.unauthorized_loader  # override default "msg" key to be "message"
 def my_expired_token_callback(unauthorized):
-    return jsonify({'message': unauthorized}), 401
+    return jsonify({"message": unauthorized}), 401
 
 
 @jwt.expired_token_loader
 def my_expired_token_callback(expired):
-    return jsonify({'message': expired}), 401
+    return jsonify({"message": expired}), 401
 
 
 @jwt.invalid_token_loader
 def my_expired_token_callback(invalid):
-    return jsonify({'message': invalid}), 401
+    return jsonify({"message": invalid}), 401
 
 
 @jwt.token_in_blacklist_loader

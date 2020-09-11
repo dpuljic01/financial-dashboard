@@ -9,7 +9,11 @@ from server.extensions import db
 from server.models import User
 from server.token import generate_confirmation_token, confirm_token
 from flask_jwt_extended import (
-    create_access_token, get_jti, get_jwt_identity, jwt_required, get_raw_jwt
+    create_access_token,
+    get_jti,
+    get_jwt_identity,
+    jwt_required,
+    get_raw_jwt,
 )
 from server.helpers.blacklist_tokens import BlacklistTokens
 
@@ -17,15 +21,26 @@ bp = Blueprint("auth", __name__, url_prefix="/api")
 
 
 @bp.route("/session/auth", methods=["POST"])
-@use_kwargs({
-    "email": fields.Str(required=True, validate=validate.Email()),
-    "password": fields.Str(required=True),
-})
+@use_kwargs(
+    {
+        "email": fields.Str(required=True, validate=validate.Email()),
+        "password": fields.Str(required=True),
+    }
+)
 def login(**payload):
     db_user = User.auth(email=payload["email"], password=payload["password"])
 
     if not db_user or not db_user.confirmed:
-        return jsonify({"message": "Invalid credentials", "authenticated": False, "confirmed": False}), 401
+        return (
+            jsonify(
+                {
+                    "message": "Invalid credentials",
+                    "authenticated": False,
+                    "confirmed": False,
+                }
+            ),
+            401,
+        )
 
     # Create JWT
     access_token = create_access_token(identity=db_user.id)
@@ -42,7 +57,9 @@ def login(**payload):
 
     try:
         access_jti = get_jti(encoded_token=access_token)
-        BlacklistTokens.revoked_store.set(access_jti, "false", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
+        BlacklistTokens.revoked_store.set(
+            access_jti, "false", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1
+        )
     except:
         pass
 
@@ -55,18 +72,26 @@ def login(**payload):
 def logout():
     try:
         jti = get_raw_jwt()["jti"]
-        BlacklistTokens.revoked_store.set(jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1)
+        BlacklistTokens.revoked_store.set(
+            jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1
+        )
     except:
         return "", 204
     return "", 204
 
 
 @bp.route("/register", methods=["POST"])
-@use_kwargs({
-    "first_name": fields.Str(required=True, validate=validate.Length(min=1, max=255)),
-    "last_name": fields.Str(required=True, validate=validate.Length(min=1, max=255)),
-    "email": fields.Email(required=True)
-})
+@use_kwargs(
+    {
+        "first_name": fields.Str(
+            required=True, validate=validate.Length(min=1, max=255)
+        ),
+        "last_name": fields.Str(
+            required=True, validate=validate.Length(min=1, max=255)
+        ),
+        "email": fields.Email(required=True),
+    }
+)
 def register(**payload):
     db_user = User.query.filter_by(email=payload["email"]).first()
     if db_user:
@@ -84,9 +109,9 @@ def register(**payload):
 
     token = generate_confirmation_token(db_user.email)
     send_verify_email(
-        fe_url=current_app.config.get('FINANCIAL_DASHBOARD_FE_URL'),
+        fe_url=current_app.config.get("FINANCIAL_DASHBOARD_FE_URL"),
         email=db_user.email,
-        token=token
+        token=token,
     )
 
     return jsonify(db_user.json), 201
@@ -98,32 +123,48 @@ def unconfirmed():
     current_identity = get_jwt_identity()
     db_user = User.query.get_or_404(current_identity)
     if not db_user.confirmed:
-        return jsonify({"message": "Invalid credentials", "authenticated": True, "confirmed": False}), 403
-    return jsonify({"message": "User confirmed.", "authenticated": True, "confirmed": True}), 200
+        return (
+            jsonify(
+                {
+                    "message": "Invalid credentials",
+                    "authenticated": True,
+                    "confirmed": False,
+                }
+            ),
+            403,
+        )
+    return (
+        jsonify(
+            {"message": "User confirmed.", "authenticated": True, "confirmed": True}
+        ),
+        200,
+    )
 
 
 @bp.route("/reset-password", methods=["POST"])
-@use_kwargs({
-    "email": fields.String(required=True, validate=validate.Email())
-})
+@use_kwargs({"email": fields.String(required=True, validate=validate.Email())})
 def reset(**payload):
     db_user = User.query.filter_by(email=payload["email"]).first_or_404()
 
     token = generate_confirmation_token(db_user.email)
     send_password_reset_email(
-        fe_url=current_app.config.get('FINANCIAL_DASHBOARD_FE_URL'),
+        fe_url=current_app.config.get("FINANCIAL_DASHBOARD_FE_URL"),
         email=db_user.email,
-        token=token
+        token=token,
     )
 
     return "", 204
 
 
 @bp.route("/reset-password", methods=["PUT"])
-@use_kwargs({
-    "token": fields.String(required=True),
-    "password": fields.String(required=True, validate=[validate.Length(min=8, max=255)])
-})
+@use_kwargs(
+    {
+        "token": fields.String(required=True),
+        "password": fields.String(
+            required=True, validate=[validate.Length(min=8, max=255)]
+        ),
+    }
+)
 def reset_password(**payload):
     email = confirm_token(payload["token"])
 

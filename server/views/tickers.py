@@ -10,7 +10,12 @@ from webargs.flaskparser import use_args
 from server.common.common import lowercase_keys
 from server.models import Stock
 from server.apis.iex import IEXFinance
-from server.apis.yfinance import fetch_stock_history, fetch_stock_info, get_quote, get_stock_recommendations
+from server.apis.yfinance import (
+    fetch_stock_history,
+    fetch_stock_info,
+    get_quote,
+    get_stock_recommendations,
+)
 from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
 from server.extensions import cache, db
@@ -66,7 +71,9 @@ def get_company_info(symbol):
     # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
     if stock:
         if not stock.company_info:
-            stock.company_info = lowercase_keys(fetch_stock_info(symbol))  # company profile
+            stock.company_info = lowercase_keys(
+                fetch_stock_info(symbol)
+            )  # company profile
         return jsonify(stock.company_info)
 
     # recommendations = IEXFinance.get_recommendations(symbol)
@@ -86,14 +93,17 @@ def get_company_info(symbol):
 @jwt_required
 @check_confirmed
 @cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
-@use_args({
-    "period": fields.Str(missing="2d"),
-    "interval": fields.Str(missing="15m"),
-    "symbols": fields.DelimitedList(fields.Str(), required=True),
-    "start": fields.Str(missing=None),
-    "end": fields.Str(missing=None),
-    "include_info": fields.Bool(missing=False)
-}, location="query")
+@use_args(
+    {
+        "period": fields.Str(missing="2d"),
+        "interval": fields.Str(missing="15m"),
+        "symbols": fields.DelimitedList(fields.Str(), required=True),
+        "start": fields.Str(missing=None),
+        "end": fields.Str(missing=None),
+        "include_info": fields.Bool(missing=False),
+    },
+    location="query",
+)
 def yfinance_quote_history(args):
     history = fetch_stock_history(
         tickers=args["symbols"],
@@ -101,7 +111,7 @@ def yfinance_quote_history(args):
         interval=args["interval"],
         start=args["start"],
         end=args["end"],
-        include_info=args["include_info"]
+        include_info=args["include_info"],
     )
     return jsonify(history)
 
@@ -116,9 +126,12 @@ def list_iex_cloud_symbols():
 
 # this search calls iex api
 @bp.route("/iex/symbols/search", methods=["GET"])
-@use_args({
-    "q": fields.Str(required=True),
-}, location="query")
+@use_args(
+    {
+        "q": fields.Str(required=True),
+    },
+    location="query",
+)
 def search_iex_companies(args):
     symbol = IEXFinance.search(args["q"])
     return jsonify(symbol)
@@ -126,22 +139,27 @@ def search_iex_companies(args):
 
 # this search queries mongo_db
 @bp.route("/search", methods=["GET"])
-@use_args({
-    "q": fields.Str(required=True),
-}, location="query")
+@use_args(
+    {
+        "q": fields.Str(required=True),
+    },
+    location="query",
+)
 def aggregate_search_mongodb(args):
     tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
-    symbols = tickers_collection.aggregate([{
-        "$match":
+    symbols = tickers_collection.aggregate(
+        [
             {
-                "$or": [
-                    {"symbol": {"$regex": f"^{args['q']}", "$options": "$i"}},
-                    {"name": {"$regex": f"^{args['q']}", "$options": "$i"}},
-                ]
+                "$match": {
+                    "$or": [
+                        {"symbol": {"$regex": f"^{args['q']}", "$options": "$i"}},
+                        {"name": {"$regex": f"^{args['q']}", "$options": "$i"}},
+                    ]
+                },
             },
-        },
-        {"$limit": 5}
-    ])
+            {"$limit": 5},
+        ]
+    )
     return jsonify(json.loads(dumps(symbols)))
 
 
@@ -149,13 +167,16 @@ def aggregate_search_mongodb(args):
 @jwt_required
 @check_confirmed
 @cache.cached(timeout=30, key_prefix=make_cache_key)
-@use_args({
-    "function": fields.Str(required=True),
-    "interval": fields.Str(),
-    "symbol": fields.Str(required=True),
-    "start": fields.Str(missing=None),
-    "end": fields.Str(missing=None),
-}, location="query")
+@use_args(
+    {
+        "function": fields.Str(required=True),
+        "interval": fields.Str(),
+        "symbol": fields.Str(required=True),
+        "start": fields.Str(missing=None),
+        "end": fields.Str(missing=None),
+    },
+    location="query",
+)
 def alpha_vantage_info(args):
     resp = AlphaVantage.fetch_data(args)
     return jsonify(resp)
@@ -165,9 +186,12 @@ def alpha_vantage_info(args):
 @jwt_required
 @check_confirmed
 @cache.cached(timeout=60, key_prefix=make_cache_key)
-@use_args({
-    "symbols": fields.DelimitedList(fields.Str(), required=True),
-}, location="query")
+@use_args(
+    {
+        "symbols": fields.DelimitedList(fields.Str(), required=True),
+    },
+    location="query",
+)
 def fetch_latest_stock_prices(args):
     args["symbols"] = [symbol.upper() for symbol in args["symbols"]]
     stocks = Stock.query.filter(Stock.ticker.in_(args["symbols"])).all()
@@ -190,7 +214,7 @@ def fetch_latest_stock_prices(args):
 
         params = {"function": "GLOBAL_QUOTE", "symbol": stock.ticker}
         global_quote = AlphaVantage.fetch_data(params)
-        if global_quote.get('Global Quote', {}):
+        if global_quote.get("Global Quote", {}):
             quote = AlphaVantage.filter_global_quote(global_quote)
             res.append(quote)
             stock.latest_market_data = lowercase_keys(quote)

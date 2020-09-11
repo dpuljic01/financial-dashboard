@@ -3,7 +3,7 @@ import os
 from flask import Blueprint, current_app, send_from_directory
 from server.decorators import gzipped
 
-client_bp = Blueprint("client_app", __name__, template_folder='./../dist')
+client_bp = Blueprint("client_app", __name__, template_folder="./../dist")
 
 
 @client_bp.route("/", defaults={"path": ""})

@@ -1,5 +1,13 @@
 <template>
-  <div class="md-layout md-gutter">
+  <div v-if="!loaded">
+    <md-progress-spinner
+      :md-diameter="50"
+      :md-stroke="4"
+      style="margin-top: 50px;"
+      md-mode="indeterminate"
+    ></md-progress-spinner>
+  </div>
+  <div v-else class="md-layout md-gutter">
     <div class="md-layout-item md-size-45 md-xsmall-size-90 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
       <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
     </div>
@@ -43,9 +51,11 @@ export default {
           text: 'Sector',
         },
       },
+      loaded: false,
     };
   },
   mounted() {
+    this.loaded = false;
     this.calculatePortfolioAlloc();
   },
   methods: {
@@ -76,6 +86,7 @@ export default {
       return price;
     },
     calculatePortfolioAlloc() {
+      this.loaded = false;
       const holdingsPerStock = Object.values(groupBy(this.portfolio.holdings, 'stock_id'));
       this.mapIndustries();
       for (let i = 0; i < holdingsPerStock.length; i += 1) {
@@ -83,6 +94,7 @@ export default {
         this.allocationChart.series.push(holdingPrice);
         this.allocationChart.labels.push(this.getCompanyTicker(holdingsPerStock[i][0].stock_id));
       }
+      this.loaded = true;
     },
     mapIndustries() {
       for (let i = 0; i < this.portfolio.stocks.length; i += 1) {
@@ -108,6 +120,9 @@ export default {
     },
     sectorChart(val) {
       this.sectorChart = val;
+    },
+    portfolio() {
+      this.calculatePortfolioAlloc();
     },
   },
 };

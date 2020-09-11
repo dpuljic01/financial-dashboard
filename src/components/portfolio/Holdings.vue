@@ -94,8 +94,7 @@ export default {
           purchased_at: this.purchasedOn,
         },
       });
-      await this.$store.dispatch('getPortfolio', this.portfolioId);
-      this.currentPortfolio = this.$store.getters.currentPortfolio;
+      this.currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
       this.$store.commit('setLoading', false);
     },
     submit() {
@@ -128,7 +127,7 @@ export default {
     },
   },
   watch: {
-    currentPortfolio(val) {
+    portfolio(val) {
       this.currentPortfolio = val;
     },
   },

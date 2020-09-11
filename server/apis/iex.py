@@ -13,7 +13,11 @@ class IEXUrl:
     def quote(self, symbol=None, field=None):
         if not symbol:
             raise Exception("Symbol is required")
-        return self.make(f"/v1/stock/{symbol}/quote/{field}") if field else self.make(f"/v1/stock/{symbol}/quote")
+        return (
+            self.make(f"/v1/stock/{symbol}/quote/{field}")
+            if field
+            else self.make(f"/v1/stock/{symbol}/quote")
+        )
 
     def symbols(self):
         return self.make("/v1/ref-data/symbols")
@@ -34,7 +38,9 @@ class IEXFinanceApi:
         self._token = None
         self._url = None
 
-    def get(self, url, **kwargs):  # probably move all these into separate file and inherit from it
+    def get(
+        self, url, **kwargs
+    ):  # probably move all these into separate file and inherit from it
         return requests.get(url, **kwargs)
 
     def post(self, url, **kwargs):
@@ -44,14 +50,14 @@ class IEXFinanceApi:
         return requests.put(url, **kwargs)
 
     def delete(self, url, **kwargs):
-        return requests.delete(url, **kwargs)  
+        return requests.delete(url, **kwargs)
 
     @property
     def token(self):
         if self._token is None:
             self._token = current_app.config.get("IEX_TOKEN")
         return self._token
-    
+
     @property
     def url(self):
         if self._url is None:
@@ -74,7 +80,9 @@ class IEXFinanceApi:
         return resp.json()
 
     def get_recommendations(self, symbol):
-        resp = requests.get(self.url.recommendations(symbol), params={"token": self.token})
+        resp = requests.get(
+            self.url.recommendations(symbol), params={"token": self.token}
+        )
         resp.raise_for_status()
         return resp.json()
 

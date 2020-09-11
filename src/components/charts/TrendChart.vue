@@ -1,6 +1,21 @@
 <template>
   <div>
-    <div class="futures noselect">
+    <md-progress-spinner
+      v-if="!loaded"
+      :md-diameter="50"
+      :md-stroke="4"
+      style="margin-top: 50px;"
+      md-mode="indeterminate"
+    ></md-progress-spinner>
+    <div v-else class="futures noselect">
+      <md-button
+        v-tooltip="'Reload'"
+        class="md-icon-button md-dense"
+        style="position: relative; top: 60px; margin-right: -32px;"
+        @click="fetchStockHistory(true)"
+      >
+        <md-icon>refresh</md-icon>
+      </md-button>
       <a
         class="charts"
         v-for="(value, index) in trendData"
@@ -37,24 +52,34 @@ export default {
       interval: '1m',
       period: '1d',
       options: QUOTE_OPTIONS,
+      loaded: false,
     };
   },
   mounted() {
     this.fetchStockHistory();
   },
   methods: {
-    async fetchStockHistory() {
-      this.$store.commit('setLoading', true);
+    async fetchStockHistory(reload = false) {
+      this.loaded = false;
       this.trendData = [];
-      const resp = await this.$store.dispatch('getStockHistoryData', {
-        symbols: this.symbols.join(),
-        interval: this.interval,
-        period: this.period,
-        include_info: false,
-      });
-      const series = setQuoteSeries(resp.data);
+      const data = await this.fetchTrendData(reload);
+      const series = setQuoteSeries(data);
       this.setTrendData(series);
-      this.$store.commit('setLoading', false);
+      this.loaded = true;
+    },
+    async fetchTrendData(reload) {
+      let data = reload ? null : JSON.parse(localStorage.getItem('_trendData'));
+      if (!data || Object.keys(data).length === 0) {
+        const resp = await this.$store.dispatch('getStockHistoryData', {
+          symbols: this.symbols.join(),
+          interval: this.interval,
+          period: this.period,
+          include_info: false,
+        });
+        data = resp.data;
+        localStorage.setItem('_trendData', JSON.stringify(data));
+      }
+      return data;
     },
     setTrendData(series) {
       for (let i = 0; i < series.length; i += 1) {
