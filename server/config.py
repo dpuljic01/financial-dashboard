@@ -16,9 +16,13 @@ class Config:
     CACHE_TYPE = "simple"  # Flask-Caching related configs
     CACHE_DEFAULT_TIMEOUT = 300  # 5min
 
-    FINANCIAL_DASHBOARD_FE_URL = os.getenv("FINANCIAL_DASHBOARD_FE_URL", "http://127.0.0.1:8080")
+    FINANCIAL_DASHBOARD_FE_URL = os.getenv(
+        "FINANCIAL_DASHBOARD_FE_URL", "http://127.0.0.1:8080"
+    )
     # limit for free keys: (5 API requests per minute; 500 API requests per day)
-    ALPHA_VANTAGE_API_URL = os.getenv("ALPHA_VANTAGE_API_URL", "https://www.alphavantage.co")
+    ALPHA_VANTAGE_API_URL = os.getenv(
+        "ALPHA_VANTAGE_API_URL", "https://www.alphavantage.co"
+    )
     ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 
     # limit for free: (50.000 API requests per day, but no concurrent calls) - not the newest data :(
@@ -26,7 +30,9 @@ class Config:
     # QUANDL_API_KEY = os.getenv("QUANDL_API_KEY")
 
     # unlimited mocked data, 50k messages/mo on production (free plan)
-    IEX_BASE_URL = os.getenv("IEX_BASE_URL", "https://sandbox.iexapis.com/")  # prod https://cloud.iexapis.com/
+    IEX_BASE_URL = os.getenv(
+        "IEX_BASE_URL", "https://sandbox.iexapis.com/"
+    )  # prod https://cloud.iexapis.com/
     IEX_TOKEN = os.getenv("IEX_TOKEN")
 
     # Flask-Mail SMTP server settings
@@ -40,7 +46,9 @@ class Config:
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379")
 
-    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 60 * 60 * 24 * 30))
+    JWT_ACCESS_TOKEN_EXPIRES = int(
+        os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 60 * 60 * 24 * 30)
+    )
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access"]
 
@@ -49,7 +57,11 @@ class Config:
     DIST_DIR = os.path.join(ROOT_DIR, "dist")
     SHOULD_PROXY = bool(int(os.getenv("SHOULD_PROXY", "0")))
     if not os.path.exists(DIST_DIR) and SHOULD_PROXY:
-        raise Exception("DIST_DIR not found: {}. You should run `npm run build` first".format(DIST_DIR))
+        raise Exception(
+            "DIST_DIR not found: {}. You should run `npm run build` first".format(
+                DIST_DIR
+            )
+        )
 
     MONGO_DB_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
 

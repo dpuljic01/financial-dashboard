@@ -7,7 +7,7 @@ load_dotenv()
 
 
 def create_app():
-    app = Flask(__name__, static_folder='./../dist/static')
+    app = Flask(__name__, static_folder="./../dist/static")
 
     app.config.from_object(os.getenv("APP_SETTINGS"))
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -34,9 +34,9 @@ def register_extensions(app):
     mail.init_app(app)
     babel.init_app(app)
 
-    cors.init_app(app,
-                  resources={r"/api/*": {"origins": "*"}},
-                  supports_credentials=True)
+    cors.init_app(
+        app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True
+    )
     jwt.init_app(app)
     cache.init_app(app)
     compress.init_app(app)

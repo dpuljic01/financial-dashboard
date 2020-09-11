@@ -28,6 +28,13 @@
         <md-tab id="tab-max" md-label="MAX"> </md-tab>
       </md-tabs>
       <Area v-if="loaded" :options="options" :series="series" />
+      <md-progress-spinner
+        v-else
+        :md-diameter="50"
+        :md-stroke="4"
+        style="margin-top: 50px;"
+        md-mode="indeterminate"
+      ></md-progress-spinner>
     </div>
   </div>
 </template>
@@ -96,7 +103,7 @@ export default {
     },
     async compare() {
       if (this.symbols.length > 0) {
-        this.$store.commit('setLoading', true);
+        this.loaded = false;
         await this.getQuoteHistory();
         this.options = {
           ...this.options,
@@ -132,7 +139,7 @@ export default {
             },
           },
         };
-        this.$store.commit('setLoading', false);
+        this.loaded = true;
       }
     },
     async getQuoteHistory() {

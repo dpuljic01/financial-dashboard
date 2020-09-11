@@ -18,8 +18,12 @@ bp = Blueprint("portfolios", __name__, url_prefix="/api/portfolios")
 @check_confirmed
 def list_portfolios():
     current_identity = get_jwt_identity()
-    portfolios = Portfolio.query.filter_by(user_id=current_identity).order_by(Portfolio.created_at.desc()).all()
-    return jsonify([portfolio.json for portfolio in portfolios])
+    portfolios = (
+        Portfolio.query.filter_by(user_id=current_identity)
+        .order_by(Portfolio.created_at.desc())
+        .all()
+    )
+    return jsonify([portfolio.json_short for portfolio in portfolios])
 
 
 @bp.route("/<int:identifier>", methods=["GET"])
@@ -30,51 +34,52 @@ def get_portfolio(identifier):
     if isinstance(identifier, int):
         portfolio = Portfolio.query.get_or_404(identifier)
     else:
-        portfolio = Portfolio.query.filter_by(user_id=current_identity, name=identifier).first_or_404()
-    return jsonify(portfolio.json)
-
-
-@bp.route("/<int:portfolio_id>/value", methods=["GET"])
-@jwt_required
-@check_confirmed
-def calculate_value(portfolio_id):
-    current_identity = get_jwt_identity()
-    portfolio = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
-
-
+        portfolio = Portfolio.query.filter_by(
+            user_id=current_identity, name=identifier
+        ).first_or_404()
     return jsonify(portfolio.json)
 
 
 @bp.route("", methods=["POST"])
 @jwt_required
 @check_confirmed
-@use_kwargs({
-    "name": fields.String(required=True, validate=validate.Length(min=1, max=255)),
-    "info": fields.String(),
-})
+@use_kwargs(
+    {
+        "name": fields.String(required=True, validate=validate.Length(min=1, max=255)),
+        "info": fields.String(),
+    }
+)
 def create_portfolio(**payload):
     current_identity = get_jwt_identity()
 
-    portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
+    portfolio = Portfolio.query.filter_by(
+        name=payload["name"], user_id=current_identity
+    ).first()
     if portfolio:
         return jsonify({"message": "Portfolio with that name already exists."}), 409
 
-    portfolio = Portfolio(name=payload["name"], user_id=current_identity, info=payload["info"])
+    portfolio = Portfolio(
+        name=payload["name"], user_id=current_identity, info=payload["info"]
+    )
     db.session.add(portfolio)
     db.session.commit()
-    return jsonify(portfolio.json), 201
+    return jsonify(portfolio.json_short), 201
 
 
 @bp.route("/<int:portfolio_id>", methods=["PUT"])
 @jwt_required
 @check_confirmed
-@use_kwargs({
-    "name": fields.String(),
-    "info": fields.String(),
-})
+@use_kwargs(
+    {
+        "name": fields.String(),
+        "info": fields.String(),
+    }
+)
 def update_portfolio(portfolio_id, **payload):
     current_identity = get_jwt_identity()
-    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    portfolio_db = Portfolio.query.filter_by(
+        id=portfolio_id, user_id=current_identity
+    ).first_or_404()
 
     # portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
     # if portfolio:
@@ -82,7 +87,7 @@ def update_portfolio(portfolio_id, **payload):
 
     portfolio_db.update(payload)
     db.session.commit()
-    return jsonify(portfolio_db.json), 201
+    return jsonify(portfolio_db.json_short), 201
 
 
 @bp.route("/<int:portfolio_id>", methods=["DELETE"])
@@ -90,7 +95,9 @@ def update_portfolio(portfolio_id, **payload):
 @check_confirmed
 def delete_portfolio(portfolio_id):
     current_identity = get_jwt_identity()
-    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    portfolio_db = Portfolio.query.filter_by(
+        id=portfolio_id, user_id=current_identity
+    ).first_or_404()
     db.session.delete(portfolio_db)
     db.session.commit()
     return jsonify(), 204
@@ -101,7 +108,9 @@ def delete_portfolio(portfolio_id):
 @check_confirmed
 def delete_portfolio_stock(portfolio_id, stock_id):
     current_identity = get_jwt_identity()
-    portfolio_db = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    portfolio_db = Portfolio.query.filter_by(
+        id=portfolio_id, user_id=current_identity
+    ).first_or_404()
     stock_db = None
     for stock in portfolio_db.stocks:
         if stock.id != stock_id:
@@ -119,15 +128,19 @@ def delete_portfolio_stock(portfolio_id, stock_id):
 @bp.route("/<int:portfolio_id>/holdings", methods=["POST"])
 @jwt_required
 @check_confirmed
-@use_kwargs({
-    "symbol": fields.String(required=True),
-    "shares": fields.Decimal(required=True),
-    "price": fields.Decimal(required=True),
-    "purchased_at": fields.DateTime(required=False, missing=datetime.now()),
-})
+@use_kwargs(
+    {
+        "symbol": fields.String(required=True),
+        "shares": fields.Decimal(required=True),
+        "price": fields.Decimal(required=True),
+        "purchased_at": fields.DateTime(required=False, missing=datetime.now()),
+    }
+)
 def create_portfolio_holding(portfolio_id, **payload):
     current_identity = get_jwt_identity()
-    portfolio = Portfolio.query.filter_by(id=portfolio_id, user_id=current_identity).first_or_404()
+    portfolio = Portfolio.query.filter_by(
+        id=portfolio_id, user_id=current_identity
+    ).first_or_404()
 
     symbol = payload["symbol"].upper()
     stock_db = Stock.query.filter_by(ticker=symbol).first_or_404()
@@ -141,7 +154,7 @@ def create_portfolio_holding(portfolio_id, **payload):
         stock_id=stock_db.id,
         price=payload["price"],
         purchased_at=payload["purchased_at"],
-        shares=payload["shares"]
+        shares=payload["shares"],
     )
     db.session.add(holding_db)
     db.session.commit()
@@ -153,7 +166,9 @@ def create_portfolio_holding(portfolio_id, **payload):
 @check_confirmed
 def delete_portfolio_holding(holding_id):
     current_identity = get_jwt_identity()
-    holding_db = Holding.query.filter_by(id=holding_id, user_id=current_identity).first_or_404()
+    holding_db = Holding.query.filter_by(
+        id=holding_id, user_id=current_identity
+    ).first_or_404()
     db.session.delete(holding_db)
     db.session.commit()
     return jsonify(), 204
@@ -162,15 +177,19 @@ def delete_portfolio_holding(holding_id):
 @bp.route("/<string:portfolio_id>/symbols", methods=["POST"])
 @jwt_required
 @check_confirmed
-@use_kwargs({
-    "symbol": fields.String(required=True),
-    "short_name": fields.String(),
-})
+@use_kwargs(
+    {
+        "symbol": fields.String(required=True),
+        "short_name": fields.String(),
+    }
+)
 def add_symbol(portfolio_id, **payload):
     symbol = payload["symbol"].upper()
 
     current_identity = get_jwt_identity()
-    portfolio = Portfolio.query.filter_by(user_id=current_identity, id=portfolio_id).first_or_404()
+    portfolio = Portfolio.query.filter_by(
+        user_id=current_identity, id=portfolio_id
+    ).first_or_404()
 
     stock_db = Stock.query.filter_by(ticker=symbol).first()
     stock_in_portfolio = stock_db and (stock_db in portfolio.stocks)
@@ -178,7 +197,7 @@ def add_symbol(portfolio_id, **payload):
     if stock_in_portfolio:
         return jsonify({"message": "Symbol already exists in this portfolio"}), 400
 
-    quote, company_info = '', ''
+    quote, company_info = "", ""
     try:
         quote = lowercase_keys(get_quote(symbol)[symbol])
         company_info = lowercase_keys(fetch_stock_info(symbol))
@@ -193,16 +212,16 @@ def add_symbol(portfolio_id, **payload):
         portfolio.stocks.append(stock_db)
         db.session.add(portfolio)
         db.session.commit()
-        return jsonify(stock_db.json), 201
+        return jsonify(stock_db.json_short), 201
 
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
         company_info=company_info if company_info else {},
-        latest_market_data=quote if company_info else {}
+        latest_market_data=quote if company_info else {},
     )
     portfolio.stocks.append(stock_db)
     db.session.add(portfolio)
     db.session.add(stock_db)
     db.session.commit()
-    return jsonify(stock_db.json), 201
+    return jsonify(stock_db.json_short), 201

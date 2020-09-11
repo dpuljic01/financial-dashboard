@@ -13,11 +13,16 @@ class Portfolio(db.Model, TimestampMixin):
     id = db.Column(db.Integer(), db.Sequence("portfolio_id_seq"), primary_key=True)
     name = db.Column(db.String(50), nullable=False, server_default="Default")
     info = db.Column(db.Text())
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
-    user = db.relationship("User", back_populates="portfolios")
     stocks = db.relationship("Stock", secondary="portfolio_stocks", backref="portfolio")
-    holdings = db.relationship("Holding", backref="portfolio", uselist=True)
+    holdings = db.relationship(
+        "Holding", cascade="all,delete", backref="portfolio", uselist=True
+    )
 
     __table_args__ = (
         UniqueConstraint("name", "user_id", name="uq_portfolio_name_user_id"),
@@ -25,6 +30,15 @@ class Portfolio(db.Model, TimestampMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @property
+    def json_short(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "holdings": [holding.json for holding in self.holdings],
+            "stocks": [stock.json_short for stock in self.stocks],
+        }
 
     @property
     def json(self):
@@ -45,9 +59,7 @@ class Stock(db.Model, TimestampMixin):
     latest_market_data = db.Column(JSONB)
     company_info = db.Column(JSONB)
 
-    __table_args__ = (
-        UniqueConstraint("ticker", name="uq_stocks_ticker"),
-    )
+    __table_args__ = (UniqueConstraint("ticker", name="uq_stocks_ticker"),)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,17 +71,36 @@ class Stock(db.Model, TimestampMixin):
             "ticker": self.ticker,
             "short_name": self.short_name,
             "company_info": self.company_info,
-            "latest_market_data": self.latest_market_data
+            "latest_market_data": self.latest_market_data,
+        }
+
+    @property
+    def json_short(self):
+        return {
+            "id": self.id,
+            "ticker": self.ticker,
+            "short_name": self.short_name,
+            "latest_market_data": self.latest_market_data,
         }
 
 
-class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, which stock, at what price)
+class Holding(
+    db.Model, TimestampMixin
+):  # all user holdings (which portfolio, which stock, at what price)
     __tablename__ = "holdings"
 
     id = db.Column(db.Integer(), db.Sequence("holdings_id_seq"), primary_key=True)
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), nullable=False)
-    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    portfolio_id = db.Column(
+        db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), nullable=False
+    )
+    stock_id = db.Column(
+        db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False
+    )
     shares = db.Column(Numeric(asdecimal=False), nullable=False)
     price = db.Column(Numeric(asdecimal=False), nullable=False)
     purchased_at = db.Column(db.DateTime(), nullable=False)
@@ -93,5 +124,11 @@ class Holding(db.Model, TimestampMixin):  # all user holdings (which portfolio, 
 class PortfolioStocks(db.Model):
     __tablename__ = "portfolio_stocks"
 
-    portfolio_id = db.Column(db.Integer(), db.ForeignKey("portfolio.id", ondelete="CASCADE"), primary_key=True)
-    stock_id = db.Column(db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), primary_key=True)
+    portfolio_id = db.Column(
+        db.Integer(),
+        db.ForeignKey("portfolio.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    stock_id = db.Column(
+        db.Integer(), db.ForeignKey("stocks.id", ondelete="CASCADE"), primary_key=True
+    )

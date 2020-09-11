@@ -19,7 +19,9 @@ class AlphaVantageApi:
         self._apikey = None
         self._url = None
 
-    def get(self, url, **kwargs):  # probably move all these into separate file and inherit from it
+    def get(
+        self, url, **kwargs
+    ):  # probably move all these into separate file and inherit from it
         return requests.get(url, **kwargs)
 
     def post(self, url, **kwargs):
@@ -29,14 +31,14 @@ class AlphaVantageApi:
         return requests.put(url, **kwargs)
 
     def delete(self, url, **kwargs):
-        return requests.delete(url, **kwargs)  
+        return requests.delete(url, **kwargs)
 
     @property
     def apikey(self):
         if self._apikey is None:
             self._apikey = current_app.config.get("ALPHA_VANTAGE_API_KEY")
         return self._apikey
-    
+
     @property
     def url(self):
         if self._url is None:

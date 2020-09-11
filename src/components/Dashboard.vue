@@ -101,27 +101,30 @@ export default {
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    const resp = await this.$store.dispatch('getPortfolios');
-    this.portfolios = resp;
-    if (this.$store.getters.listPortfolios.length > 0) {
-      const primaryPortfolio = this.$store.getters.listPortfolios[0].id; // return name of "primary" portfolio here
-      this.portfolio = await this.$store.dispatch('getPortfolio', primaryPortfolio);
+    this.portfolios = this.$store.getters.listPortfolios || (await this.$store.dispatch('getPortfolios'));
+    if (this.portfolios.length > 0) {
+      this.portfolio = await this.getCurrentPortfolio();
       this.hasHoldings = this.$store.getters.hasHoldings;
     }
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
   methods: {
+    async getCurrentPortfolio() {
+      let { currentPortfolio } = this.$store.getters;
+      if (Object.keys(currentPortfolio).length) {
+        currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolios[0].id);
+      }
+      return currentPortfolio;
+    },
     onPortfolioSummaryTabChange(id) {
       this.activeTab = id;
     },
-    switchPortfolio(id) {
+    async switchPortfolio(id) {
       if (this.portfolio.id !== id) {
-        for (let i = 0; i < this.portfolios.length; i += 1) {
-          if (this.portfolios[i].id === id) {
-            this.portfolio = this.portfolios[i];
-          }
-        }
+        this.portfolio = await this.$store.dispatch('getPortfolio', id);
+        this.hasHoldings = this.$store.getters.hasHoldings;
+        console.log(this.portfolio);
       }
     },
     toggleSubmenu() {
@@ -129,6 +132,11 @@ export default {
     },
     searchQuote(event) {
       this.$router.push(`/quote/${event.symbol}`);
+    },
+  },
+  watch: {
+    portfolio(val) {
+      this.portfolio = val;
     },
   },
 };

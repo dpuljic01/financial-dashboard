@@ -8,6 +8,7 @@ import VueApexCharts from 'vue-apexcharts';
 import 'vue-material/dist/vue-material.min.css';
 import 'vue-material/dist/theme/default.css';
 import VueSimpleAlert from 'vue-simple-alert';
+import VTooltip from 'v-tooltip';
 
 import App from './App.vue';
 import router from './router';
@@ -17,6 +18,7 @@ import Navigation from './components/Navigation.vue';
 import './assets/theme.scss';
 
 Vue.config.productionTip = false;
+Vue.use(VTooltip);
 Vue.use(Vuex);
 Vue.use(VueAxios, axios);
 Vue.use(VueApexCharts);

@@ -1,6 +1,6 @@
 <template>
   <div v-if="loaded">
-    <div v-if="this.portfolios.length > 0" class="md-layout md-subheader md-size-100 md-alignment-center-space-between">
+    <div v-if="portfolios.length > 0" class="md-layout md-subheader md-size-100 md-alignment-center-space-between">
       <div class="md-size-40">
         <h3>PORTFOLIOS</h3>
       </div>
@@ -8,7 +8,7 @@
         <md-icon>add</md-icon>
       </md-button>
     </div>
-    <md-table v-if="this.portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
+    <md-table v-if="portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
       <md-table-row style="max-width:40px;padding:0;margin:0;">
         <md-table-head style="max-width:40px;padding:0;margin:0;">Del</md-table-head>
         <md-table-head>Name</md-table-head>
@@ -22,7 +22,7 @@
             class="md-icon md-raised md-primary"
             style="background-color: #d00000;"
             @click="deletePortfolio(item.id)"
-            >remove</md-button
+            >delete_outline</md-button
           ></md-table-cell
         >
         <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{ item.name }}</router-link>
@@ -37,7 +37,7 @@
         }}</router-link>
       </md-table-row>
     </md-table>
-    <md-empty-state v-if="this.portfolios.length === 0" md-label="Create your first portfolio">
+    <md-empty-state v-if="portfolios.length === 0" md-label="Create your first portfolio">
       <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Create portfolio</md-button>
     </md-empty-state>
 
@@ -83,8 +83,10 @@ export default {
   },
   async mounted() {
     this.$store.commit('setLoading', true);
-    await this.$store.dispatch('getPortfolios');
     this.portfolios = this.$store.getters.listPortfolios;
+    if (this.portfolios.length === 0) {
+      this.portfolios = await this.$store.dispatch('getPortfolios');
+    }
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
@@ -93,8 +95,7 @@ export default {
       this.open = false;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      await this.$store.dispatch('getPortfolios');
-      this.portfolios = this.$store.getters.listPortfolios;
+      this.portfolios = await this.$store.dispatch('getPortfolios');
       this.portfolioName = '';
       this.info = '';
       this.$store.commit('setLoading', false);
@@ -118,8 +119,7 @@ export default {
       this.$confirm('Are you sure about that?').then(async () => {
         this.$store.commit('setLoading', true);
         await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
-        await this.$store.dispatch('getPortfolios');
-        this.portfolios = this.$store.getters.listPortfolios;
+        this.portfolios = await this.$store.dispatch('getPortfolios');
         this.$store.commit('setLoading', false);
       });
     },

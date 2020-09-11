@@ -1,6 +1,12 @@
 <template>
   <div>
-    <md-progress-spinner v-if="!loaded" :md-diameter="50" :md-stroke="4" md-mode="indeterminate"></md-progress-spinner>
+    <md-progress-spinner
+      v-if="!loaded"
+      :md-diameter="50"
+      :md-stroke="4"
+      style="margin-top: 50px;"
+      md-mode="indeterminate"
+    ></md-progress-spinner>
     <md-empty-state
       v-else-if="news.length === 0 && loaded"
       md-icon="announcement"
@@ -66,16 +72,15 @@ export default {
     this.loaded = true;
   },
   watch: {
-    selected: {
-      handler(ticker) {
-        if (ticker !== 'ALL') {
-          this.filteredNews = this.news.filter((n) => n.symbol === ticker);
-        } else {
-          this.filteredNews = this.news;
-        }
-      },
+    selected(ticker) {
+      if (ticker !== 'ALL') {
+        this.filteredNews = this.news.filter((n) => n.symbol === ticker);
+      } else {
+        this.filteredNews = this.news;
+      }
     },
     tickers(val) {
+      this.getNews();
       this.symbols = val;
     },
   },
