@@ -25,37 +25,15 @@ export default {
   props: ['portfolio'],
   data() {
     return {
-      allocationChart: {
-        series: [],
-        labels: [],
-        legend: {
-          show: true,
-          position: 'bottom',
-          horizontalAlign: 'center',
-          floating: false,
-        },
-        title: {
-          text: 'Holdings',
-        },
-      },
-      sectorChart: {
-        series: [],
-        labels: [],
-        legend: {
-          show: true,
-          position: 'bottom',
-          horizontalAlign: 'center',
-          floating: false,
-        },
-        title: {
-          text: 'Sector',
-        },
-      },
+      allocationChart: this.initialChartValue('Holdings'),
+      sectorChart: this.initialChartValue('Sector'),
       loaded: false,
     };
   },
   mounted() {
     this.loaded = false;
+    this.copyAlloc = this.allocationChart;
+    this.copySector = this.sectorChart;
     this.calculatePortfolioAlloc();
   },
   methods: {
@@ -113,6 +91,21 @@ export default {
         }
       }
     },
+    initialChartValue(title) {
+      return {
+        series: [],
+        labels: [],
+        legend: {
+          show: true,
+          position: 'bottom',
+          horizontalAlign: 'center',
+          floating: false,
+        },
+        title: {
+          text: title,
+        },
+      };
+    },
   },
   watch: {
     allocationChart(val) {
@@ -122,6 +115,8 @@ export default {
       this.sectorChart = val;
     },
     portfolio() {
+      this.allocationChart = this.initialChartValue('Holdings');
+      this.sectorChart = this.initialChartValue('Sector');
       this.calculatePortfolioAlloc();
     },
   },
