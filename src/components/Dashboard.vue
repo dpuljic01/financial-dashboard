@@ -5,12 +5,12 @@
     </div>
     <h2 class="md-heading">Market overview</h2>
     <TrendChart />
-    <h2 class="md-heading">Portfolio summary</h2>
-    <div style="text-align: left;">
-      <label
+    <div v-if="Object.keys(portfolio).length !== 0">
+      <h2 class="md-heading">Portfolio summary</h2>
+      <label style="text-align: left;"
         >Choose portfolio: <strong>{{ portfolio.name }}</strong></label
       >
-      <md-menu :md-offset-x="150" :md-offset-y="-50">
+      <md-menu style="text-align: left;" :md-offset-x="150" :md-offset-y="-50">
         <md-button class="md-icon md-accent" md-menu-trigger>
           keyboard_arrow_down
         </md-button>
@@ -36,7 +36,6 @@
       </md-tab>
 
       <md-tab id="tab-performance" md-label="Performance">
-        <!--<portfolio-news :portfolioId="portfolioId"></portfolio-news>-->
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
           <router-link :to="`/portfolios/${portfolio.id}/holdings`">
             <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
@@ -101,7 +100,10 @@ export default {
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    this.portfolios = this.$store.getters.listPortfolios || (await this.$store.dispatch('getPortfolios'));
+    this.portfolios = this.$store.getters.listPortfolios;
+    if (this.portfolios.length === 0) {
+      this.portfolios = await this.$store.dispatch('getPortfolios');
+    }
     if (this.portfolios.length > 0) {
       this.portfolio = await this.getCurrentPortfolio();
       this.hasHoldings = this.$store.getters.hasHoldings;
@@ -112,7 +114,7 @@ export default {
   methods: {
     async getCurrentPortfolio() {
       let { currentPortfolio } = this.$store.getters;
-      if (Object.keys(currentPortfolio).length) {
+      if (Object.keys(currentPortfolio).length === 0) {
         currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolios[0].id);
       }
       return currentPortfolio;
@@ -124,7 +126,6 @@ export default {
       if (this.portfolio.id !== id) {
         this.portfolio = await this.$store.dispatch('getPortfolio', id);
         this.hasHoldings = this.$store.getters.hasHoldings;
-        console.log(this.portfolio);
       }
     },
     toggleSubmenu() {

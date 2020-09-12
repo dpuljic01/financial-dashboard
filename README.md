@@ -8,6 +8,9 @@ NOTE: this is still WIP, here is the [LIVE DEMO](https://dp-finance.herokuapp.co
 <sub>PS: If it's slow when first time opening app, that's because Heroku shuts down app after 30mins of inactivity, 
 so it takes a while to run it again.</sub>
 
+Here the look of the main page :heart_eyes:
+
+![Financial Dashboard](/public/images/dashboard.png)
 
 
 ## Server
