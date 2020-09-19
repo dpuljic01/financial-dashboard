@@ -56,11 +56,11 @@ export default {
       activeTab: 'tab-1d',
       companyInfo: {},
       path: 'profile',
-      periods: ['1d', '5d', '1mo', '6mo', '1y', '5y', 'max'],
     };
   },
   async mounted() {
     this.path = this.$route.path.slice(1);
+    this.companyInfo = await this.$store.dispatch('getCompanyInfo', this.quote);
     await this.loadQuote();
     this.$store.commit('setLoading', false);
     this.loaded = true;
@@ -170,10 +170,8 @@ export default {
     async quote(val) {
       this.loaded = false;
       this.quote = val;
-      try {
+      if (this.quote.toLowerCase() !== this.companyInfo.symbol.toLowerCase()) {
         this.companyInfo = await this.$store.dispatch('getCompanyInfo', this.quote);
-      } catch {
-        this.companyInfo = {};
       }
       this.loaded = true;
     },

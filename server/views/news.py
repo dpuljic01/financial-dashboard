@@ -45,7 +45,7 @@ def get_news():
 def scrape_news(args):
     data = []
     for symbol in args["symbols"]:
-        base_url = "https://www.nasdaq.com"
+        base_url = "http://www.nasdaq.com"
         url = f"{base_url}/market-activity/stocks/{symbol}/press-releases"
         headers = {"User-Agent": "*"}
         r = requests.get(url, headers=headers)
