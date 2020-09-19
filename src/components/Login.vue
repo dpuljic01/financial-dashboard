@@ -12,7 +12,7 @@
       <form novalidate @submit.prevent="onSubmit">
         <md-field>
           <label for="email">Email</label>
-          <md-input v-model="email" autofocus name="email" id="email" type="text"></md-input>
+          <md-input v-model="email" autofocus name="email" id="email" type="email"></md-input>
         </md-field>
         <p class="dp-error" v-if="msg.email">Invalid email address.</p>
 

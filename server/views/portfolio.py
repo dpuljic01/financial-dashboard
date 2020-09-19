@@ -197,31 +197,25 @@ def add_symbol(portfolio_id, **payload):
     if stock_in_portfolio:
         return jsonify({"message": "Symbol already exists in this portfolio"}), 400
 
-    quote, company_info = "", ""
     try:
-        quote = lowercase_keys(get_quote(symbol)[symbol])
-        company_info = lowercase_keys(fetch_stock_info(symbol))
+        quote = get_quote(symbol)[symbol]
     except:
-        pass
+        quote = {}
 
     if stock_db:
         if quote:
-            stock_db.latest_market_data = quote
-        if company_info:
-            stock_db.company_info = company_info
+            stock_db.latest_market_data = lowercase_keys(quote)
         portfolio.stocks.append(stock_db)
-        db.session.add(portfolio)
         db.session.commit()
         return jsonify(stock_db.json_short), 201
 
     stock_db = Stock(
         ticker=payload["symbol"],
         short_name=payload["short_name"],
-        company_info=company_info if company_info else {},
-        latest_market_data=quote if company_info else {},
+        company_info={},
+        latest_market_data=lowercase_keys(quote) if quote else {},
     )
     portfolio.stocks.append(stock_db)
-    db.session.add(portfolio)
     db.session.add(stock_db)
     db.session.commit()
     return jsonify(stock_db.json_short), 201

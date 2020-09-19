@@ -1,13 +1,5 @@
 <template>
-  <div v-if="!loaded">
-    <md-progress-spinner
-      :md-diameter="50"
-      :md-stroke="4"
-      style="margin-top: 50px;"
-      md-mode="indeterminate"
-    ></md-progress-spinner>
-  </div>
-  <div v-else class="md-layout md-gutter">
+  <div class="md-layout md-gutter">
     <div class="md-layout-item md-size-45 md-xsmall-size-90 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
       <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
     </div>
@@ -31,9 +23,6 @@ export default {
     };
   },
   mounted() {
-    this.loaded = false;
-    this.copyAlloc = this.allocationChart;
-    this.copySector = this.sectorChart;
     this.calculatePortfolioAlloc();
   },
   methods: {
@@ -115,6 +104,7 @@ export default {
       this.sectorChart = val;
     },
     portfolio() {
+      this.loaded = false;
       this.allocationChart = this.initialChartValue('Holdings');
       this.sectorChart = this.initialChartValue('Sector');
       this.calculatePortfolioAlloc();

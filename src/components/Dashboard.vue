@@ -41,6 +41,7 @@
             <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
+        <Performance v-else class="performance" :portfolio="portfolio" />
       </md-tab>
     </md-tabs>
     <md-empty-state
@@ -57,6 +58,7 @@
 </template>
 
 <script>
+import Performance from './portfolio/Performance.vue';
 import TrendChart from './charts/TrendChart.vue';
 import Search from './Search.vue';
 import Allocation from './portfolio/Allocation.vue';
@@ -65,6 +67,7 @@ export default {
   name: 'Dashboard',
   components: {
     Allocation,
+    Performance,
     TrendChart,
     Search,
   },
@@ -95,6 +98,7 @@ export default {
         ],
       },
       activeTab: 'tab-allocation',
+      ploaded: false,
     };
   },
   async mounted() {
@@ -132,12 +136,7 @@ export default {
       this.submenuVisible = !this.submenuVisible;
     },
     searchQuote(event) {
-      this.$router.push(`/quote/${event.symbol}`);
-    },
-  },
-  watch: {
-    portfolio(val) {
-      this.portfolio = val;
+      this.$router.push(`/quote/${event.symbol}/profile`);
     },
   },
 };

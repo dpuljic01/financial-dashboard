@@ -1,9 +1,10 @@
 <template>
   <div>
-    <h2 class="md-heading">Compare multiple tickers and analyze their movement.</h2>
+    <h2 v-if="multiple" class="md-heading">Compare multiple tickers and analyze their movement.</h2>
     <div class="chart">
-      <p class="md-body-2" style="text-align:left;">Enter exact ticker symbols:</p>
+      <p v-if="multiple" class="md-body-2" style="text-align:left;">Enter exact ticker symbols:</p>
       <md-chips
+        v-if="multiple"
         v-model="symbols"
         :md-auto-insert="true"
         :md-format="toUppercase"
@@ -12,7 +13,7 @@
       >
       </md-chips>
 
-      <h3>COMPARISON CHART</h3>
+      <h3 v-if="multiple">COMPARISON CHART</h3>
       <md-tabs
         class="tabs md-elevation-2"
         style="overflow-x: auto; margin-bottom: 15px;"
@@ -47,12 +48,21 @@ import { setQuoteSeries, setYAxis } from '../utils';
 
 export default {
   name: 'Compare',
+  props: {
+    multiple: {
+      type: Boolean,
+      default: true,
+    },
+    symbols: {
+      type: Array,
+      default: () => ['GOOG', 'TSLA'],
+    },
+  },
   components: {
     Area,
   },
   data() {
     return {
-      symbols: ['GOOG', 'TSLA'],
       period: '1d',
       interval: '5m',
       options: QUOTE_OPTIONS,
@@ -60,11 +70,6 @@ export default {
       loaded: false,
       activeTab: 'tab-1d',
     };
-  },
-  async mounted() {
-    await this.compare();
-    this.$store.commit('setLoading', false);
-    this.loaded = true;
   },
   methods: {
     onTabChange(tabId) {
@@ -154,6 +159,12 @@ export default {
     },
     async delayedCompare() {
       await this.compare();
+    },
+  },
+  watch: {
+    symbols(val) {
+      this.symbols = val;
+      this.onTabChange('1d');
     },
   },
 };

@@ -1,4 +1,5 @@
 import requests
+import re, time
 from bs4 import BeautifulSoup
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -44,24 +45,26 @@ def get_news():
 def scrape_news(args):
     data = []
     for symbol in args["symbols"]:
-        url = f"https://www.wsj.com/market-data/quotes/{symbol}"
-        headers = {"User-Agent": "Twitterbot"}
+        base_url = "https://www.nasdaq.com"
+        url = f"{base_url}/market-activity/stocks/{symbol}/press-releases"
+        headers = {"User-Agent": "*"}
         r = requests.get(url, headers=headers)
         news = BeautifulSoup(r.text, "html.parser")
-        articles = news.find_all("li", attrs={"class": "cr_pressRelease"})
-        for article in articles[:4]:  # just first 4 is enough
-            date = article.find(attrs={"class": "cr_dateStamp"}).text
-            provider = article.find(attrs={"class": "cr_provider"}).text
-            headline = article.find(attrs={"class": "headline"})
+        articles = news.find(class_="quote-press-release__list")
+        for article in articles.find_all(class_="quote-press-release__card")[:4]:  # just first 4 is enough
+            date = article.find(class_="quote-press-release__card-timestamp").text
+            provider = "Press release"
+            headline = article.find(class_="quote-press-release__card-title")
             link = headline.a["href"]
             obj = {
                 "symbol": symbol,
                 "date_posted": date,
                 "provider": provider,
-                "headline": headline.a.text,
-                "link": link,
+                "headline": headline.a.span.text,
+                "link": f"{base_url}{link}",
             }
             data.append(obj)
 
     # tickers_collection = pymongo.collection.Collection(mongo_db, "news")
-    return jsonify(data)
+    sort_by_symbol = sorted(data, key=lambda k: k["symbol"])
+    return jsonify(sort_by_symbol)

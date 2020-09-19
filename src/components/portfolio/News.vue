@@ -10,11 +10,11 @@
     <md-empty-state
       v-else-if="news.length === 0 && loaded"
       md-icon="announcement"
-      md-label="No news related to your portfolio holdings"
+      md-label="We couldn't find any news"
     >
     </md-empty-state>
     <div v-else>
-      <md-field style="max-width: 400px;">
+      <md-field v-if="tickers.length > 1" style="max-width: 400px;">
         <label for="symbols">Filter by symbols:</label>
         <md-select v-model="selected" name="Symbols" id="symbols" md-dense>
           <md-option value="ALL">All</md-option>
