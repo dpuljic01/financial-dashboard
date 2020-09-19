@@ -63,10 +63,12 @@ export default {
     },
     deleteSymbol(stockId) {
       this.$confirm('Delete?').then(async () => {
+        this.$store.commit('setLoading', true);
         await this.$store.dispatch('deleteSymbol', { portfolioId: this.portfolioId, stockId });
         const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
         this.stonks = resp.stocks;
         this.$emit('deletedSymbol');
+        this.$store.commit('setLoading', false);
       });
     },
   },

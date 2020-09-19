@@ -125,13 +125,18 @@ const actions = {
   getNews(context, params) {
     return api.getNews(params, context.state.jwt.access_token);
   },
+  getCompanyInfo(context, symbol) {
+    return api.getCompanyInfo(symbol, context.state.jwt.access_token).then((response) => response.data);
+  },
   deleteSymbol(context, params) {
     return api.deleteSymbol(params, state.jwt.access_token).then(() => {
+      localStorage.clear();
       context.dispatch('successMessage', 'Deleted');
     });
   },
   deletePortfolio(context, params) {
     return api.deletePortfolio(params, state.jwt.access_token).then(() => {
+      localStorage.clear();
       context.dispatch('successMessage', 'Deleted');
     });
   },
@@ -142,6 +147,7 @@ const actions = {
   },
   updateUser(context, payload) {
     return api.updateUser(payload, state.jwt.access_token).then((response) => {
+      context.commit('setUserData', { user: response.data });
       context.dispatch('successMessage', 'User details updated');
       return response.data;
     });

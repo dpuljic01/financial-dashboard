@@ -109,7 +109,6 @@ export default {
         },
       });
       this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
-      this.getTickers();
       this.$store.dispatch('successMessage');
       this.$store.commit('setLoading', false);
     },

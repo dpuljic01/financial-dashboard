@@ -1,5 +1,5 @@
 import json
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 
 import pymongo
 from bson.json_util import dumps
@@ -63,7 +63,7 @@ def yf_stock_quote(symbol):
 @bp.route("/<string:symbol>/company-info", methods=["GET"])
 @jwt_required
 @check_confirmed
-@cache.cached(timeout=10, key_prefix=make_cache_key)
+@cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
 def get_company_info(symbol):
     symbol = symbol.upper()
     stock = Stock.query.filter_by(ticker=symbol).one_or_none()

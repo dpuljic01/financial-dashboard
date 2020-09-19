@@ -14,6 +14,7 @@ import News from '../components/portfolio/News.vue';
 import Quote from '../components/Quote.vue';
 import Compare from '../components/Compare.vue';
 import Profile from '../components/Profile.vue';
+import CompanyProfile from '../components/portfolio/CompanyProfile.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
 
@@ -80,6 +81,18 @@ const router = new Router({
       path: '/quote/:quote',
       name: 'Quote',
       component: Quote,
+      children: [
+        {
+          name: 'CompanyProfile',
+          path: 'profile',
+          component: CompanyProfile,
+        },
+        {
+          name: 'CompanyNews',
+          path: 'news',
+          component: News,
+        },
+      ],
     },
     {
       path: '/compare',
