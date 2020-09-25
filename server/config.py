@@ -24,10 +24,7 @@ class Config:
         "ALPHA_VANTAGE_API_URL", "https://www.alphavantage.co"
     )
     ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
-
-    # limit for free: (50.000 API requests per day, but no concurrent calls) - not the newest data :(
-    # QUANDL_API_URL = os.getenv("QUANDL_API_URL", "https://www.quandl.com/")
-    # QUANDL_API_KEY = os.getenv("QUANDL_API_KEY")
+    NASDAQ_API_URL = os.getenv("NASDAQ_API_URL", "https://api.nasdaq.com")
 
     # unlimited mocked data, 50k messages/mo on production (free plan)
     IEX_BASE_URL = os.getenv(
@@ -64,6 +61,7 @@ class Config:
         )
 
     MONGO_DB_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
+    PROXIES = os.getenv("PROXIES", None)
 
 
 class ProductionConfig(Config):

@@ -5,7 +5,7 @@ from datetime import datetime
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Server
 
-from server.common.common import lowercase_keys
+from server.common.common import slugify_keys
 from server.extensions import db
 from server.models import User, Role
 from wsgi import app
@@ -120,8 +120,8 @@ def update_stocks():
         for stock in stocks:
             if not stock.ticker.upper() == k.upper():
                 continue
-            stock.company_info = lowercase_keys(v["company_info"])
-            stock.latest_market_data = lowercase_keys(list(v.values())[0])
+            stock.company_info = slugify_keys(v["company_info"])
+            stock.latest_market_data = slugify_keys(list(v.values())[0])
             db.session.commit()
             print(f"{stock.ticker} updated")
 

@@ -47,6 +47,16 @@ def get_stock_recommendations(ticker):
     return data
 
 
+def fetch_institutional_holders(ticker):
+    stock = yf.Ticker(ticker)
+    return stock.institutional_holders
+
+
+def fetch__stock_calendar(ticker):
+    stock = yf.Ticker(ticker)
+    return stock.calendar
+
+
 def get_quote(ticker):
     data = pdr.get_quote_yahoo(ticker)
     return json.loads(data.to_json(orient="index"))

@@ -44,6 +44,7 @@ const actions = {
     return api
       .login(userData.payload)
       .then((response) => {
+        context.commit('resetState');
         context.commit('setJwtToken', { jwt: response.data });
         if (userData.remember) {
           setCookie(AUTH_COOKIE_NAME, state.jwt.access_token, '30d');

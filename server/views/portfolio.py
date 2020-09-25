@@ -5,7 +5,7 @@ from webargs.flaskparser import use_kwargs
 from datetime import datetime
 
 from server.apis.yfinance import fetch_stock_info, get_quote
-from server.common.common import lowercase_keys
+from server.common.common import slugify_keys
 from server.decorators import check_confirmed
 from server.extensions import db
 from server.models import Portfolio, Holding, Stock, PortfolioStocks
@@ -204,7 +204,7 @@ def add_symbol(portfolio_id, **payload):
 
     if stock_db:
         if quote:
-            stock_db.latest_market_data = lowercase_keys(quote)
+            stock_db.latest_market_data = slugify_keys(quote)
         portfolio.stocks.append(stock_db)
         db.session.commit()
         return jsonify(stock_db.json_short), 201
@@ -213,7 +213,7 @@ def add_symbol(portfolio_id, **payload):
         ticker=payload["symbol"],
         short_name=payload["short_name"],
         company_info={},
-        latest_market_data=lowercase_keys(quote) if quote else {},
+        latest_market_data=slugify_keys(quote) if quote else {},
     )
     portfolio.stocks.append(stock_db)
     db.session.add(stock_db)

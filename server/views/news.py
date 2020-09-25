@@ -1,15 +1,15 @@
 import requests
-import re, time
 from bs4 import BeautifulSoup
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import Blueprint, jsonify, request
 from webargs import fields
 from webargs.flaskparser import use_args
-
+from itertools import cycle
 from server.decorators import check_confirmed
 from server.extensions import cache
 from server.models import Portfolio
+from server.common.common import get_proxies
 
 bp = Blueprint("news", __name__, url_prefix="/api/news")
 
@@ -45,13 +45,17 @@ def get_news():
 def scrape_news(args):
     data = []
     for symbol in args["symbols"]:
-        base_url = "http://www.nasdaq.com"
+        base_url = "https://www.nasdaq.com"
         url = f"{base_url}/market-activity/stocks/{symbol}/press-releases"
         headers = {"User-Agent": "*"}
         r = requests.get(url, headers=headers)
+        r.raise_for_status()
+
         news = BeautifulSoup(r.text, "html.parser")
         articles = news.find(class_="quote-press-release__list")
-        for article in articles.find_all(class_="quote-press-release__card")[:4]:  # just first 4 is enough
+        for article in articles.find_all(class_="quote-press-release__card")[
+            :4
+        ]:  # just first 4 is enough
             date = article.find(class_="quote-press-release__card-timestamp").text
             provider = "Press release"
             headline = article.find(class_="quote-press-release__card-title")

@@ -7,9 +7,10 @@ from flask import Blueprint, jsonify, request
 from webargs import fields
 from webargs.flaskparser import use_args
 
-from server.common.common import lowercase_keys
+from server.common.common import slugify_keys, to_local_datetime
 from server.models import Stock
 from server.apis.iex import IEXFinance
+from server.apis.nasdaq import Nasdaq
 from server.apis.yfinance import (
     fetch_stock_history,
     fetch_stock_info,
@@ -51,6 +52,23 @@ def iex_stock_quote(symbol):
     return jsonify(quote)
 
 
+@bp.route("/nasdaq/<string:symbol>/info", methods=["GET"])
+@jwt_required
+@check_confirmed
+def nasdaq_stock_info(symbol):
+    quote = Nasdaq.stock_info(symbol)
+    return jsonify(quote)
+
+
+@bp.route("/<string:symbol>/recommendations", methods=["GET"])
+@jwt_required
+@check_confirmed
+def recommendations(symbol):
+    r = get_stock_recommendations(symbol)
+    r = [{to_local_datetime(int(k) / 1000): slugify_keys(v)} for k, v in r.items()]
+    return jsonify(r)
+
+
 @bp.route("/yfinance/<string:symbol>", methods=["GET"])
 @jwt_required
 @check_confirmed
@@ -71,14 +89,14 @@ def get_company_info(symbol):
     # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
     if stock:
         if not stock.company_info:
-            stock.company_info = lowercase_keys(
+            stock.company_info = slugify_keys(
                 fetch_stock_info(symbol)
             )  # company profile
         return jsonify(stock.company_info)
 
     # recommendations = IEXFinance.get_recommendations(symbol)
     # company_info.update({"recommendations": recommendations})
-    company_info = lowercase_keys(fetch_stock_info(symbol))
+    company_info = slugify_keys(fetch_stock_info(symbol))
     stock_db = Stock(
         ticker=symbol,
         short_name=company_info["shortname"],
@@ -208,7 +226,7 @@ def fetch_latest_stock_prices(args):
 
         if quote:
             res.append(quote)
-            stock.latest_market_data = lowercase_keys(quote)
+            stock.latest_market_data = slugify_keys(quote)
             db.session.commit()
             continue
 
@@ -217,7 +235,7 @@ def fetch_latest_stock_prices(args):
         if global_quote.get("Global Quote", {}):
             quote = AlphaVantage.filter_global_quote(global_quote)
             res.append(quote)
-            stock.latest_market_data = lowercase_keys(quote)
+            stock.latest_market_data = slugify_keys(quote)
             db.session.commit()
             continue
 
@@ -229,7 +247,7 @@ def fetch_latest_stock_prices(args):
         if quote["changePercent"]:
             quote["changePercent"] = quote["changePercent"] * 100
         res.append(quote)
-        stock.latest_market_data = lowercase_keys(quote)
+        stock.latest_market_data = slugify_keys(quote)
         db.session.commit()
     db.session.commit()
 

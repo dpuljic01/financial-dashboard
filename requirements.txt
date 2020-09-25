@@ -4,6 +4,7 @@
 #
 #    pip-compile
 #
+-e git+git://github.com/ranaroussi/yfinance.git#egg=yfinance  # via -r requirements.in
 aiohttp==3.6.2            # via alpha-vantage
 alembic==1.4.2            # via -r requirements.in, flask-migrate
 alpha-vantage==2.2.0      # via -r requirements.in
@@ -38,7 +39,7 @@ iexfinance==0.4.3         # via -r requirements.in
 itsdangerous==1.1.0       # via flask
 jinja2==2.11.2            # via flask, flask-babelex
 joblib==0.16.0            # via scikit-learn
-lxml==4.5.1               # via pandas-datareader
+lxml==4.5.1               # via pandas-datareader, yfinance
 mako==1.1.3               # via alembic
 markupsafe==1.1.1         # via jinja2, mako
 marshmallow==3.7.1        # via webargs
@@ -57,6 +58,7 @@ pyopenssl==19.1.0         # via -r requirements.in
 python-dateutil==2.8.1    # via alembic, pandas
 python-dotenv==0.13.0     # via -r requirements.in
 python-editor==1.0.4      # via alembic
+python-slugify==4.0.1     # via -r requirements.in
 pytz==2020.1              # via babel, pandas
 redis==3.5.3              # via -r requirements.in
 requests==2.24.0          # via alpha-vantage, iexfinance, pandas-datareader, yfinance
@@ -69,12 +71,12 @@ soupsieve==2.0.1          # via beautifulsoup4
 speaklater==1.3           # via flask-babelex
 sqlalchemy-utils==0.36.6  # via -r requirements.in
 sqlalchemy==1.3.17        # via alembic, flask-sqlalchemy, sqlalchemy-utils
+text-unidecode==1.3       # via python-slugify
 threadpoolctl==2.1.0      # via scikit-learn
 urllib3==1.25.9           # via requests
 webargs==6.1.0            # via -r requirements.in
 werkzeug==1.0.1           # via flask, flask-jwt-extended
 yarl==1.4.2               # via aiohttp
-yfinance==0.1.54          # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

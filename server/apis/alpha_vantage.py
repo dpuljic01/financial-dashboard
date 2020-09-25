@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 from flask import current_app
-import requests
+from server.apis.base_api import BaseApi
 
 
 class AlphaVantageUrl:
@@ -14,24 +14,12 @@ class AlphaVantageUrl:
         return self.make("/query")
 
 
-class AlphaVantageApi:
+class AlphaVantageApi(BaseApi):
     def __init__(self):
+        BaseApi.__init__(self)
+        self._session = None
         self._apikey = None
         self._url = None
-
-    def get(
-        self, url, **kwargs
-    ):  # probably move all these into separate file and inherit from it
-        return requests.get(url, **kwargs)
-
-    def post(self, url, **kwargs):
-        return requests.post(url, **kwargs)
-
-    def put(self, url, **kwargs):
-        return requests.put(url, **kwargs)
-
-    def delete(self, url, **kwargs):
-        return requests.delete(url, **kwargs)
 
     @property
     def apikey(self):
@@ -40,14 +28,20 @@ class AlphaVantageApi:
         return self._apikey
 
     @property
+    def session(self):
+        if self._session is None:
+            self._session = BaseApi.create_session()
+            self._session.params.update({"apikey": self.apikey})
+        return self._session
+
+    @property
     def url(self):
         if self._url is None:
             self._url = AlphaVantageUrl(current_app.config.get("ALPHA_VANTAGE_API_URL"))
         return self._url
 
     def fetch_data(self, params):
-        params.update({"apikey": self.apikey})
-        resp = requests.get(self.url.query(), params=params)
+        resp = self.get(self.url.query(), params=params)
         resp.raise_for_status()
         return resp.json()
 
