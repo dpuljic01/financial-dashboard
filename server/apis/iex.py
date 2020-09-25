@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 from flask import current_app
-import requests
+from server.apis.base_api import BaseApi
 
 
 class IEXUrl:
@@ -33,24 +33,12 @@ class IEXUrl:
         return self.make(f"/v1/stock/{symbol}/recommendation-trends")
 
 
-class IEXFinanceApi:
+class IEXFinanceApi(BaseApi):
     def __init__(self):
+        BaseApi.__init__(self)
+        self._session = None
         self._token = None
         self._url = None
-
-    def get(
-        self, url, **kwargs
-    ):  # probably move all these into separate file and inherit from it
-        return requests.get(url, **kwargs)
-
-    def post(self, url, **kwargs):
-        return requests.post(url, **kwargs)
-
-    def put(self, url, **kwargs):
-        return requests.put(url, **kwargs)
-
-    def delete(self, url, **kwargs):
-        return requests.delete(url, **kwargs)
 
     @property
     def token(self):
@@ -59,30 +47,35 @@ class IEXFinanceApi:
         return self._token
 
     @property
+    def session(self):
+        if self._session is None:
+            self._session = BaseApi.create_session()
+            self._session.params.update({"token": self.token})
+        return self._session
+
+    @property
     def url(self):
         if self._url is None:
             self._url = IEXUrl(current_app.config.get("IEX_BASE_URL"))
         return self._url
 
     def get_stock_quote(self, ticker):
-        resp = requests.get(self.url.quote(str(ticker)), params={"token": self.token})
+        resp = self.get(self.url.quote(str(ticker)))
         resp.raise_for_status()
         return resp.json()
 
     def list_symbols(self):
-        resp = requests.get(self.url.symbols(), params={"token": self.token})
+        resp = self.get(self.url.symbols())
         resp.raise_for_status()
         return resp.json()
 
     def search(self, q):
-        resp = requests.get(self.url.search(q), params={"token": self.token})
+        resp = self.get(self.url.search(q))
         resp.raise_for_status()
         return resp.json()
 
     def get_recommendations(self, symbol):
-        resp = requests.get(
-            self.url.recommendations(symbol), params={"token": self.token}
-        )
+        resp = self.get(self.url.recommendations(symbol))
         resp.raise_for_status()
         return resp.json()
 
