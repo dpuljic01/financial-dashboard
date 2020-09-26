@@ -60,6 +60,14 @@ def nasdaq_stock_info(symbol):
     return jsonify(quote)
 
 
+@bp.route("/nasdaq/market-movers", methods=["GET"])
+@jwt_required
+@check_confirmed
+def nasdaq_market_movers():
+    movers = Nasdaq.get_market_movers()
+    return jsonify(slugify_keys(movers["data"]["STOCKS"]))
+
+
 @bp.route("/<string:symbol>/recommendations", methods=["GET"])
 @jwt_required
 @check_confirmed
