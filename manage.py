@@ -7,7 +7,7 @@ from flask_script import Manager, Server
 
 from server.common.common import slugify_keys
 from server.extensions import db
-from server.models import User, Role
+from server.models import User
 from wsgi import app
 
 migrate = Migrate(app, db)
@@ -33,9 +33,8 @@ def create_user():
             password=password,
             confirmed=True,
             email_confirmed_at=datetime.utcnow(),
+            role=role,
         )
-        role = Role(name=role)
-        user.roles.append(role)
         db.session.add(user)
         db.session.commit()
     except Exception as e:

@@ -11,7 +11,7 @@ class Portfolio(db.Model, TimestampMixin):
     __tablename__ = "portfolio"
 
     id = db.Column(db.Integer(), db.Sequence("portfolio_id_seq"), primary_key=True)
-    name = db.Column(db.String(50), nullable=False, server_default="Default")
+    name = db.Column(db.String(50), nullable=False)
     info = db.Column(db.Text())
     user_id = db.Column(
         UUID(as_uuid=True),
