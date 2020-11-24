@@ -37,5 +37,3 @@ flask-compress
 bs4
 # yfinance
 python-slugify
-flask_swagger_ui
-flasgger

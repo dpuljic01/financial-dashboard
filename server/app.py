@@ -11,11 +11,6 @@ def create_app():
 
     app.config.from_object(os.getenv("APP_SETTINGS"))
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config['SWAGGER'] = {
-        "title": "Financial Dashboard API",
-        "uiversion": 3,
-        "openapi": "3.0.2",
-    }
 
     register_extensions(app)
     register_blueprints(app)
@@ -32,7 +27,6 @@ def register_extensions(app):
         jwt,
         cache,
         compress,
-        swagger,
     )
 
     db.init_app(app)
@@ -46,7 +40,6 @@ def register_extensions(app):
     jwt.init_app(app)
     cache.init_app(app)
     compress.init_app(app)
-    swagger.init_app(app)
 
     # Return validation errors as JSON
     @app.errorhandler(422)

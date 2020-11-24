@@ -6,10 +6,9 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-from flask import jsonify, current_app
+from flask import jsonify
 from flask_caching import Cache
 from flask_compress import Compress
-from flasgger import Swagger
 
 from server.helpers.blacklist_tokens import BlacklistTokens
 
@@ -18,9 +17,6 @@ convention = {
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 }
-base_path = os.path.abspath(__file__)
-dir_name = os.path.dirname(base_path)
-docs_path = os.path.join(dir_name, "docs", "api.yaml")
 
 db = SQLAlchemy(metadata=MetaData(naming_convention=convention))
 migrate = Migrate()
@@ -30,7 +26,6 @@ cors = CORS()
 jwt = JWTManager()
 cache = Cache()
 compress = Compress()
-swagger = Swagger(template_file=docs_path)
 
 
 @jwt.unauthorized_loader  # override default "msg" key to be "message"

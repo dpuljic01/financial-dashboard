@@ -56,10 +56,11 @@ def scrape_news(args):
                 "date_posted": date,
                 "provider": provider,
                 "headline": headline,
-                "link": f"{current_app.config.get('NASDAQ_API_URL')}{link}",
+                "link": f"https://nasdaq.com/{link}",
             }
             data.append(obj)
 
+    # TODO: save news to MongoDB and fetch new ones from API only one-two times a day
     # tickers_collection = pymongo.collection.Collection(mongo_db, "news")
     sort_by_symbol = sorted(data, key=lambda k: k["symbol"])
     return jsonify(sort_by_symbol)
