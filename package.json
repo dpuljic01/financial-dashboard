@@ -14,7 +14,7 @@
     "chartjs-plugin-zoom": "^0.7.7",
     "core-js": "^3.6.5",
     "css-loader": "^4.3.0",
-    "moment": "^2.28.0",
+    "moment": "^2.29.4",
     "v-tooltip": "^2.0.3",
     "vue": "^2.6.12",
     "vue-apexcharts": "^1.6.0",
