@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "apexcharts": "^3.24.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "chart.js": "^2.9.4",
     "chartjs-plugin-zoom": "^0.7.7",
     "core-js": "^3.6.5",
