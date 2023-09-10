@@ -1,14 +1,13 @@
-import os
-from sqlalchemy import MetaData
+from flask import jsonify
 from flask_babelex import Babel
+from flask_caching import Cache
+from flask_compress import Compress
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
-from flask import jsonify
-from flask_caching import Cache
-from flask_compress import Compress
+from sqlalchemy import MetaData
 
 from server.helpers.blacklist_tokens import BlacklistTokens
 
@@ -43,6 +42,6 @@ def my_expired_token_callback(invalid):
     return jsonify({"message": invalid}), 401
 
 
-@jwt.token_in_blacklist_loader
+@jwt.token_in_blocklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     return BlacklistTokens.check_revoked(decrypted_token)
