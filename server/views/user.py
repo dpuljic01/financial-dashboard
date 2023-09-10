@@ -10,16 +10,16 @@ bp = Blueprint("profile", __name__, url_prefix="/api/users/self")
 
 
 @bp.route("", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed  # this absolutely **must** come after @jwt_required decorator
-def get():
+def get_user():
     current_identity = get_jwt_identity()
     user = User.query.get_or_404(current_identity)
     return jsonify(user.json)
 
 
 @bp.route("", methods=["PUT"])
-@jwt_required
+@jwt_required()
 @check_confirmed  # this absolutely **must** come after @jwt_required decorator
 @use_kwargs(
     {
@@ -31,7 +31,7 @@ def get():
         ),
     }
 )
-def update(**kwargs):
+def update_user(**kwargs):
     current_identity = get_jwt_identity()
     user = User.query.get_or_404(current_identity)
     if "first_name" in kwargs:
@@ -43,7 +43,7 @@ def update(**kwargs):
 
 
 @bp.route("/change-password", methods=["PUT"])
-@jwt_required
+@jwt_required()
 @check_confirmed  # this absolutely **must** come after @jwt_required decorator
 @use_kwargs(
     {

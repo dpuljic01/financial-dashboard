@@ -1,21 +1,20 @@
 from datetime import datetime
 
 from flask import Blueprint, jsonify, current_app
+from flask_jwt_extended import (
+    create_access_token,
+    get_jti,
+    get_jwt_identity,
+    get_jwt, jwt_required,
+)
 from webargs import fields, validate
 from webargs.flaskparser import use_kwargs
 
 from server.email import send_password_reset_email, send_verify_email
 from server.extensions import db
+from server.helpers.blacklist_tokens import BlacklistTokens
 from server.models import User
 from server.token import generate_confirmation_token, confirm_token
-from flask_jwt_extended import (
-    create_access_token,
-    get_jti,
-    get_jwt_identity,
-    jwt_required,
-    get_raw_jwt,
-)
-from server.helpers.blacklist_tokens import BlacklistTokens
 
 bp = Blueprint("auth", __name__, url_prefix="/api")
 
@@ -68,15 +67,15 @@ def login(**payload):
 
 # Endpoint for revoking the current users access token
 @bp.route("/session/revoke", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 def logout():
     try:
-        jti = get_raw_jwt()["jti"]
+        jti = get_jwt()["jti"]
         BlacklistTokens.revoked_store.set(
             jti, "true", current_app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.1
         )
     except:
-        return "", 204
+        pass
     return "", 204
 
 
@@ -118,7 +117,7 @@ def register(**payload):
 
 
 @bp.route("/unconfirmed", methods=["GET"])
-@jwt_required
+@jwt_required()
 def unconfirmed():
     current_identity = get_jwt_identity()
     db_user = User.query.get_or_404(current_identity)

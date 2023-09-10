@@ -17,7 +17,7 @@ def make_cache_key(*args, **kwargs):
 
 
 @bp.route("", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=60 * 60 * 2, key_prefix=make_cache_key)  # 2 hours cached
 def get_news():
@@ -31,7 +31,7 @@ def get_news():
 
 
 @bp.route("/scrape", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=60 * 60 * 2, key_prefix=make_cache_key)  # 2 hours cached
 @use_args(

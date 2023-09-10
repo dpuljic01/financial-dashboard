@@ -1,9 +1,7 @@
--e git://github.com/ranaroussi/yfinance.git#egg=yfinance
 flask
 flask-cors
 flask-mail
 gunicorn
-# Flask-Restful
 flask-script
 flask-babelex
 flask-sqlalchemy
@@ -11,7 +9,7 @@ sqlalchemy-utils
 passlib
 flask-migrate
 alembic
-psycopg2
+psycopg2-binary
 safe
 python-dotenv
 bcrypt
@@ -24,7 +22,6 @@ alpha_vantage
 redis
 cryptography
 numpy
-sklearn
 yfinance
 webargs
 flask-jwt-extended
@@ -35,5 +32,5 @@ dnspython
 newrelic
 flask-compress
 bs4
-# yfinance
+yfinance
 python-slugify

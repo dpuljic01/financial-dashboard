@@ -30,7 +30,7 @@ def make_cache_key(*args, **kwargs):
 
 
 @bp.route("/<string:symbol>", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_stock(symbol):
@@ -45,7 +45,7 @@ def get_stock(symbol):
 
 
 @bp.route("/iex/<string:symbol>", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def iex_stock_quote(symbol):
     quote = IEXFinance.get_stock_quote(symbol)
@@ -53,7 +53,7 @@ def iex_stock_quote(symbol):
 
 
 @bp.route("/nasdaq/<string:symbol>/info", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def nasdaq_stock_info(symbol):
     quote = Nasdaq.stock_info(symbol)
@@ -61,7 +61,7 @@ def nasdaq_stock_info(symbol):
 
 
 @bp.route("/nasdaq/market-movers", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def nasdaq_market_movers():
     movers = Nasdaq.get_market_movers()
@@ -69,7 +69,7 @@ def nasdaq_market_movers():
 
 
 @bp.route("/<string:symbol>/recommendations", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def recommendations(symbol):
     r = get_stock_recommendations(symbol)
@@ -78,7 +78,7 @@ def recommendations(symbol):
 
 
 @bp.route("/yfinance/<string:symbol>", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=10, key_prefix=make_cache_key)
 def yf_stock_quote(symbol):
@@ -87,7 +87,7 @@ def yf_stock_quote(symbol):
 
 
 @bp.route("/<string:symbol>/company-info", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
 def get_company_info(symbol):
@@ -116,7 +116,7 @@ def get_company_info(symbol):
 
 
 @bp.route("/yfinance", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
 @use_args(
@@ -143,7 +143,7 @@ def yfinance_quote_history(args):
 
 
 @bp.route("/iex/symbols", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def list_iex_cloud_symbols():
     symbols = IEXFinance.list_symbols()
@@ -190,7 +190,7 @@ def aggregate_search_mongodb(args):
 
 
 @bp.route("/alpha-timeseries", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=30, key_prefix=make_cache_key)
 @use_args(
@@ -209,7 +209,7 @@ def alpha_vantage_info(args):
 
 
 @bp.route("/yfinance/latest", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @cache.cached(timeout=60, key_prefix=make_cache_key)
 @use_args(

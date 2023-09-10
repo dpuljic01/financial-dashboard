@@ -14,7 +14,7 @@ bp = Blueprint("portfolios", __name__, url_prefix="/api/portfolios")
 
 
 @bp.route("", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def list_portfolios():
     current_identity = get_jwt_identity()
@@ -27,7 +27,7 @@ def list_portfolios():
 
 
 @bp.route("/<int:identifier>", methods=["GET"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def get_portfolio(identifier):
     current_identity = get_jwt_identity()
@@ -41,7 +41,7 @@ def get_portfolio(identifier):
 
 
 @bp.route("", methods=["POST"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @use_kwargs(
     {
@@ -67,7 +67,7 @@ def create_portfolio(**payload):
 
 
 @bp.route("/<int:portfolio_id>", methods=["PUT"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @use_kwargs(
     {
@@ -91,7 +91,7 @@ def update_portfolio(portfolio_id, **payload):
 
 
 @bp.route("/<int:portfolio_id>", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def delete_portfolio(portfolio_id):
     current_identity = get_jwt_identity()
@@ -104,7 +104,7 @@ def delete_portfolio(portfolio_id):
 
 
 @bp.route("/<int:portfolio_id>/<int:stock_id>", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def delete_portfolio_stock(portfolio_id, stock_id):
     current_identity = get_jwt_identity()
@@ -126,7 +126,7 @@ def delete_portfolio_stock(portfolio_id, stock_id):
 
 
 @bp.route("/<int:portfolio_id>/holdings", methods=["POST"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @use_kwargs(
     {
@@ -162,7 +162,7 @@ def create_portfolio_holding(portfolio_id, **payload):
 
 
 @bp.route("/<int:holding_id>", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 def delete_portfolio_holding(holding_id):
     current_identity = get_jwt_identity()
@@ -175,7 +175,7 @@ def delete_portfolio_holding(holding_id):
 
 
 @bp.route("/<string:portfolio_id>/symbols", methods=["POST"])
-@jwt_required
+@jwt_required()
 @check_confirmed
 @use_kwargs(
     {

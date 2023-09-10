@@ -1,30 +1,34 @@
-import click
-
 from datetime import datetime
 
-from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager, Server
+import click
+from flask.cli import FlaskGroup, with_appcontext
+from flask_migrate import Migrate
 
 from server.common.common import slugify_keys
 from server.extensions import db
-from server.models import User
 from wsgi import app
 
 migrate = Migrate(app, db)
-manager = Manager(app)
-
-manager.add_command("runserver", Server(host="0.0.0.0"))
-manager.add_command("db", MigrateCommand)
+cli = FlaskGroup(app)
 
 
-@manager.command
-def create_user():
-    email = click.prompt("Email")
-    first_name = click.prompt("First name")
-    last_name = click.prompt("Last name")
-    password = click.prompt("Password", hide_input=True, confirmation_prompt=True)
-    role = click.prompt("Role")
+@cli.command("runserver", short_help="Run the development server.")
+def runserver():
+    """Run the development server."""
+    if __name__ == "__main__":
+        app.run(host="0.0.0.0")
 
+
+@cli.command("create_user", short_help="Create a new user.")
+@click.option("--email", prompt="Email")
+@click.option("--first_name", prompt="First name")
+@click.option("--last_name", prompt="Last name")
+@click.option("--password", prompt="Password", hide_input=True, confirmation_prompt=True)
+@click.option("--role", prompt="Role")
+@with_appcontext
+def create_user(email, first_name, last_name, password, role):
+    """Create a new user."""
+    from server.models import User
     try:
         user = User(
             email=email,
@@ -66,8 +70,10 @@ def create_user():
 #     print("Done!")
 
 
-@manager.command
-def populate_tickers():
+@cli.command("populate_tickers", short_help="Populate MongoDB collection with symbols.")
+@click.option("--force", is_flag=True, help="Force repopulation.")
+@with_appcontext
+def populate_tickers(force=False):
     """
     Populate mongo db collection with all the symbols
     This will be done only once (or more if needed)
@@ -75,23 +81,25 @@ def populate_tickers():
     and also to save some space in my Heroku postgresql DB, since they have limit of 10k rows for the DB :(
     """
     import pymongo
-    from pymongo import TEXT
     from server.mongo_db import mongo_db
     from server.apis.iex import IEXFinance
 
     tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
-    tickers_collection.drop()  # drop old data to repopulate it with fresh data
+    if not force:
+        indexes = tickers_collection.list_indexes()
+        if "SymbolIndex" in indexes:
+            print("Done! Index already present.")
+            return
+
+    tickers_collection.drop()  # Drop old data to repopulate it with fresh data
 
     tickers = IEXFinance.list_symbols()
     tickers_collection.insert_many([ticker for ticker in tickers])
-    indexes = tickers_collection.list_indexes()
-    if "SymbolIndex" in indexes:
-        print("Done! Index already present.")
-        return
+
     tickers_collection.create_index(
         [
-            ("symbol", TEXT),
-            ("name", TEXT),
+            ("symbol", pymongo.TEXT),
+            ("name", pymongo.TEXT),
         ],
         weights={"symbol": 20, "name": 1},
         name="SymbolIndex",
@@ -100,7 +108,8 @@ def populate_tickers():
     print("Done!")
 
 
-@manager.command
+@cli.command("update_stocks", short_help="Update stock information.")
+@with_appcontext
 def update_stocks():
     import time
     from server.models import Stock
@@ -117,7 +126,7 @@ def update_stocks():
     print("Fetched new information ...")
     for k, v in stocks_data.items():
         for stock in stocks:
-            if not stock.ticker.upper() == k.upper():
+            if stock.ticker.upper() != k.upper():
                 continue
             stock.company_info = slugify_keys(v["company_info"])
             stock.latest_market_data = slugify_keys(list(v.values())[0])
@@ -127,7 +136,3 @@ def update_stocks():
     print(
         f"Stock update finished, elapsed time: {round(time.time() - start_time, 2)} seconds"
     )
-
-
-if __name__ == "__main__":
-    manager.run()
