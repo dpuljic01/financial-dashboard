@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: financial-dashboard
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      npm install
+      npm run build
+    startCommand: gunicorn -w 2 wsgi:application
