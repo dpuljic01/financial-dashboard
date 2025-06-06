@@ -1,11 +1,9 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
+import { createStore } from 'vuex';
 import * as api from '../api';
 import { isValidJwt } from '../utils';
 import { getCookie, setCookie, removeCookie } from '../utils/cookie';
 import { AUTH_COOKIE_NAME } from '../consts';
 
-Vue.use(Vuex);
 
 // eslint-disable-next-line
 const getDefaultState = function() {
@@ -214,7 +212,7 @@ const getters = {
   },
 };
 
-const store = new Vuex.Store({
+const store = createStore({
   state,
   actions,
   mutations,
