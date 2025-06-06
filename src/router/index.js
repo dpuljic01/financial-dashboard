@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../components/Dashboard.vue';
 import NotFound from '../components/NotFound.vue';
 import Landing from '../components/Landing.vue';
@@ -18,11 +17,8 @@ import CompanyProfile from '../components/portfolio/CompanyProfile.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
 
-Vue.use(Router);
-
-const router = new Router({
-  mode: 'history',
-  base: '/',
+const router = createRouter({
+  history: createWebHistory('/'),
   routes: [
     {
       path: '/',
@@ -110,7 +106,7 @@ const router = new Router({
       component: ResetPassword,
     },
     {
-      path: '*',
+      path: '/:pathMatch(.*)*',
       component: NotFound,
     },
   ],

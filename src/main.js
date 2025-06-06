@@ -1,14 +1,13 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
+import { createApp } from 'vue';
 import VueAxios from 'vue-axios';
 import Toasted from 'vue-toasted';
 import VueCookies from 'vue-cookies';
 import VueMaterial from 'vue-material';
-import VueApexCharts from 'vue-apexcharts';
+import VueApexCharts from 'vue3-apexcharts';
 import 'vue-material/dist/vue-material.min.css';
 import 'vue-material/dist/theme/default.css';
-import VueSimpleAlert from 'vue-simple-alert';
-import VTooltip from 'v-tooltip';
+import FloatingVue from 'floating-vue';
+import 'floating-vue/dist/style.css';
 
 import App from './App.vue';
 import router from './router';
@@ -17,26 +16,19 @@ import axios from './plugins/axios';
 import Navigation from './components/Navigation.vue';
 import './assets/theme.scss';
 
-Vue.config.productionTip = false;
-Vue.use(VTooltip);
-Vue.use(Vuex);
-Vue.use(VueAxios, axios);
-Vue.use(VueApexCharts);
-Vue.use(VueMaterial);
-Vue.use(VueCookies);
-Vue.use(VueSimpleAlert, { reverseButtons: true });
-Vue.use(Toasted, {
+const app = createApp(App);
+app.use(FloatingVue);
+app.use(VueAxios, axios);
+app.use(VueApexCharts);
+app.use(VueMaterial);
+app.use(VueCookies);
+app.use(Toasted, {
   router,
   duration: 5000,
   type: 'success',
 });
-Vue.component('navigation', Navigation);
-Vue.component('apexchart', VueApexCharts);
-
-// eslint-disable-next-line
-new Vue({
-  el: '#app',
-  router,
-  store,
-  render: (h) => h(App),
-});
+app.use(store);
+app.use(router);
+app.component('navigation', Navigation);
+app.component('apexchart', VueApexCharts);
+app.mount('#app');
