@@ -3,6 +3,13 @@
 module.exports = {
   outputDir: 'dist',
   assetsDir: 'static',
+  configureWebpack: {
+    resolve: {
+      alias: {
+        vue: '@vue/compat',
+      },
+    },
+  },
   // publicPath: IS_PRODUCTION ? 'https://test-vuejsflask.herokuapp.com/static' : '/',
   // For Production, replace set baseUrl to CDN
   // And set the CDN origin to `yourdomain.com/static`

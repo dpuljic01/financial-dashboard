@@ -12,14 +12,12 @@ class BlacklistTokensImpl:
         return self._revoked_store
 
     def check_revoked(self, decrypted_token):
-        """
-        Check if a token has been blacklisted. In this simple
-        case, we will just store the tokens jti (unique identifier) in redis
-        whenever we create a new token (with the revoked status being 'false'). This
-        function will return the revoked status of a token. If a token doesn't
-        exist in this store, we don't know where it came from (as we are adding newly
-        created tokens to our store with a revoked status of 'false'). In this case
-        we will consider the token to be revoked, for safety purposes.
+        """Return revoked status for a token.
+
+        Tokens are stored in Redis with their ``jti`` mapped to ``"true"`` or
+        ``"false"``.  The function returns ``True`` only when the stored value is
+        ``"true"``.  Tokens missing from the store are treated as **not**
+        revoked.
         """
         jti = decrypted_token["jti"]
         entry = ("false", False)
