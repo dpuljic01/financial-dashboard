@@ -2,9 +2,12 @@ services:
   - type: web
     name: financial-dashboard
     env: python
+    envVars:
+      - key: NODE_VERSION
+        value: "18"
     buildCommand: |
       pip install -r requirements.txt
       # Install frontend dependencies including dev packages for Vue CLI
-      npm install --production=false
+      npm install --production=false --legacy-peer-deps
       npm run build
     startCommand: gunicorn -w 2 wsgi:application
