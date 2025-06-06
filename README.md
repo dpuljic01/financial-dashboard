@@ -134,3 +134,4 @@ git push <heroku|staging|production> master
 This repo includes a `render.yaml` file for deploying on [Render](https://render.com).
 Create a new **Web Service** from this repository and Render will automatically use the build and start commands defined in that file.
 Remember to configure the required environment variables based on `.env.example`.
+The build step installs frontend dependencies with `npm install --production=false` so Vue CLI is available when building the application.
