@@ -126,4 +126,11 @@ git push <heroku|staging|production> master
 
 * Create user manually (these are automatically verified, no need for email confirmation)
 
-	-  `heroku run python manage.py create_user --app app_name`
+        -  `heroku run python manage.py create_user --app app_name`
+
+
+# Render
+
+This repo includes a `render.yaml` file for deploying on [Render](https://render.com).
+Create a new **Web Service** from this repository and Render will automatically use the build and start commands defined in that file.
+Remember to configure the required environment variables based on `.env.example`.
