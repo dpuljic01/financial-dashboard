@@ -1,9 +1,9 @@
 import { createStore } from 'vuex';
+import { useToast } from 'vue-toastification';
 import * as api from '../api';
 import { isValidJwt } from '../utils';
 import { getCookie, setCookie, removeCookie } from '../utils/cookie';
 import { AUTH_COOKIE_NAME } from '../consts';
-
 
 // eslint-disable-next-line
 const getDefaultState = function() {
@@ -74,18 +74,18 @@ const actions = {
   },
   register(context, userData) {
     return api.register(userData).then(() => {
-      Vue.toasted.show('Check your email to finish setting up your account.', { type: 'success' });
+      useToast().success('Check your email to finish setting up your account.');
     });
   },
   resetPassword(context, payload) {
     return api.resetPassword(payload).then(() => {
-      Vue.toasted.show('Check your email to set up a new password', { type: 'success' });
+      useToast().success('Check your email to set up a new password');
     });
   },
   setPassword(context, payload) {
     return api.setPassword(payload).then(() => {
       context.commit('resetState');
-      Vue.toasted.show('You can now log in');
+      useToast().success('You can now log in');
     });
   },
   submitNewPortfolio(context, portfolio) {
@@ -113,10 +113,10 @@ const actions = {
     context.commit('resetState');
   },
   successMessage(context, message = 'Saved') {
-    Vue.toasted.show(message, { type: 'success', duration: 1500 });
+    useToast().success(message);
   },
   errorMessage(context, message = "Something's wrong") {
-    Vue.toasted.show(message, { type: 'error', duration: 1500 });
+    useToast().error(message);
   },
   getLatestStockPrices(context, params) {
     return api.getLatestStockPrices(params, context.state.jwt.access_token);

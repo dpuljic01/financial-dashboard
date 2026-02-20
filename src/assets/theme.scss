@@ -1,4 +1,4 @@
-@import 'vue-material/dist/theme/engine'; // Import the theme engine
+@import 'vue-material/src/theme/engine'; // Import the theme engine
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 @include md-register-theme(
@@ -10,11 +10,7 @@
   )
 );
 
-@import 'vue-material/dist/theme/all'; // Apply the theme
-// @import 'vue-material/dist/components/MdButton/theme'; // Apply the Button theme
-// @import 'vue-material/dist/components/MdContent/theme'; // Apply the Content theme
-// @import 'vue-material/dist/components/MdToolbar/theme'; // Apply the Toolbar theme
-// @import 'vue-material/dist/components/MdIcon/theme'; // Apply the Toolbar theme
+@import 'vue-material/src/theme/all'; // Apply the theme
 
 $positive: 'rgb(0,154,128)';
 $negative: 'rgb(200, 60, 90)';
@@ -29,11 +25,6 @@ $accent: rgb(0, 170, 173);
 .dp-primary-dark {
   color: #0a383a;
   /* color: #0D47A1; */
-}
-
-.toasted.toasted-primary .action {
-  color: black;
-  font-weight: 900;
 }
 
 .dp-accent {

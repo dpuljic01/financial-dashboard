@@ -2,7 +2,6 @@ import yfinance as yf
 import json
 from server.extensions import db
 from server.models import Stock
-import pandas_datareader as pdr
 import pandas as pd
 
 
@@ -19,8 +18,8 @@ def fetch_stock_history(
         history_json = json.loads(history.to_json(orient="columns", date_format="iso"))
         if include_info:
             try:
-                history_json["company_info"] = data.get_info()
-            except:
+                history_json["company_info"] = data.info
+            except Exception:
                 pass
         res[ticker] = history_json
     return res
@@ -58,5 +57,22 @@ def fetch__stock_calendar(ticker):
 
 
 def get_quote(ticker):
-    data = pdr.get_quote_yahoo(ticker)
-    return json.loads(data.to_json(orient="index"))
+    """Return a minimal quote dict for ticker using yfinance fast_info."""
+    try:
+        t = yf.Ticker(ticker)
+        fi = t.fast_info
+        return {
+            ticker: {
+                "symbol": ticker,
+                "price": fi.last_price,
+                "open": fi.open,
+                "dayHigh": fi.day_high,
+                "dayLow": fi.day_low,
+                "volume": fi.three_month_average_volume,
+                "marketCap": fi.market_cap,
+                "fiftyTwoWeekHigh": fi.fifty_two_week_high,
+                "fiftyTwoWeekLow": fi.fifty_two_week_low,
+            }
+        }
+    except Exception:
+        return {ticker: {}}

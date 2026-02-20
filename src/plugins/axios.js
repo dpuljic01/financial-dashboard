@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { useToast } from 'vue-toastification';
 import axios from 'axios';
 import store from '../store';
 
@@ -28,7 +28,7 @@ axios.interceptors.response.use(
         message = 'Error';
     }
     if (message !== 'Error') {
-      Vue.toasted.show(message, { type: 'error' });
+      useToast().error(message);
     }
     store.commit('setLoading', false);
     return Promise.reject(error);

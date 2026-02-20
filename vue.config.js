@@ -1,20 +1,20 @@
-// const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-
 module.exports = {
   outputDir: 'dist',
   assetsDir: 'static',
-  configureWebpack: {
-    resolve: {
-      alias: {
-        vue: '@vue/compat',
-      },
-    },
+  chainWebpack: (config) => {
+    config.resolve.alias.set('vue', '@vue/compat');
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .tap((options) => ({
+        ...options,
+        compilerOptions: {
+          compatConfig: {
+            MODE: 2,
+          },
+        },
+      }));
   },
-  // publicPath: IS_PRODUCTION ? 'https://test-vuejsflask.herokuapp.com/static' : '/',
-  // For Production, replace set baseUrl to CDN
-  // And set the CDN origin to `yourdomain.com/static`
-  // Whitenoise will serve once to CDN which will then cache
-  // and distribute
   devServer: {
     proxy: {
       '/api': {

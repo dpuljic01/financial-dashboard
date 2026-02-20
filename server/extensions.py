@@ -1,5 +1,5 @@
 from flask import jsonify
-from flask_babelex import Babel
+from flask_babel import Babel
 from flask_caching import Cache
 from flask_compress import Compress
 from flask_cors import CORS
@@ -28,20 +28,20 @@ compress = Compress()
 
 
 @jwt.unauthorized_loader  # override default "msg" key to be "message"
-def my_expired_token_callback(unauthorized):
-    return jsonify({"message": unauthorized}), 401
+def my_unauthorized_callback(reason):
+    return jsonify({"message": reason}), 401
 
 
 @jwt.expired_token_loader
-def my_expired_token_callback(expired):
-    return jsonify({"message": expired}), 401
+def my_expired_token_callback(jwt_header, jwt_data):
+    return jsonify({"message": "Token has expired"}), 401
 
 
 @jwt.invalid_token_loader
-def my_expired_token_callback(invalid):
-    return jsonify({"message": invalid}), 401
+def my_invalid_token_callback(reason):
+    return jsonify({"message": reason}), 401
 
 
 @jwt.token_in_blocklist_loader
-def check_if_token_in_blacklist(decrypted_token):
-    return BlacklistTokens.check_revoked(decrypted_token)
+def check_if_token_in_blacklist(jwt_header, jwt_payload):
+    return BlacklistTokens.check_revoked(jwt_payload)

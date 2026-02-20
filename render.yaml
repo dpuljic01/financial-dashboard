@@ -2,12 +2,56 @@ services:
   - type: web
     name: financial-dashboard
     env: python
-    envVars:
-      - key: NODE_VERSION
-        value: "18"
+    region: oregon
+    plan: free
     buildCommand: |
       pip install -r requirements.txt
-      # Install frontend dependencies including dev packages for Vue CLI
-      npm install --production=false --legacy-peer-deps
+      npm install --legacy-peer-deps --ignore-scripts --production=false
       npm run build
     startCommand: gunicorn -w 2 wsgi:application
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: PYTHON_VERSION
+        value: "3.11.14"
+      - key: APP_SETTINGS
+        value: server.config.ProductionConfig
+      - key: SHOULD_PROXY
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SECURITY_PASSWORD_SALT
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: financial-dashboard-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: financial-dashboard-redis
+          type: redis
+          property: connectionString
+      - key: FINANCIAL_DASHBOARD_FE_URL
+        sync: false
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
+      - key: IEX_TOKEN
+        sync: false
+      - key: MONGO_DB_CONNECTION_STRING
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+databases:
+  - name: financial-dashboard-db
+    databaseName: financial_dashboard
+    user: financial_dashboard
+    plan: free
+
+  - name: financial-dashboard-redis
+    plan: free
+    ipAllowList: []

@@ -1,11 +1,11 @@
 import { createApp } from 'vue';
 import VueAxios from 'vue-axios';
-import Toasted from 'vue-toasted';
+import Toast from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
 import VueCookies from 'vue-cookies';
 import VueMaterial from 'vue-material';
 import VueApexCharts from 'vue3-apexcharts';
 import 'vue-material/dist/vue-material.min.css';
-import 'vue-material/dist/theme/default.css';
 import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
 
@@ -22,10 +22,8 @@ app.use(VueAxios, axios);
 app.use(VueApexCharts);
 app.use(VueMaterial);
 app.use(VueCookies);
-app.use(Toasted, {
-  router,
-  duration: 5000,
-  type: 'success',
+app.use(Toast, {
+  timeout: 5000,
 });
 app.use(store);
 app.use(router);

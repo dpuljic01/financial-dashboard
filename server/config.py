@@ -13,7 +13,7 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    CACHE_TYPE = "simple"  # Flask-Caching related configs
+    CACHE_TYPE = "SimpleCache"  # Flask-Caching related configs
     CACHE_DEFAULT_TIMEOUT = 300  # 5min
 
     FINANCIAL_DASHBOARD_FE_URL = os.getenv(
