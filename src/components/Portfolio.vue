@@ -3,8 +3,8 @@
     <div>
       <Search @search="addSymbol($event)" v-bind:placeholder="'Add symbol'"></Search>
     </div>
-    <div style="md-layout md-size-100">
-      <h3 class="md-title md-layout-item md-alignment-center-center">
+    <div class="md-layout md-size-100">
+      <h3 class="md-title md-layout-item">
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
     </div>
@@ -36,6 +36,15 @@
       </md-empty-state>
       <News v-else :tickers="tickers"></News>
     </div>
+
+    <div v-if="path === 'performance'">
+      <md-empty-state
+        v-if="portfolio.stocks.length === 0"
+        md-description="Your list is empty. Add symbols to get relevant info."
+      >
+      </md-empty-state>
+      <Performance v-else :portfolio="portfolio"></Performance>
+    </div>
   </div>
 </template>
 
@@ -44,6 +53,7 @@ import Search from './Search.vue';
 import Holdings from './portfolio/Holdings.vue';
 import Summary from './portfolio/Summary.vue';
 import News from './portfolio/News.vue';
+import Performance from './portfolio/Performance.vue';
 import TabBar from './TabBar.vue';
 
 export default {
@@ -53,6 +63,7 @@ export default {
     Summary,
     Search,
     News,
+    Performance,
     TabBar,
   },
   data() {
@@ -67,6 +78,7 @@ export default {
       portfolioTabs: [
         { id: 'tab-summary', label: 'Summary' },
         { id: 'tab-holdings', label: 'Holdings' },
+        { id: 'tab-performance', label: 'Performance' },
         { id: 'tab-news', label: 'News' },
       ],
     };

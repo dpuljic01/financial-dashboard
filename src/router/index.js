@@ -10,6 +10,7 @@ import Portfolio from '../components/Portfolio.vue';
 import Holdings from '../components/portfolio/Holdings.vue';
 import Summary from '../components/portfolio/Summary.vue';
 import News from '../components/portfolio/News.vue';
+import Performance from '../components/portfolio/Performance.vue';
 import Quote from '../components/Quote.vue';
 import Compare from '../components/Compare.vue';
 import Profile from '../components/Profile.vue';
@@ -70,6 +71,11 @@ const router = createRouter({
           name: 'News',
           path: 'news',
           component: News,
+        },
+        {
+          name: 'Performance',
+          path: 'performance',
+          component: Performance,
         },
       ],
     },

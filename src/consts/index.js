@@ -9,6 +9,7 @@ const PROTECTED_ROUTES = [
   'Holdings',
   'Summary',
   'News',
+  'Performance',
   'Quote',
   'CompanyProfile',
   'CompanyNews',
