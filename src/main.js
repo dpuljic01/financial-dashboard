@@ -5,7 +5,6 @@ import VueCookies from 'vue-cookies';
 import VueMaterial from 'vue-material';
 import VueApexCharts from 'vue3-apexcharts';
 import 'vue-material/dist/vue-material.min.css';
-import 'vue-material/dist/theme/default.css';
 import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
 
@@ -14,6 +13,7 @@ import router from './router';
 import store from './store';
 import axios from './plugins/axios';
 import Navigation from './components/Navigation.vue';
+import { setToastedInstance } from './plugins/toasted';
 import './assets/theme.scss';
 
 const app = createApp(App);
@@ -27,6 +27,7 @@ app.use(Toasted, {
   duration: 5000,
   type: 'success',
 });
+setToastedInstance(app.toasted);
 app.use(store);
 app.use(router);
 app.component('navigation', Navigation);

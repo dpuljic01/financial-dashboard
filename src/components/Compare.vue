@@ -5,7 +5,7 @@
       <p v-if="multiple" class="md-body-2" style="text-align:left;">Enter exact ticker symbols:</p>
       <md-chips
         v-if="multiple"
-        v-model="symbols"
+        v-model="localSymbols"
         :md-auto-insert="true"
         :md-format="toUppercase"
         @md-insert="compare"
@@ -63,6 +63,7 @@ export default {
   },
   data() {
     return {
+      localSymbols: [...this.symbols],
       period: '1d',
       interval: '5m',
       options: QUOTE_OPTIONS,
@@ -107,7 +108,7 @@ export default {
       return newStr;
     },
     async compare() {
-      if (this.symbols.length > 0) {
+      if (this.localSymbols.length > 0) {
         this.loaded = false;
         await this.getQuoteHistory();
         this.options = {
@@ -149,7 +150,7 @@ export default {
     },
     async getQuoteHistory() {
       const resp = await this.$store.dispatch('getStockHistoryData', {
-        symbols: this.symbols.join(),
+        symbols: this.localSymbols.join(),
         interval: this.interval,
         period: this.period,
         include_info: false,
@@ -162,8 +163,7 @@ export default {
     },
   },
   watch: {
-    symbols(val) {
-      this.symbols = val;
+    localSymbols() {
       this.onTabChange('1d');
     },
   },

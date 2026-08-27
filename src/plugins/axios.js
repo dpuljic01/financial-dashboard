@@ -1,6 +1,6 @@
-import Vue from 'vue';
 import axios from 'axios';
 import store from '../store';
+import { showToast } from './toasted';
 
 axios.defaults.withCredentials = true;
 
@@ -28,7 +28,7 @@ axios.interceptors.response.use(
         message = 'Error';
     }
     if (message !== 'Error') {
-      Vue.toasted.show(message, { type: 'error' });
+      showToast(message, { type: 'error' });
     }
     store.commit('setLoading', false);
     return Promise.reject(error);
