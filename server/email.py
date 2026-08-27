@@ -13,7 +13,7 @@ def _render_email(filename, **kwargs):
     return render_template(filename, **kwargs)
 
 
-def send_mail(subject, recipients, html_body):
+def send_mail(subject, recipients, html_body, text_body):
     api_key = current_app.config.get("RESEND_API_KEY")
     if not api_key:
         log.warning("RESEND_API_KEY not set, skipping email: %s", subject)
@@ -28,6 +28,7 @@ def send_mail(subject, recipients, html_body):
                 "to": recipients,
                 "subject": subject,
                 "html": html_body,
+                "text": text_body,
             },
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
@@ -40,9 +41,11 @@ def send_mail(subject, recipients, html_body):
 
 def send_verify_email(**kwargs):
     html_message = _render_email("verify.html", **kwargs)
-    send_mail("Finish your registration", [kwargs["email"]], html_message)
+    text_message = _render_email("verify.txt", **kwargs)
+    send_mail("Finish your registration", [kwargs["email"]], html_message, text_message)
 
 
 def send_password_reset_email(**kwargs):
     html_message = _render_email("reset.html", **kwargs)
-    send_mail("Password reset", [kwargs["email"]], html_message)
+    text_message = _render_email("reset.txt", **kwargs)
+    send_mail("Password reset", [kwargs["email"]], html_message, text_message)

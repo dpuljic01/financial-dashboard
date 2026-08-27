@@ -1,0 +1,11 @@
+Financial Dashboard
+
+Welcome, {{ email }}
+
+Thanks for signing up. Confirm your email address to activate your
+account and set your password:
+
+{{ fe_url }}/reset/{{ token }}
+
+This link expires in 24 hours. If you didn't create an account, you
+can safely ignore this email.
