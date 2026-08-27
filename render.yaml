@@ -2,12 +2,47 @@ services:
   - type: web
     name: financial-dashboard
     env: python
+    plan: free
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: NODE_VERSION
         value: "18"
+      - key: VUE_APP_API_URL
+        value: /api
+      - key: SHOULD_PROXY
+        value: "1"
+      - key: APP_SETTINGS
+        value: server.config.ProductionConfig
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SECURITY_PASSWORD_SALT
+        generateValue: true
+      - key: FINANCIAL_DASHBOARD_FE_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: MONGO_DB_CONNECTION_STRING
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
+      - key: IEX_TOKEN
+        sync: false
     buildCommand: |
       pip install -r requirements.txt
-      # Install frontend dependencies including dev packages for Vue CLI
-      npm install --production=false --legacy-peer-deps
+      # vue-material's npm publish is missing dist/base (referenced by its theme scss);
+      # --ignore-scripts skips its broken git-hooks postinstall, so copy the folder manually.
+      npm install --production=false --legacy-peer-deps --ignore-scripts
+      cp -R node_modules/vue-material/src/base node_modules/vue-material/dist/base
       npm run build
     startCommand: gunicorn -w 2 wsgi:application
