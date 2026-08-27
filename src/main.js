@@ -14,7 +14,9 @@ import store from './store';
 import axios from './plugins/axios';
 import Navigation from './components/Navigation.vue';
 import { setToastedInstance } from './plugins/toasted';
-import './assets/theme.scss';
+// Precompiled by `npm run build:theme` (see package.json) rather than
+// imported as .scss - see that script for why.
+import './assets/theme.css';
 
 const app = createApp(App);
 app.use(FloatingVue);

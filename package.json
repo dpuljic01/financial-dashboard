@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prestart": "npm run build:theme",
     "start": "vue-cli-service serve",
+    "prebuild": "npm run build:theme",
     "build": "vue-cli-service build",
+    "build:theme": "sass src/assets/theme.scss src/assets/theme.css --load-path=node_modules --quiet-deps",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -42,7 +45,7 @@
     "eslint-plugin-vue": "^6.2.2",
     "file-loader": "^6.1.0",
     "sass": "^1.26.11",
-    "sass-loader": "^10.0.2",
+    "sass-loader": "^17.0.0",
     "webpack": "^5.0.0"
   },
   "eslintConfig": {

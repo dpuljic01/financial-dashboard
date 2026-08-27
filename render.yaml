@@ -44,5 +44,10 @@ services:
       # --ignore-scripts skips its broken git-hooks postinstall, so copy the folder manually.
       npm install --production=false --legacy-peer-deps --ignore-scripts
       cp -R node_modules/vue-material/src/base node_modules/vue-material/dist/base
+      # vue-material's md-register-theme mixin writes CSS custom properties as
+      # `--foo: $value` instead of `--foo: #{$value}`, which is a bare Sass
+      # variable reference, not the value itself - fix it so the theme
+      # actually generates usable output (button/component colors, etc).
+      sed -i 's/--md-theme-#{\$name}-#{\$type}: \$value/--md-theme-#{$name}-#{$type}: #{$value}/' node_modules/vue-material/dist/theme/mixins.scss
       npm run build
     startCommand: gunicorn -w 2 wsgi:application
