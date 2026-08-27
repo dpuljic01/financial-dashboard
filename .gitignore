@@ -27,3 +27,4 @@ __pycache__/
 *.sw?
 .DS_Store
 node_modules
+.neon
