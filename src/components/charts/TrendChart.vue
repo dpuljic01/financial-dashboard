@@ -9,7 +9,6 @@
     ></md-progress-spinner>
     <div v-else class="futures noselect">
       <md-button
-        v-tooltip="'Reload'"
         class="md-icon-button md-dense"
         style="position: relative; top: 60px; margin-right: -32px;"
         @click="fetchStockHistory(true)"

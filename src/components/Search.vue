@@ -9,7 +9,7 @@
       :md-layout="searchLayout"
     >
       <label>{{ this.placeholder }}</label>
-      <template slot="md-autocomplete-item" slot-scope="{ item, term }">
+      <template #md-autocomplete-item="{ item, term }">
         <md-highlight-text :md-term="term">{{ item.Symbol }} - {{ item.Name }}</md-highlight-text>
       </template>
     </md-autocomplete>
