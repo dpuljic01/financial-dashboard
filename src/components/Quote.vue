@@ -160,9 +160,10 @@ export default {
       }
     },
     async searchQuote(event) {
-      this.$router.push(`/quote/${event.symbol}/profile`);
-      this.quote = this.$route.params.quote;
-      await this.loadQuote(this.quote);
+      await this.$router.push(`/quote/${event.symbol}/profile`);
+      this.path = 'profile';
+      this.quote = event.symbol;
+      await this.loadQuote();
     },
     async getQuoteHistory() {
       const resp = await this.$store.dispatch('getStockHistoryData', {

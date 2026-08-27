@@ -1,9 +1,9 @@
 <template>
-  <div class="md-layout md-gutter">
-    <div class="md-layout-item md-size-45 md-xsmall-size-90 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
+  <div class="md-layout md-gutter md-layout-wrap">
+    <div class="md-flex-45 md-flex-xsmall-100 md-flex-medium-50 md-flex-large-40" id="chart">
       <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
     </div>
-    <div class="md-layout-item md-size-45 md-xsmall-size-80 md-medium-size-50 md-large-size-40 md-gutter" id="chart">
+    <div class="md-flex-45 md-flex-xsmall-100 md-flex-medium-50 md-flex-large-40" id="chart">
       <apexchart type="donut" :options="sectorChart" :series="sectorChart.series"></apexchart>
     </div>
   </div>

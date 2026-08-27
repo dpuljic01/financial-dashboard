@@ -173,6 +173,9 @@ export default {
     localSymbols() {
       this.onTabChange('1d');
     },
+    symbols(val) {
+      this.localSymbols = [...val];
+    },
   },
 };
 </script>
