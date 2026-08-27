@@ -39,7 +39,10 @@ class Config:
     MAIL_USE_SSL = True
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER = ("Financial Dashboard", "financial.dashboard.info@gmail.com")
+    # Must match the authenticated MAIL_USERNAME account - most SMTP
+    # providers (Gmail included) reject sends where the From address isn't
+    # the authenticated account or one of its configured aliases.
+    MAIL_DEFAULT_SENDER = ("Financial Dashboard", MAIL_USERNAME)
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379")
 
