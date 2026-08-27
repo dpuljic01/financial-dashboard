@@ -7,7 +7,7 @@
       <span class="md-title">{{ title }}</span>
     </md-toolbar>
 
-    <md-drawer :md-active.sync="menuVisible" md-swipeable>
+    <md-drawer v-model:md-active="menuVisible" md-swipeable>
       <md-toolbar class="md-transparent" md-elevation="0">
         <span flex>Financial Dashboard</span>
         <div class="md-toolbar-section-end">

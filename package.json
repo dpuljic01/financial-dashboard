@@ -75,7 +75,8 @@
             "state"
           ]
         }
-      ]
+      ],
+      "vue/valid-v-model": "off"
     }
   },
   "browserslist": [

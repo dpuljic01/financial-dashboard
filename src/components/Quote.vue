@@ -10,20 +10,22 @@
     <h3 class="md-title">{{ this.companyInfo.shortname || this.quote }}</h3>
     <Compare :multiple="false" :symbols="[this.quote]"></Compare>
 
-    <md-tabs v-if="this.quote[0] !== '^'" :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed">
-      <md-tab id="tab-profile" md-label="Profile" :to="`/quote/${this.quote}/profile`">
+    <div v-if="this.quote[0] !== '^'">
+      <TabBar :tabs="quoteTabs" :modelValue="'tab-' + path" @change="onQuoteTabChange" />
+
+      <div v-if="path === 'profile'">
         <md-empty-state
           v-if="Object.values(companyInfo).length == 0"
           md-description="We couldn't retrieve company info"
         >
         </md-empty-state>
         <CompanyProfile v-else :company-info="companyInfo"></CompanyProfile>
-      </md-tab>
+      </div>
 
-      <md-tab id="tab-news" md-label="News" :to="`/quote/${this.quote}/news`">
+      <div v-if="path === 'news'">
         <News :tickers="[this.quote]"></News>
-      </md-tab>
-    </md-tabs>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -33,6 +35,7 @@ import Search from './Search.vue';
 import CompanyProfile from './portfolio/CompanyProfile.vue';
 import Compare from './Compare.vue';
 import News from './portfolio/News.vue';
+import TabBar from './TabBar.vue';
 import { QUOTE_OPTIONS } from '../consts';
 import { setQuoteSeries, setYAxis } from '../utils';
 
@@ -43,6 +46,7 @@ export default {
     CompanyProfile,
     News,
     Compare,
+    TabBar,
   },
   data() {
     return {
@@ -56,16 +60,24 @@ export default {
       activeTab: 'tab-1d',
       companyInfo: {},
       path: 'profile',
+      quoteTabs: [
+        { id: 'tab-profile', label: 'Profile' },
+        { id: 'tab-news', label: 'News' },
+      ],
     };
   },
   async mounted() {
-    this.path = this.$route.path.slice(1);
+    this.path = this.$route.path.split('/').pop();
     this.companyInfo = await this.$store.dispatch('getCompanyInfo', this.quote);
     await this.loadQuote();
     this.$store.commit('setLoading', false);
     this.loaded = true;
   },
   methods: {
+    onQuoteTabChange(tabId) {
+      this.path = tabId.replace('tab-', '');
+      this.$router.push(`/quote/${this.quote}/${this.path}`);
+    },
     switchPeriod(period) {
       this.period = period;
       switch (this.period) {

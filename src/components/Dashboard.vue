@@ -21,29 +21,27 @@
         </md-menu-content>
       </md-menu>
     </div>
-    <md-tabs
-      v-if="Object.keys(portfolio).length !== 0"
-      @md-changed="onPortfolioSummaryTabChange"
-      :md-active-tab="activeTab"
-    >
-      <md-tab id="tab-allocation" md-label="Allocation">
+    <div v-if="Object.keys(portfolio).length !== 0">
+      <TabBar :tabs="portfolioTabs" v-model="activeTab" @change="onPortfolioSummaryTabChange" />
+
+      <div v-if="activeTab === 'tab-allocation'">
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
           <router-link :to="`/portfolios/${portfolio.id}/holdings`">
             <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
         <Allocation v-else class="allocation" :portfolio="portfolio" />
-      </md-tab>
+      </div>
 
-      <md-tab id="tab-performance" md-label="Performance">
+      <div v-if="activeTab === 'tab-performance'">
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
           <router-link :to="`/portfolios/${portfolio.id}/holdings`">
             <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
           </router-link>
         </md-empty-state>
         <Performance v-else class="performance" :portfolio="portfolio" />
-      </md-tab>
-    </md-tabs>
+      </div>
+    </div>
     <md-empty-state
       v-else-if="loaded"
       md-icon="post_add"
@@ -62,6 +60,7 @@ import Performance from './portfolio/Performance.vue';
 import TrendChart from './charts/TrendChart.vue';
 import Search from './Search.vue';
 import Allocation from './portfolio/Allocation.vue';
+import TabBar from './TabBar.vue';
 
 export default {
   name: 'Dashboard',
@@ -70,6 +69,7 @@ export default {
     Performance,
     TrendChart,
     Search,
+    TabBar,
   },
   data() {
     return {
@@ -77,6 +77,10 @@ export default {
       hasHoldings: false,
       portfolios: [],
       portfolio: {},
+      portfolioTabs: [
+        { id: 'tab-allocation', label: 'Allocation' },
+        { id: 'tab-performance', label: 'Performance' },
+      ],
       industrySeries: [30, 40, 30],
       series: [44, 55, 41, 17, 15],
       chartOptions: {

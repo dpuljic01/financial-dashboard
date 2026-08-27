@@ -14,20 +14,13 @@
       </md-chips>
 
       <h3 v-if="multiple">COMPARISON CHART</h3>
-      <md-tabs
+      <TabBar
         class="tabs md-elevation-2"
         style="overflow-x: auto; margin-bottom: 15px;"
-        :md-active-tab="activeTab"
-        @md-changed="onTabChange"
-      >
-        <md-tab id="tab-1d" md-label="1D"></md-tab>
-        <md-tab id="tab-5d" md-label="5D"> </md-tab>
-        <md-tab id="tab-1mo" md-label="1M"> </md-tab>
-        <md-tab id="tab-6mo" md-label="6M"> </md-tab>
-        <md-tab id="tab-1y" md-label="1Y"> </md-tab>
-        <md-tab id="tab-5y" md-label="5Y"> </md-tab>
-        <md-tab id="tab-max" md-label="MAX"> </md-tab>
-      </md-tabs>
+        :tabs="periodTabs"
+        v-model="activeTab"
+        @change="onTabChange"
+      />
       <Area v-if="loaded" :options="options" :series="series" />
       <md-progress-spinner
         v-else
@@ -43,6 +36,7 @@
 <script>
 import moment from 'moment';
 import Area from './charts/Area.vue';
+import TabBar from './TabBar.vue';
 import { QUOTE_OPTIONS } from '../consts';
 import { setQuoteSeries, setYAxis } from '../utils';
 
@@ -60,6 +54,7 @@ export default {
   },
   components: {
     Area,
+    TabBar,
   },
   data() {
     return {
@@ -70,7 +65,19 @@ export default {
       series: [],
       loaded: false,
       activeTab: 'tab-1d',
+      periodTabs: [
+        { id: 'tab-1d', label: '1D' },
+        { id: 'tab-5d', label: '5D' },
+        { id: 'tab-1mo', label: '1M' },
+        { id: 'tab-6mo', label: '6M' },
+        { id: 'tab-1y', label: '1Y' },
+        { id: 'tab-5y', label: '5Y' },
+        { id: 'tab-max', label: 'MAX' },
+      ],
     };
+  },
+  mounted() {
+    this.compare();
   },
   methods: {
     onTabChange(tabId) {

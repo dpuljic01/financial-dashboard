@@ -1,41 +1,41 @@
 <template>
   <div v-if="loaded" class="portfolio">
     <div>
-      <Search @search="addSymbol($event)" v-bind:search-layout="'box'" v-bind:placeholder="'Add symbol'"></Search>
+      <Search @search="addSymbol($event)" v-bind:placeholder="'Add symbol'"></Search>
     </div>
     <div style="md-layout md-size-100">
       <h3 class="md-title md-layout-item md-alignment-center-center">
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
     </div>
-    <md-tabs :md-active-tab="'tab-' + path" md-sync-route md-alignment="fixed">
-      <md-tab id="tab-summary" md-label="Summary" :to="`/portfolios/${portfolio.id}/summary`">
-        <md-empty-state
-          v-if="portfolio.stocks.length == 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <Summary v-else :stocks="portfolio.stocks"></Summary>
-      </md-tab>
+    <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
 
-      <md-tab id="tab-holdings" md-label="Holdings" :to="`/portfolios/${portfolio.id}/holdings`">
-        <md-empty-state
-          v-if="portfolio.stocks.length === 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
-      </md-tab>
+    <div v-if="path === 'summary'">
+      <md-empty-state
+        v-if="portfolio.stocks.length == 0"
+        md-description="Your list is empty. Add symbols to get relevant info."
+      >
+      </md-empty-state>
+      <Summary v-else :stocks="portfolio.stocks"></Summary>
+    </div>
 
-      <md-tab id="tab-news" md-label="News" :to="`/portfolios/${portfolio.id}/news`">
-        <md-empty-state
-          v-if="portfolio.stocks.length === 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <News v-else :tickers="tickers"></News>
-      </md-tab>
-    </md-tabs>
+    <div v-if="path === 'holdings'">
+      <md-empty-state
+        v-if="portfolio.stocks.length === 0"
+        md-description="Your list is empty. Add symbols to get relevant info."
+      >
+      </md-empty-state>
+      <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
+    </div>
+
+    <div v-if="path === 'news'">
+      <md-empty-state
+        v-if="portfolio.stocks.length === 0"
+        md-description="Your list is empty. Add symbols to get relevant info."
+      >
+      </md-empty-state>
+      <News v-else :tickers="tickers"></News>
+    </div>
   </div>
 </template>
 
@@ -44,6 +44,7 @@ import Search from './Search.vue';
 import Holdings from './portfolio/Holdings.vue';
 import Summary from './portfolio/Summary.vue';
 import News from './portfolio/News.vue';
+import TabBar from './TabBar.vue';
 
 export default {
   name: 'Portfolio',
@@ -52,6 +53,7 @@ export default {
     Summary,
     Search,
     News,
+    TabBar,
   },
   data() {
     return {
@@ -62,11 +64,16 @@ export default {
       loaded: false,
       tickers: [],
       path: 'summary',
+      portfolioTabs: [
+        { id: 'tab-summary', label: 'Summary' },
+        { id: 'tab-holdings', label: 'Holdings' },
+        { id: 'tab-news', label: 'News' },
+      ],
     };
   },
   created() {
     this.portfolioId = this.$route.params.portfolioId;
-    this.path = this.$route.path.slice(1);
+    this.path = this.$route.path.split('/').pop();
   },
   async mounted() {
     this.$store.commit('setLoading', true);
@@ -79,6 +86,10 @@ export default {
     this.loaded = true;
   },
   methods: {
+    onPortfolioTabChange(tabId) {
+      this.path = tabId.replace('tab-', '');
+      this.$router.push(`/portfolios/${this.portfolio.id}/${this.path}`);
+    },
     getTickers() {
       const tickers = this.portfolio.stocks.map((stock) => stock.ticker);
       this.tickers = tickers;

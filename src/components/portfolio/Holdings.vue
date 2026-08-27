@@ -1,22 +1,26 @@
 <template>
   <div v-if="loaded">
-    <md-table>
-      <md-table-row>
-        <md-table-head style="max-width:50px;padding:0;margin:0;">Add</md-table-head>
-        <md-table-head>Symbol</md-table-head>
-        <md-table-head>Shares</md-table-head>
-        <md-table-head>Worth (USD)</md-table-head>
-      </md-table-row>
-      <md-table-row v-for="stock in currentPortfolio.stocks" :key="stock.id">
-        <md-table-cell style="max-width:40px;padding:0;margin:0;"
-          ><md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button></md-table-cell
-        >
-        <md-table-cell>{{ stock.ticker }}</md-table-cell>
-        <md-table-cell>{{ getNumberOfShares(stock.id) }}</md-table-cell>
-        <md-table-cell>{{ calculatePortfolioValue(currentPortfolio.holdings, stock.id) }}</md-table-cell>
-      </md-table-row>
-    </md-table>
-    <md-dialog :md-active.sync="open" :md-fullscreen="false">
+    <table class="plain-table">
+      <thead>
+        <tr>
+          <th class="col-add">Add</th>
+          <th>Symbol</th>
+          <th>Shares</th>
+          <th>Worth (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="stock in currentPortfolio.stocks" :key="stock.id">
+          <td class="col-add">
+            <md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button>
+          </td>
+          <td>{{ stock.ticker }}</td>
+          <td>{{ getNumberOfShares(stock.id) }}</td>
+          <td>{{ calculatePortfolioValue(currentPortfolio.holdings, stock.id) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <md-dialog v-model:md-active="open" :md-fullscreen="false">
       <md-dialog-title
         >Add holding
         <md-button class="md-icon close-icon" @click="open = false">close</md-button>
@@ -143,10 +147,17 @@ export default {
   position: absolute;
   right: 4%;
 }
-.md-table .md-table-head {
-  text-align: left;
+.plain-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.md-table .md-table-cell {
+.plain-table th,
+.plain-table td {
   text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.col-add {
+  max-width: 50px;
 }
 </style>

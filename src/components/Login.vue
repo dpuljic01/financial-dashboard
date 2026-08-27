@@ -32,7 +32,7 @@
           <router-link to="/register">Register</router-link>
         </p>
       </form>
-      <md-dialog :md-active.sync="showDialog" :md-fullscreen="false">
+      <md-dialog v-model:md-active="showDialog" :md-fullscreen="false">
         <md-dialog-title class="dp-primary">What's your email address?</md-dialog-title>
         <md-dialog-content>
           <p>

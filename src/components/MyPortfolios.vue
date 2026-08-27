@@ -8,40 +8,38 @@
         <md-icon>add</md-icon>
       </md-button>
     </div>
-    <md-table v-if="portfolios.length > 0" class="md-content tbl" md-sort="name" md-sort-order="asc">
-      <md-table-row style="max-width:40px;padding:0;margin:0;">
-        <md-table-head style="max-width:40px;padding:0;margin:0;">Del</md-table-head>
-        <md-table-head>Name</md-table-head>
-        <md-table-head>Symbols</md-table-head>
-        <md-table-head>Shares</md-table-head>
-        <md-table-head>Worth (USD)</md-table-head>
-      </md-table-row>
-      <md-table-row v-for="item in portfolios" :key="item.id">
-        <md-table-cell style="max-width:40px;padding:0;margin:0;"
-          ><md-button
-            class="md-icon md-raised md-primary"
-            style="background-color: #d00000;"
-            @click="deletePortfolio(item.id)"
-            >delete_outline</md-button
-          ></md-table-cell
-        >
-        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{ item.name }}</router-link>
-        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
-          item.stocks.length
-        }}</router-link>
-        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
-          item.holdings.length
-        }}</router-link>
-        <router-link tag="td" class="md-table-cell" :to="`/portfolios/${item.id}/summary`">{{
-          calculatePortfolioValue(item.holdings)
-        }}</router-link>
-      </md-table-row>
-    </md-table>
+    <table v-if="portfolios.length > 0" class="md-content tbl plain-table">
+      <thead>
+        <tr>
+          <th class="col-del">Del</th>
+          <th>Name</th>
+          <th>Symbols</th>
+          <th>Shares</th>
+          <th>Worth (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in portfolios" :key="item.id">
+          <td class="col-del">
+            <md-button
+              class="md-icon md-raised md-primary"
+              style="background-color: #d00000;"
+              @click="deletePortfolio(item.id)"
+              >delete_outline</md-button
+            >
+          </td>
+          <td @click="goToSummary(item.id)">{{ item.name }}</td>
+          <td @click="goToSummary(item.id)">{{ item.stocks.length }}</td>
+          <td @click="goToSummary(item.id)">{{ item.holdings.length }}</td>
+          <td @click="goToSummary(item.id)">{{ calculatePortfolioValue(item.holdings) }}</td>
+        </tr>
+      </tbody>
+    </table>
     <md-empty-state v-if="portfolios.length === 0" md-label="Create your first portfolio">
       <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Create portfolio</md-button>
     </md-empty-state>
 
-    <md-dialog :md-active.sync="open" :md-fullscreen="false">
+    <md-dialog v-model:md-active="open" :md-fullscreen="false">
       <md-dialog-title
         >Create portfolio
         <md-button class="md-icon close-icon" @click="open = false">close</md-button>
@@ -91,6 +89,9 @@ export default {
     this.loaded = true;
   },
   methods: {
+    goToSummary(id) {
+      this.$router.push(`/portfolios/${id}/summary`);
+    },
     async createPortfolio() {
       this.open = false;
       this.$store.commit('setLoading', true);
@@ -145,10 +146,22 @@ export default {
   position: absolute;
   right: 4%;
 }
-.md-table-head {
-  text-align: center;
+.plain-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.md-table-cell {
+.plain-table th,
+.plain-table td {
   text-align: center;
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.plain-table td:not(.col-del) {
+  cursor: pointer;
+}
+.col-del {
+  max-width: 40px;
+  padding: 0;
+  margin: 0;
 }
 </style>
