@@ -136,3 +136,7 @@ def update_stocks():
     print(
         f"Stock update finished, elapsed time: {round(time.time() - start_time, 2)} seconds"
     )
+
+
+if __name__ == "__main__":
+    cli()

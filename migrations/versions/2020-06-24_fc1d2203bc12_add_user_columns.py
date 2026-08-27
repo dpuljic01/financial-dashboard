@@ -29,7 +29,7 @@ def upgrade():
         "users", sa.Column("last_name", sa.String(length=255), nullable=False)
     )
     op.create_unique_constraint("uq_users_email", "users", ["email"])
-    op.drop_constraint("users_username_key", "users", type_="unique")
+    op.drop_constraint("uq_users_username", "users", type_="unique")
     op.drop_column("users", "username")
     # ### end Alembic commands ###
 
