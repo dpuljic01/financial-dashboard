@@ -29,7 +29,11 @@ export default {
 h4 {
   text-align: left;
 }
+.md-heading,
+.md-title {
+  text-align: left;
+}
 .md-heading {
-  margin: 30px auto;
+  margin: 24px 0 12px;
 }
 </style>

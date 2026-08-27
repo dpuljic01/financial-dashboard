@@ -39,11 +39,16 @@ import { setQuoteSeries, setYAxis, percentChange } from '../../utils';
 import Area from './Area.vue';
 import { QUOTE_OPTIONS } from '../../consts';
 
+// Matches the backend's yfinance history cache timeout, so the localStorage
+// cache never holds data staler than what a fresh request would return anyway.
+const TREND_CACHE_TTL_MS = 5 * 60 * 1000;
+
 export default {
   name: 'TrendChart',
   components: {
     Area,
   },
+  emits: ['loaded'],
   data() {
     return {
       symbols: ['EURUSD=X', '^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f', '^vix'], // most popular indexes
@@ -60,24 +65,28 @@ export default {
   methods: {
     async fetchStockHistory(reload = false) {
       this.loaded = false;
+      this.$emit('loaded', false);
       this.trendData = [];
       const data = await this.fetchTrendData(reload);
       const series = setQuoteSeries(data);
       this.setTrendData(series);
       this.loaded = true;
+      this.$emit('loaded', true);
     },
     async fetchTrendData(reload) {
-      let data = reload ? null : JSON.parse(localStorage.getItem('_trendData'));
-      if (!data || Object.keys(data).length === 0) {
-        const resp = await this.$store.dispatch('getStockHistoryData', {
-          symbols: this.symbols.join(),
-          interval: this.interval,
-          period: this.period,
-          include_info: false,
-        });
-        data = resp.data;
-        localStorage.setItem('_trendData', JSON.stringify(data));
+      const cached = reload ? null : JSON.parse(localStorage.getItem('_trendData'));
+      const isFresh = cached && cached.timestamp && Date.now() - cached.timestamp < TREND_CACHE_TTL_MS;
+      if (isFresh && Object.keys(cached.data).length > 0) {
+        return cached.data;
       }
+      const resp = await this.$store.dispatch('getStockHistoryData', {
+        symbols: this.symbols.join(),
+        interval: this.interval,
+        period: this.period,
+        include_info: false,
+      });
+      const { data } = resp;
+      localStorage.setItem('_trendData', JSON.stringify({ data, timestamp: Date.now() }));
       return data;
     },
     setTrendData(series) {
@@ -94,7 +103,7 @@ export default {
         const chartData = {
           name,
           label: symbol,
-          price: `$${latestPrice.toString()}`, // last value is the newest
+          price: `$${(+latestPrice).toFixed(2)}`, // last value is the newest
           color: positiveTrend ? 'green' : 'red',
           change: changePercent ? changePercent.toFixed(2) : 'NA',
           serie: series[i],

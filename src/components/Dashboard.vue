@@ -3,14 +3,12 @@
     <div>
       <Search @search="searchQuote($event)"></Search>
     </div>
-    <h2 class="md-heading">Market overview</h2>
-    <TrendChart />
+    <h2 v-if="marketOverviewLoaded" class="md-heading">Market overview</h2>
+    <TrendChart @loaded="marketOverviewLoaded = $event" />
     <div v-if="Object.keys(portfolio).length !== 0">
       <h2 class="md-heading">Portfolio summary</h2>
-      <label style="text-align: left;"
-        >Choose portfolio: <strong>{{ portfolio.name }}</strong></label
-      >
-      <md-menu style="text-align: left;" :md-offset-x="150" :md-offset-y="-50">
+      <label>Choose portfolio: <strong>{{ portfolio.name }}</strong></label>
+      <md-menu :md-offset-x="150" :md-offset-y="-50">
         <md-button class="md-icon md-accent" md-menu-trigger>
           <md-icon>keyboard_arrow_down</md-icon>
         </md-button>
@@ -74,6 +72,7 @@ export default {
   data() {
     return {
       loaded: false,
+      marketOverviewLoaded: false,
       hasHoldings: false,
       portfolios: [],
       portfolio: {},
