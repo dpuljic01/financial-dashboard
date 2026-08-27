@@ -1,10 +1,8 @@
-from bs4 import BeautifulSoup
-
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 from webargs import fields
 from webargs.flaskparser import use_args
-from server.apis.nasdaq import Nasdaq
+from server.apis.yfinance import get_stock_news
 from server.decorators import check_confirmed
 from server.extensions import cache
 from server.models import Portfolio
@@ -14,6 +12,16 @@ bp = Blueprint("news", __name__, url_prefix="/api/news")
 
 def make_cache_key(*args, **kwargs):
     return request.url
+
+
+def _has_news_data(response):
+    # Same rationale as tickers.py's history cache filter: a flaky/rate-
+    # limited yfinance response shouldn't get cached empty for 2 hours.
+    try:
+        data = response.get_json()
+    except Exception:
+        return False
+    return bool(data)
 
 
 @bp.route("", methods=["GET"])
@@ -33,7 +41,9 @@ def get_news():
 @bp.route("/scrape", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=60 * 60 * 2, key_prefix=make_cache_key)  # 2 hours cached
+@cache.cached(
+    timeout=60 * 60 * 2, key_prefix=make_cache_key, response_filter=_has_news_data
+)  # 2 hours cached
 @use_args(
     {
         "symbols": fields.DelimitedList(fields.Str(), required=True),
@@ -43,24 +53,7 @@ def get_news():
 def scrape_news(args):
     data = []
     for symbol in args["symbols"]:
-        r = Nasdaq.get_headlines(symbol)
-        news = BeautifulSoup(r.text, "html.parser")
-        articles = news.find_all(class_="quote-news-headlines__item")
-        for article in articles:
-            date = article.find(class_="quote-news-headlines__date").text
-            provider = "Press release"  # TODO: remove this
-            headline = article.find(class_="quote-news-headlines__item-title").span.text
-            link = article.a["href"]
-            obj = {
-                "symbol": symbol,
-                "date_posted": date,
-                "provider": provider,
-                "headline": headline,
-                "link": f"https://nasdaq.com/{link}",
-            }
-            data.append(obj)
+        data.extend(get_stock_news(symbol))
 
-    # TODO: save news to MongoDB and fetch new ones from API only one-two times a day
-    # tickers_collection = pymongo.collection.Collection(mongo_db, "news")
     sort_by_symbol = sorted(data, key=lambda k: k["symbol"])
     return jsonify(sort_by_symbol)

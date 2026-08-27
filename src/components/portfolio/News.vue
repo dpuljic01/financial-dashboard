@@ -30,7 +30,7 @@
       >
         <md-card-header>
           <div class="md-caption">
-            <strong>{{ article.symbol }}</strong> - {{ article.date_posted }} | {{ article.provider }}
+            <strong>{{ article.symbol }}</strong> - {{ formatDate(article.date_posted) }} | {{ article.provider }}
           </div>
         </md-card-header>
 
@@ -47,6 +47,8 @@
 </template>
 
 <script>
+import moment from 'moment';
+
 export default {
   name: 'News',
   props: {
@@ -89,6 +91,10 @@ export default {
       const resp = await this.$store.dispatch('getNews', { symbols: this.tickers.join() });
       this.news = resp.data;
       this.filteredNews = this.news;
+    },
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      return moment(dateStr).format('MMM D, YYYY');
     },
   },
 };

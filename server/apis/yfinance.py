@@ -90,6 +90,36 @@ def search_symbols(query, max_results=8):
     ]
 
 
+def get_stock_news(ticker, max_results=8):
+    # Replaces the old Nasdaq HTML-scraping approach (nasdaq.com's
+    # news-headlines-fetcher endpoint now just serves a "Maintenance" page,
+    # so BeautifulSoup always found zero matching elements). yfinance's
+    # own .news surfaces Yahoo Finance's article feed directly.
+    try:
+        items = yf.Ticker(ticker).news or []
+    except Exception:
+        log.exception("Failed to fetch news for ticker %s", ticker)
+        return []
+    articles = []
+    for item in items[:max_results]:
+        content = item.get("content") or {}
+        title = content.get("title")
+        link = (content.get("canonicalUrl") or content.get("clickThroughUrl") or {}).get("url")
+        if not title or not link:
+            continue
+        provider = (content.get("provider") or {}).get("displayName") or "Yahoo Finance"
+        articles.append(
+            {
+                "symbol": ticker,
+                "headline": title,
+                "date_posted": content.get("pubDate", ""),
+                "provider": provider,
+                "link": link,
+            }
+        )
+    return articles
+
+
 def get_quote(ticker):
     # pandas_datareader's get_quote_yahoo hits a Yahoo endpoint that's been
     # broken for years (hangs/errors unpredictably); fast_info is yfinance's
