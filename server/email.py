@@ -15,6 +15,17 @@ log = logging.getLogger(__name__)
 # well past gunicorn's worker timeout.
 SMTP_TIMEOUT_SECONDS = 10
 
+_original_getaddrinfo = socket.getaddrinfo
+
+
+def _ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    # Render's containers have no outbound IPv6 route. smtplib tries only
+    # the first address getaddrinfo returns and gives up rather than
+    # falling back, and DNS for smtp.gmail.com resolves an AAAA (IPv6)
+    # record first, so every send failed with "Network is unreachable".
+    # Restricting to AF_INET here forces IPv4, which is actually routable.
+    return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
 
 def _render_email(filename, **kwargs):
     return render_template(filename, **kwargs)
@@ -30,6 +41,7 @@ def send_mail(subject, recipients, html_body):
     previous_timeout = socket.getdefaulttimeout()
     try:
         socket.setdefaulttimeout(SMTP_TIMEOUT_SECONDS)
+        socket.getaddrinfo = _ipv4_only_getaddrinfo
         mail.send(msg)
     except Exception:
         # A slow/unreachable SMTP server shouldn't take down the request
@@ -37,6 +49,7 @@ def send_mail(subject, recipients, html_body):
         log.exception("Failed to send email: %s", subject)
     finally:
         socket.setdefaulttimeout(previous_timeout)
+        socket.getaddrinfo = _original_getaddrinfo
 
 
 def send_verify_email(**kwargs):
