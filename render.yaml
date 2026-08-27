@@ -7,7 +7,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.9"
       - key: NODE_VERSION
-        value: "18"
+        value: "22"
       - key: VUE_APP_API_URL
         value: /api
       - key: SHOULD_PROXY
