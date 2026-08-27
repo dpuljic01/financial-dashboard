@@ -13,7 +13,7 @@ def fetch_stock_history(
     for ticker in tickers:
         data = yf.Ticker(ticker)
         history = data.history(
-            period=period, interval=interval, start=start, end=end, group_by="ticker"
+            period=period, interval=interval, start=start, end=end
         )
         history = history[~history.index.duplicated(keep="last")]
         history_json = json.loads(history.to_json(orient="columns", date_format="iso"))
