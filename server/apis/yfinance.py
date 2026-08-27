@@ -4,7 +4,6 @@ import yfinance as yf
 import json
 from server.extensions import db
 from server.models import Stock
-import pandas_datareader as pdr
 import pandas as pd
 
 log = logging.getLogger(__name__)
@@ -72,5 +71,22 @@ def fetch__stock_calendar(ticker):
 
 
 def get_quote(ticker):
-    data = pdr.get_quote_yahoo(ticker)
-    return json.loads(data.to_json(orient="index"))
+    # pandas_datareader's get_quote_yahoo hits a Yahoo endpoint that's been
+    # broken for years (hangs/errors unpredictably); fast_info is yfinance's
+    # own lightweight quote data and is reliable. Key names mirror the old
+    # regularMarket* fields from Yahoo's quote API so slugify_keys() (which
+    # strips the "regularMarket" prefix) keeps producing the same
+    # price/changepercent/volume keys the frontend already expects.
+    info = yf.Ticker(ticker).fast_info
+    price = info.last_price
+    previous_close = info.previous_close
+    change_percent = (
+        (price - previous_close) / previous_close * 100 if previous_close else None
+    )
+    return {
+        ticker: {
+            "regularMarketPrice": price,
+            "regularMarketChangePercent": change_percent,
+            "regularMarketVolume": info.last_volume,
+        }
+    }
