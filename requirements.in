@@ -1,6 +1,6 @@
 flask
 flask-cors
-flask-mail
+requests
 gunicorn
 flask-script
 flask-babelex

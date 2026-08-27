@@ -32,17 +32,10 @@ class Config:
     )  # prod https://cloud.iexapis.com/
     IEX_TOKEN = os.getenv("IEX_TOKEN")
 
-    # Flask-Mail SMTP server settings
-    MAIL_SERVER = os.getenv("MAIL_SERVER")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 465))
-    MAIL_USE_TLS = False
-    MAIL_USE_SSL = True
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-    # Must match the authenticated MAIL_USERNAME account - most SMTP
-    # providers (Gmail included) reject sends where the From address isn't
-    # the authenticated account or one of its configured aliases.
-    MAIL_DEFAULT_SENDER = ("Financial Dashboard", MAIL_USERNAME)
+    # Resend (https://resend.com) sends over HTTPS - unlike raw SMTP, this
+    # isn't subject to hosting providers blocking outbound SMTP ports.
+    RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+    RESEND_FROM = os.getenv("RESEND_FROM", "Financial Dashboard <onboarding@resend.dev>")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379")
 
@@ -75,7 +68,6 @@ class DevelopmentConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
     FLASK_ENV = "development"
-    # MAIL_SUPPRESS_SEND = True
 
 
 class TestingConfig(Config):

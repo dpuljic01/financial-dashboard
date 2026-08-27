@@ -21,7 +21,6 @@ def register_extensions(app):
     from server.extensions import (
         db,
         migrate,
-        mail,
         babel,
         cors,
         jwt,
@@ -31,7 +30,6 @@ def register_extensions(app):
 
     db.init_app(app)
     migrate.init_app(app, db)
-    mail.init_app(app)
     babel.init_app(app)
 
     cors.init_app(

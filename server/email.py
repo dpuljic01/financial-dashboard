@@ -1,30 +1,12 @@
-from flask import current_app
 import logging
-import socket
 
-from flask import render_template
-from flask_mail import Message
-
-from server.extensions import mail
-
+import requests
+from flask import current_app, render_template
 
 log = logging.getLogger(__name__)
 
-# flask-mail doesn't pass a timeout to smtplib, so a blocked/slow SMTP
-# connection would otherwise hang on the OS default (effectively forever),
-# well past gunicorn's worker timeout.
-SMTP_TIMEOUT_SECONDS = 10
-
-_original_getaddrinfo = socket.getaddrinfo
-
-
-def _ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-    # Render's containers have no outbound IPv6 route. smtplib tries only
-    # the first address getaddrinfo returns and gives up rather than
-    # falling back, and DNS for smtp.gmail.com resolves an AAAA (IPv6)
-    # record first, so every send failed with "Network is unreachable".
-    # Restricting to AF_INET here forces IPv4, which is actually routable.
-    return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+RESEND_API_URL = "https://api.resend.com/emails"
+REQUEST_TIMEOUT_SECONDS = 10
 
 
 def _render_email(filename, **kwargs):
@@ -32,24 +14,28 @@ def _render_email(filename, **kwargs):
 
 
 def send_mail(subject, recipients, html_body):
-    msg = Message(
-        subject,
-        recipients=recipients,
-        sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
-    )
-    msg.html = html_body
-    previous_timeout = socket.getdefaulttimeout()
+    api_key = current_app.config.get("RESEND_API_KEY")
+    if not api_key:
+        log.warning("RESEND_API_KEY not set, skipping email: %s", subject)
+        return
+
     try:
-        socket.setdefaulttimeout(SMTP_TIMEOUT_SECONDS)
-        socket.getaddrinfo = _ipv4_only_getaddrinfo
-        mail.send(msg)
+        response = requests.post(
+            RESEND_API_URL,
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "from": current_app.config.get("RESEND_FROM"),
+                "to": recipients,
+                "subject": subject,
+                "html": html_body,
+            },
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
     except Exception:
-        # A slow/unreachable SMTP server shouldn't take down the request
-        # (or the gunicorn worker, via a timeout) that triggered this email.
+        # A failing email provider shouldn't take down the request that
+        # triggered it (registration, password reset, ...).
         log.exception("Failed to send email: %s", subject)
-    finally:
-        socket.setdefaulttimeout(previous_timeout)
-        socket.getaddrinfo = _original_getaddrinfo
 
 
 def send_verify_email(**kwargs):

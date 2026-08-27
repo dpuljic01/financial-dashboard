@@ -28,11 +28,9 @@ services:
         sync: false
       - key: MONGO_DB_CONNECTION_STRING
         sync: false
-      - key: MAIL_SERVER
+      - key: RESEND_API_KEY
         sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
+      - key: RESEND_FROM
         sync: false
       - key: ALPHA_VANTAGE_API_KEY
         sync: false
