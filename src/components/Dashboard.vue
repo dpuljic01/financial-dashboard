@@ -12,7 +12,7 @@
       >
       <md-menu style="text-align: left;" :md-offset-x="150" :md-offset-y="-50">
         <md-button class="md-icon md-accent" md-menu-trigger>
-          keyboard_arrow_down
+          <md-icon>keyboard_arrow_down</md-icon>
         </md-button>
         <md-menu-content>
           <md-menu-item v-for="p in portfolios" :key="p.id" @click="switchPortfolio(p.id)">

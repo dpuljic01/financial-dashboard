@@ -1,8 +1,5 @@
-import json
 from flask_jwt_extended import jwt_required
 
-import pymongo
-from bson.json_util import dumps
 from flask import Blueprint, jsonify, request
 from webargs import fields
 from webargs.flaskparser import use_args
@@ -16,13 +13,26 @@ from server.apis.yfinance import (
     fetch_stock_info,
     get_quote,
     get_stock_recommendations,
+    search_symbols,
 )
 from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
 from server.extensions import cache, db
-from server.mongo_db import mongo_db
 
 bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
+
+
+def _has_stock_history_data(response):
+    # Yahoo Finance occasionally rate-limits/blocks a request and returns
+    # empty history for every ticker; without this, that empty result gets
+    # cached for 5 minutes and served to every user until it expires.
+    try:
+        data = response.get_json()
+    except Exception:
+        return False
+    if not data:
+        return False
+    return any(ticker_data.get("Close") for ticker_data in data.values())
 
 
 def make_cache_key(*args, **kwargs):
@@ -118,7 +128,9 @@ def get_company_info(symbol):
 @bp.route("/yfinance", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
+@cache.cached(
+    timeout=60 * 5, key_prefix=make_cache_key, response_filter=_has_stock_history_data
+)
 @use_args(
     {
         "period": fields.Str(missing="2d"),
@@ -163,7 +175,6 @@ def search_iex_companies(args):
     return jsonify(symbol)
 
 
-# this search queries mongo_db
 @bp.route("/search", methods=["GET"])
 @use_args(
     {
@@ -171,22 +182,8 @@ def search_iex_companies(args):
     },
     location="query",
 )
-def aggregate_search_mongodb(args):
-    tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
-    symbols = tickers_collection.aggregate(
-        [
-            {
-                "$match": {
-                    "$or": [
-                        {"symbol": {"$regex": f"^{args['q']}", "$options": "$i"}},
-                        {"name": {"$regex": f"^{args['q']}", "$options": "$i"}},
-                    ]
-                },
-            },
-            {"$limit": 5},
-        ]
-    )
-    return jsonify(json.loads(dumps(symbols)))
+def search_symbols_view(args):
+    return jsonify(search_symbols(args["q"]))
 
 
 @bp.route("/alpha-timeseries", methods=["GET"])

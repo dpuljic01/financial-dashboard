@@ -1,29 +1,45 @@
 <template>
   <div class="simple-search">
-    <label v-if="placeholder">{{ placeholder }}</label>
-    <div class="simple-search-input-row">
+    <div class="simple-search-input-row" :class="{ 'simple-search-input-row--focused': focused }">
+      <i class="md-icon md-icon-font simple-search-icon">search</i>
       <input
         type="text"
         class="simple-search-input"
+        :placeholder="placeholder"
         v-model="query"
         @input="onInput"
         @keyup.enter="submitTyped"
-        @focus="showDropdown = true"
+        @focus="onFocus"
         @blur="onBlur"
       />
-      <md-button class="md-icon-button md-dense" v-if="query" @click="submitTyped">
-        <md-icon>add</md-icon>
-      </md-button>
+      <div v-if="loading" class="simple-search-spinner"></div>
+      <button
+        v-else-if="query"
+        type="button"
+        class="simple-search-add"
+        title="Add symbol as typed"
+        @mousedown.prevent="submitTyped"
+      >
+        <i class="md-icon md-icon-font">add</i>
+      </button>
     </div>
     <ul v-if="showDropdown && tickers.length > 0" class="simple-search-dropdown">
       <li v-for="ticker in tickers" :key="ticker.symbol" @mousedown.prevent="select(ticker)">
-        {{ ticker.symbol }} - {{ ticker.name }}
+        <span class="simple-search-symbol">{{ ticker.symbol }}</span>
+        <span class="simple-search-name">{{ ticker.name }}</span>
+      </li>
+    </ul>
+    <ul v-else-if="showDropdown && query && !loading" class="simple-search-dropdown">
+      <li class="simple-search-empty">
+        No matches - press <strong>Enter</strong> or tap + to add "{{ query.toUpperCase() }}" anyway
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+const DEBOUNCE_MS = 250;
+
 export default {
   name: 'Search',
   props: {
@@ -36,15 +52,28 @@ export default {
     query: '',
     tickers: [],
     showDropdown: false,
+    focused: false,
+    loading: false,
+    debounceTimer: null,
   }),
   methods: {
-    async onInput() {
+    onFocus() {
+      this.focused = true;
+      this.showDropdown = true;
+    },
+    onInput() {
+      clearTimeout(this.debounceTimer);
       if (!this.query) {
         this.tickers = [];
+        this.loading = false;
         return;
       }
-      const resp = await this.$store.dispatch('search', { q: this.query });
-      this.tickers = resp.data.map((ticker) => ({ symbol: ticker.symbol, name: ticker.name }));
+      this.loading = true;
+      this.debounceTimer = setTimeout(async () => {
+        const resp = await this.$store.dispatch('search', { q: this.query });
+        this.tickers = resp.data.map((ticker) => ({ symbol: ticker.symbol, name: ticker.name }));
+        this.loading = false;
+      }, DEBOUNCE_MS);
     },
     select(ticker) {
       this.reset();
@@ -57,14 +86,17 @@ export default {
       this.$emit('search', { symbol, short_name: symbol });
     },
     onBlur() {
+      this.focused = false;
       // delay so a mousedown on a dropdown item registers before it disappears
       setTimeout(() => {
         this.showDropdown = false;
       }, 150);
     },
     reset() {
+      clearTimeout(this.debounceTimer);
       this.query = '';
       this.tickers = [];
+      this.loading = false;
       this.showDropdown = false;
     },
   },
@@ -75,49 +107,114 @@ export default {
 .simple-search {
   position: relative;
   width: 100%;
-  max-width: 100%;
+  max-width: 420px;
   text-align: left;
-}
-.simple-search label {
-  display: block;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.54);
-  margin-bottom: 4px;
 }
 .simple-search-input-row {
   display: flex;
   align-items: center;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 24px;
+  padding: 0 8px 0 16px;
+  height: 44px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.simple-search-input-row--focused {
+  border-color: #116468;
+  box-shadow: 0 2px 8px rgba(17, 100, 104, 0.2);
+}
+.simple-search-icon {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 20px !important;
+  margin-right: 8px;
 }
 .simple-search-input {
   flex: 1;
   border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
-  padding: 8px 4px;
-  font-size: 16px;
   outline: none;
+  font-size: 15px;
+  background: transparent;
+  height: 100%;
 }
-.simple-search-input:focus {
-  border-bottom: 2px solid #116468;
+.simple-search-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #116468;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.simple-search-add .md-icon {
+  color: #fff;
+  font-size: 18px !important;
+}
+.simple-search-add:hover {
+  background: #0a4547;
+}
+.simple-search-spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 2px solid rgba(17, 100, 104, 0.2);
+  border-top-color: #116468;
+  border-radius: 50%;
+  animation: simple-search-spin 0.7s linear infinite;
+}
+@keyframes simple-search-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .simple-search-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
   z-index: 20;
   background: #fff;
   list-style: none;
   margin: 0;
-  padding: 4px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  max-height: 240px;
+  padding: 6px 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  max-height: 280px;
   overflow-y: auto;
 }
 .simple-search-dropdown li {
-  padding: 8px 12px;
+  padding: 10px 16px;
   cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
 }
 .simple-search-dropdown li:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(17, 100, 104, 0.08);
+}
+.simple-search-symbol {
+  font-weight: 600;
+  color: #116468;
+  min-width: 56px;
+}
+.simple-search-name {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simple-search-empty {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  cursor: default !important;
+}
+.simple-search-empty:hover {
+  background: transparent !important;
 }
 </style>

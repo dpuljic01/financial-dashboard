@@ -42,3 +42,15 @@
       justify-content: center;
     }
   }
+
+// Modal.vue teleports its content to <body>, outside .centered-container,
+// so these can't be nested under it like the rules above.
+.modal-title {
+  margin: 0 0 16px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}

@@ -25,7 +25,7 @@
               class="md-icon md-raised md-primary"
               style="background-color: #d00000;"
               @click="deletePortfolio(item.id)"
-              >delete_outline</md-button
+              ><md-icon>delete_outline</md-icon></md-button
             >
           </td>
           <td @click="goToSummary(item.id)">{{ item.name }}</td>
@@ -35,40 +35,43 @@
         </tr>
       </tbody>
     </table>
-    <md-empty-state v-if="portfolios.length === 0" md-label="Create your first portfolio">
-      <md-button class="md-primary md-raised" @click="open = true"><md-icon>add</md-icon> Create portfolio</md-button>
-    </md-empty-state>
+    <div v-if="portfolios.length === 0" class="empty-state">
+      <strong class="empty-state-label">Create your first portfolio</strong>
+      <div>
+        <button type="button" class="empty-state-cta" @click="open = true">+ Create portfolio</button>
+      </div>
+    </div>
 
-    <md-dialog v-model:md-active="open" :md-fullscreen="false">
-      <md-dialog-title
-        >Create portfolio
-        <md-button class="md-icon close-icon" @click="open = false">close</md-button>
-      </md-dialog-title>
-      <md-dialog-content>
-        <form @submit.prevent="submit">
-          <md-field>
-            <label for="portfolioName">Portfolio name</label>
-            <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
-          </md-field>
-          <p class="dp-error" v-if="!valid">Must have at least two characters</p>
+    <Modal v-model="open">
+      <h3 class="modal-title">Create portfolio</h3>
+      <form @submit.prevent="submit">
+        <md-field>
+          <label for="portfolioName">Portfolio name</label>
+          <md-input v-model="portfolioName" name="portfolioName" id="portfolioName" autofocus></md-input>
+        </md-field>
+        <p class="dp-error" v-if="!valid">Must have at least two characters</p>
 
-          <md-field>
-            <label>Additional info (Optional)</label>
-            <md-textarea v-model="info"></md-textarea>
-          </md-field>
-          <md-dialog-actions>
-            <md-button class="md-raised" @click="open = false">Cancel</md-button>
-            <md-button class="md-raised md-primary" type="submit">Save</md-button>
-          </md-dialog-actions>
-        </form>
-      </md-dialog-content>
-    </md-dialog>
+        <md-field>
+          <label>Additional info (Optional)</label>
+          <md-textarea v-model="info"></md-textarea>
+        </md-field>
+        <div class="modal-actions">
+          <md-button class="md-raised" @click="open = false">Cancel</md-button>
+          <md-button class="md-raised md-primary" type="submit">Save</md-button>
+        </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script>
+import Modal from './Modal.vue';
+
 export default {
   name: 'MyPortfolios',
+  components: {
+    Modal,
+  },
   data() {
     return {
       open: false,
@@ -116,13 +119,12 @@ export default {
       }
       return price;
     },
-    deletePortfolio(pId) {
-      this.$confirm('Are you sure about that?').then(async () => {
-        this.$store.commit('setLoading', true);
-        await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
-        this.portfolios = await this.$store.dispatch('getPortfolios');
-        this.$store.commit('setLoading', false);
-      });
+    async deletePortfolio(pId) {
+      if (!window.confirm('Are you sure about that?')) return;
+      this.$store.commit('setLoading', true);
+      await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
+      this.portfolios = await this.$store.dispatch('getPortfolios');
+      this.$store.commit('setLoading', false);
     },
   },
   watch: {
@@ -163,5 +165,37 @@ export default {
   max-width: 40px;
   padding: 0;
   margin: 0;
+}
+.modal-title {
+  margin: 0 0 16px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+}
+.empty-state-label {
+  display: block;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.empty-state-cta {
+  background: #116468;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.empty-state-cta:hover {
+  background: #0a383a;
 }
 </style>

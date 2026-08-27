@@ -17,6 +17,7 @@
 <script>
 export default {
   name: 'TabBar',
+  compatConfig: { MODE: 3 },
   props: {
     tabs: {
       // [{ id, label }]

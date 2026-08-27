@@ -70,6 +70,26 @@ def fetch__stock_calendar(ticker):
     return stock.calendar
 
 
+def search_symbols(query, max_results=8):
+    # Replaces the old MongoDB-backed ticker search (populated from IEX
+    # Cloud, which shut down in 2024 and left that collection permanently
+    # empty). yfinance's Search hits Yahoo's own search endpoint directly -
+    # real, current results, no separate data source to maintain.
+    try:
+        results = yf.Search(query, max_results=max_results).quotes
+    except Exception:
+        log.exception("Failed to search symbols for query %s", query)
+        return []
+    return [
+        {
+            "symbol": item["symbol"],
+            "name": item.get("shortname") or item.get("longname") or item["symbol"],
+        }
+        for item in results
+        if item.get("symbol")
+    ]
+
+
 def get_quote(ticker):
     # pandas_datareader's get_quote_yahoo hits a Yahoo endpoint that's been
     # broken for years (hangs/errors unpredictably); fast_info is yfinance's

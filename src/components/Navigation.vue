@@ -120,7 +120,14 @@ export default {
 }
 
 .app-content {
-  padding-top: 64px;
+  padding: 80px 24px 40px;
   min-height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .app-content {
+    padding: 76px 16px 32px;
+  }
 }
 </style>

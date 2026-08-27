@@ -12,7 +12,9 @@
       <tbody>
         <tr v-for="stock in currentPortfolio.stocks" :key="stock.id">
           <td class="col-add">
-            <md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)">add</md-button>
+            <md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)"
+              ><md-icon>add</md-icon></md-button
+            >
           </td>
           <td>{{ stock.ticker }}</td>
           <td>{{ getNumberOfShares(stock.id) }}</td>
@@ -20,42 +22,42 @@
         </tr>
       </tbody>
     </table>
-    <md-dialog v-model:md-active="open" :md-fullscreen="false">
-      <md-dialog-title
-        >Add holding
-        <md-button class="md-icon close-icon" @click="open = false">close</md-button>
-      </md-dialog-title>
-      <md-dialog-content>
-        <form @submit.prevent="submit">
-          <md-field>
-            <label for="shares">Number of shares</label>
-            <md-input type="number" step="any" v-model="newShares" name="shares" id="shares" autofocus></md-input>
-          </md-field>
-          <p class="dp-error" v-if="!valid">Must be greater than zero</p>
+    <Modal v-model="open">
+      <h3 class="modal-title">Add holding</h3>
+      <form @submit.prevent="submit">
+        <md-field>
+          <label for="shares">Number of shares</label>
+          <md-input type="number" step="any" v-model="newShares" name="shares" id="shares" autofocus></md-input>
+        </md-field>
+        <p class="dp-error" v-if="!valid">Must be greater than zero</p>
 
-          <md-field>
-            <label for="average">Average price (USD)</label>
-            <md-input type="number" step="any" v-model="average" name="average" id="average"></md-input>
-          </md-field>
-          <p class="dp-error" v-if="!valid">Must be greater than zero</p>
+        <md-field>
+          <label for="average">Average price (USD)</label>
+          <md-input type="number" step="any" v-model="average" name="average" id="average"></md-input>
+        </md-field>
+        <p class="dp-error" v-if="!valid">Must be greater than zero</p>
 
-          <md-field>
-            <label for="purchased">Purchased on</label>
-            <md-datepicker name="purchased" v-model="purchasedOn" />
-          </md-field>
-          <md-dialog-actions>
-            <md-button class="md-raised" @click="open = false">Cancel</md-button>
-            <md-button class="md-raised md-primary" type="submit">Save</md-button>
-          </md-dialog-actions>
-        </form>
-      </md-dialog-content>
-    </md-dialog>
+        <md-field>
+          <label for="purchased">Purchased on</label>
+          <md-datepicker name="purchased" v-model="purchasedOn" />
+        </md-field>
+        <div class="modal-actions">
+          <md-button class="md-raised" @click="open = false">Cancel</md-button>
+          <md-button class="md-raised md-primary" type="submit">Save</md-button>
+        </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script>
+import Modal from '../Modal.vue';
+
 export default {
   name: 'Holdings',
+  components: {
+    Modal,
+  },
   props: {
     portfolio: {
       type: Object,
@@ -159,5 +161,14 @@ export default {
 }
 .col-add {
   max-width: 50px;
+}
+.modal-title {
+  margin: 0 0 16px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
 }
 </style>

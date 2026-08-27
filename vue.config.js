@@ -32,6 +32,25 @@ module.exports = {
       new webpack.ProvidePlugin({ vue: require.resolve('@vue/compat') }),
     ],
   },
+  chainWebpack: (config) => {
+    // vue-loader auto-detects the @vue/compat alias above and defaults our
+    // own SFCs to Vue 2-compatible template compilation (e.g. v-model on a
+    // component expands to value/input instead of Vue 3's
+    // modelValue/update:modelValue). @vue/compat is only needed for
+    // vue-material's precompiled runtime code, which isn't processed by
+    // vue-loader at all, so force full Vue 3 semantics for everything
+    // vue-loader actually compiles.
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .tap((options) => ({
+        ...options,
+        compilerOptions: {
+          ...(options && options.compilerOptions),
+          compatConfig: { MODE: 3 },
+        },
+      }));
+  },
   devServer: {
     proxy: {
       '/api': {

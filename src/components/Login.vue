@@ -32,25 +32,23 @@
           <router-link to="/register">Register</router-link>
         </p>
       </form>
-      <md-dialog v-model:md-active="showDialog" :md-fullscreen="false">
-        <md-dialog-title class="dp-primary">What's your email address?</md-dialog-title>
-        <md-dialog-content>
-          <p>
-            We will email you a link to reset your password.
-          </p>
-          <form @submit.prevent="onModalSubmit">
-            <md-field>
-              <label for="email">Email</label>
-              <md-input v-model="resetEmail" autofocus type="email" name="email"></md-input>
-            </md-field>
-            <p class="dp-error" v-if="msg.resetEmail">Invalid email address</p>
-            <md-dialog-actions>
-              <md-button class="md-raised" @click="showDialog = false">Cancel</md-button>
-              <md-button class="md-raised md-primary" type="submit">Send</md-button>
-            </md-dialog-actions>
-          </form>
-        </md-dialog-content>
-      </md-dialog>
+      <Modal v-model="showDialog">
+        <h3 class="modal-title dp-primary">What's your email address?</h3>
+        <p>
+          We will email you a link to reset your password.
+        </p>
+        <form @submit.prevent="onModalSubmit">
+          <md-field>
+            <label for="email">Email</label>
+            <md-input v-model="resetEmail" autofocus type="email" name="email"></md-input>
+          </md-field>
+          <p class="dp-error" v-if="msg.resetEmail">Invalid email address</p>
+          <div class="modal-actions">
+            <md-button class="md-raised" @click="showDialog = false">Cancel</md-button>
+            <md-button class="md-raised md-primary" type="submit">Send</md-button>
+          </div>
+        </form>
+      </Modal>
       <div class="loading-overlay" v-if="this.$store.getters.isLoading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
@@ -61,9 +59,13 @@
 
 <script>
 import { isValidEmail } from '../utils';
+import Modal from './Modal.vue';
 
 export default {
   name: 'Login',
+  components: {
+    Modal,
+  },
   data() {
     return {
       showDialog: false,
