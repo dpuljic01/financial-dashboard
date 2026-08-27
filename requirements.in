@@ -21,8 +21,7 @@ pandas-datareader
 alpha_vantage
 redis
 cryptography
-numpy
-yfinance
+yfinance==1.7.0
 webargs
 flask-jwt-extended
 iexfinance
@@ -32,5 +31,4 @@ dnspython
 newrelic
 flask-compress
 bs4
-yfinance
 python-slugify
