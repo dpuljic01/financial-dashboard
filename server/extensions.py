@@ -26,20 +26,20 @@ compress = Compress()
 
 
 @jwt.unauthorized_loader  # override default "msg" key to be "message"
-def my_expired_token_callback(unauthorized):
+def unauthorized_callback(unauthorized):
     return jsonify({"message": unauthorized}), 401
 
 
 @jwt.expired_token_loader
-def my_expired_token_callback(expired):
-    return jsonify({"message": expired}), 401
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({"message": "Token has expired"}), 401
 
 
 @jwt.invalid_token_loader
-def my_expired_token_callback(invalid):
+def invalid_token_callback(invalid):
     return jsonify({"message": invalid}), 401
 
 
 @jwt.token_in_blocklist_loader
-def check_if_token_in_blacklist(decrypted_token):
-    return BlacklistTokens.check_revoked(decrypted_token)
+def check_if_token_in_blacklist(jwt_header, jwt_payload):
+    return BlacklistTokens.check_revoked(jwt_payload)
