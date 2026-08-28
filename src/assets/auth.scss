@@ -18,11 +18,14 @@
   border-radius: 20px;
   padding: 40px 36px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  text-align: left;
 }
 
 .auth-brand {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
   gap: 10px;
   margin-bottom: 28px;
   color: #116468;
@@ -31,8 +34,15 @@
   font-size: 15px;
 }
 .auth-brand .md-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0 !important;
   color: #116468 !important;
   font-size: 22px !important;
+  line-height: 1 !important;
 }
 
 .auth-title {
@@ -144,6 +154,11 @@
 }
 
 .dp-error {
+  // Global .dp-error (theme.scss) has margin-top: -15px, tuned for
+  // vue-material's md-field layout. Plain inputs here have no floating
+  // label eating vertical space, so that negative margin pulled the error
+  // text up over the input's bottom border instead of sitting below it.
+  margin: 4px 0 0;
   text-align: left;
 }
 

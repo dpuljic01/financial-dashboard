@@ -30,7 +30,6 @@ export default {
   --surface-border: rgba(17, 100, 104, 0.08);
   --surface-shadow: 0 2px 10px rgba(17, 40, 40, 0.06);
   --surface-shadow-hover: 0 10px 24px rgba(17, 40, 40, 0.14);
-  --sidebar-width: 240px;
 }
 #app .md-app {
   min-height: 100vh;

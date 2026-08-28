@@ -50,6 +50,17 @@ def _has_company_info(response):
     return bool(data)
 
 
+def _is_complete_company_info(info):
+    # Under Yahoo rate-limiting, yfinance's .info sometimes returns a sparse
+    # dict (a handful of quote-ish fields) instead of raising - missing
+    # longname/sector/website/longbusinesssummary entirely. Without this
+    # check, that sparse result gets treated as "fetched" and persisted to
+    # the Stock row forever, so the profile stays broken for that ticker
+    # even after Yahoo recovers. Requiring longname is enough to tell a
+    # real scrape apart from the fallback.
+    return bool(info) and bool(info.get("longname"))
+
+
 def make_cache_key(*args, **kwargs):
     return request.url
 
@@ -121,18 +132,22 @@ def get_company_info(symbol):
 
     # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
     if stock:
-        if not stock.company_info:
+        if not _is_complete_company_info(stock.company_info):
             try:
-                stock.company_info = slugify_keys(
-                    fetch_stock_info(symbol)
-                )  # company profile
-                db.session.commit()
+                fresh_info = slugify_keys(fetch_stock_info(symbol))
             except Exception:
                 # Don't let a Yahoo hiccup 500 the whole quote page; the
                 # frontend already renders an empty state for {}, and next
-                # request will retry since nothing empty gets persisted.
+                # request will retry since nothing incomplete gets persisted.
                 log.exception("Failed to fetch company info for ticker %s", symbol)
-                return jsonify({})
+                return jsonify(stock.company_info or {})
+            if _is_complete_company_info(fresh_info):
+                stock.company_info = fresh_info
+                db.session.commit()
+                return jsonify(stock.company_info)
+            # Sparse result - serve it without persisting, so the next
+            # request tries again instead of getting stuck on this forever.
+            return jsonify(fresh_info)
         return jsonify(stock.company_info)
 
     # recommendations = IEXFinance.get_recommendations(symbol)
@@ -142,6 +157,9 @@ def get_company_info(symbol):
     except Exception:
         log.exception("Failed to fetch company info for ticker %s", symbol)
         return jsonify({})
+
+    if not _is_complete_company_info(company_info):
+        return jsonify(company_info)
 
     stock_db = Stock(
         ticker=symbol,

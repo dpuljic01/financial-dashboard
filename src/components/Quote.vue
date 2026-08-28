@@ -108,8 +108,13 @@ export default {
       return [this.quote];
     },
     logoUrl() {
-      const domain = this.formatWebsite(this.companyInfo.website);
-      return domain ? `https://logo.clearbit.com/${domain}` : null;
+      // Keyed off the ticker directly rather than companyInfo.website - the
+      // full Yahoo info scrape this data comes from is unreliable (falls
+      // back to a sparse dict under rate-limiting) and website is one of
+      // the fields that goes missing first, which left the logo blank even
+      // when the rest of the profile loaded fine.
+      if (!this.quote || this.quote[0] === '^') return null;
+      return `https://financialmodelingprep.com/image-stock/${this.quote.toUpperCase()}.png`;
     },
     stats() {
       const c = this.companyInfo;

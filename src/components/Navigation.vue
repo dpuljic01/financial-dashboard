@@ -1,43 +1,37 @@
 <template>
   <div class="app-shell">
-    <nav class="sidebar">
-      <div class="sidebar-brand">
-        <md-icon class="sidebar-brand-icon">insights</md-icon>
-        <span class="sidebar-brand-name">Financial Dashboard</span>
-      </div>
-
-      <div class="sidebar-nav">
-        <router-link to="/dashboard" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/dashboard') }">
-          <md-icon>dashboard</md-icon>
-          <span>Dashboard</span>
-        </router-link>
-        <router-link to="/portfolios" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/portfolios') }">
-          <md-icon>pie_chart</md-icon>
-          <span>Portfolios</span>
-        </router-link>
-        <router-link to="/compare" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/compare') }">
-          <md-icon>multiline_chart</md-icon>
-          <span>Compare</span>
-        </router-link>
-      </div>
-
-      <div class="sidebar-footer">
-        <router-link to="/profile" class="sidebar-link">
-          <md-icon>person_outline</md-icon>
-          <span>{{ this.$store.getters.getCurrentUser.email || 'Profile' }}</span>
-        </router-link>
-        <button type="button" class="sidebar-link sidebar-logout" @click="logout">
-          <md-icon>logout</md-icon>
-          <span>Log out</span>
-        </button>
-      </div>
-    </nav>
-
     <md-toolbar class="md-primary app-toolbar">
       <md-button class="md-icon-button md-dense menu-trigger" @click="toggleMenu" v-if="!menuVisible">
         <md-icon>menu</md-icon>
       </md-button>
-      <span class="md-title">{{ title }}</span>
+      <span class="mobile-title">{{ title }}</span>
+
+      <div class="toolbar-desktop">
+        <router-link to="/dashboard" class="toolbar-brand">
+          <md-icon>insights</md-icon>
+          <span>Financial Dashboard</span>
+        </router-link>
+
+        <nav class="toolbar-nav">
+          <router-link
+            v-for="link in navLinks"
+            :key="link.path"
+            :to="link.path"
+            class="toolbar-nav-link"
+            :class="{ 'toolbar-nav-link--active': isActive(link.path) }"
+          >{{ link.label }}</router-link>
+        </nav>
+
+        <md-menu :md-offset-x="-150" :md-offset-y="8">
+          <md-button class="md-icon-button md-dense toolbar-user-trigger" md-menu-trigger>
+            <md-icon>account_circle</md-icon>
+          </md-button>
+          <md-menu-content>
+            <md-menu-item @click="goToProfile">Profile</md-menu-item>
+            <md-menu-item @click="logout">Log out</md-menu-item>
+          </md-menu-content>
+        </md-menu>
+      </div>
     </md-toolbar>
 
     <md-drawer v-model:md-active="menuVisible" md-swipeable>
@@ -103,6 +97,11 @@ export default {
       menuVisible: false,
       submenuVisible: false,
       title: this.$route.name,
+      navLinks: [
+        { path: '/dashboard', label: 'Dashboard' },
+        { path: '/portfolios', label: 'Portfolios' },
+        { path: '/compare', label: 'Compare' },
+      ],
     };
   },
   watch: {
@@ -119,6 +118,9 @@ export default {
       if (this.$route.path !== path) {
         this.$router.push(path);
       }
+    },
+    goToProfile() {
+      this.$router.push('/profile');
     },
     toggleMenu() {
       this.menuVisible = !this.menuVisible;
@@ -153,6 +155,8 @@ export default {
   left: 0;
   right: 0;
   z-index: 10;
+  display: flex;
+  align-items: center;
 }
 
 .app-content {
@@ -167,119 +171,78 @@ export default {
   }
 }
 
-/* Persistent sidebar, desktop only - mobile keeps the hamburger + drawer
-   above untouched. */
-.sidebar {
+.mobile-title {
+  flex: 1;
+}
+.toolbar-desktop {
   display: none;
 }
 
 @media (min-width: 960px) {
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--sidebar-width, 240px);
-    background: #116468;
-    z-index: 11;
-  }
-  .menu-trigger {
+  .menu-trigger,
+  .mobile-title {
     display: none;
   }
-  .app-toolbar,
-  .app-content {
-    margin-left: var(--sidebar-width, 240px);
+  .toolbar-desktop {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 32px;
   }
 }
 
-.sidebar-brand {
+.toolbar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 64px;
-  padding: 0 20px;
-  box-sizing: border-box;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  flex-shrink: 0;
-}
-.sidebar-brand-icon {
-  color: #fff !important;
-}
-.sidebar-brand-name {
   color: #fff;
-  font-size: 15px;
+  text-decoration: none;
   font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: 0.01em;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 16px 12px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 15px;
   flex-shrink: 0;
 }
+.toolbar-brand :deep(.md-icon) {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0 !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
 
-.sidebar-link {
+.toolbar-nav {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  /* Plain solid white throughout - hierarchy comes from the active pill
-     background below, not from dimming the text/icon color. Any alpha-
-     blended "muted white" over this teal background picks up a visible
-     cyan cast instead of reading as a neutral gray. */
+  gap: 4px;
+  flex: 1;
+}
+.toolbar-nav-link {
+  /* Solid white, not alpha-blended - see .sidebar-link's old note: any
+     alpha white over this teal background picks up a visible cyan cast. */
   color: #fff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  font-family: inherit;
-  background: none;
-  border: none;
-  margin: 0;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
+  padding: 8px 14px;
+  border-radius: 8px;
   transition: background-color 0.15s ease;
 }
-.sidebar-link span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sidebar-link :deep(.md-icon) {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  margin: 0 !important;
-  color: #fff !important;
-  font-size: 20px !important;
-  line-height: 1 !important;
-  flex-shrink: 0;
-}
-.sidebar-link:hover {
+.toolbar-nav-link:hover {
   background: rgba(255, 255, 255, 0.08);
 }
-.sidebar-link--active {
-  background: rgba(255, 255, 255, 0.16);
-  font-weight: 600;
+.toolbar-nav-link--active {
+  background: rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+}
+
+.toolbar-user-trigger {
+  flex-shrink: 0;
+}
+.toolbar-user-trigger :deep(.md-icon) {
+  color: #fff !important;
+  font-size: 26px !important;
 }
 </style>

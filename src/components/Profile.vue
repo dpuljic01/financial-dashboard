@@ -215,4 +215,10 @@ export default {
 form .md-button {
   margin-top: 20px;
 }
+.dp-error {
+  /* Global .dp-error (theme.scss) has margin-top: -15px, tuned for
+     vue-material's md-field layout - wrong here since these are plain
+     inputs with no floating label eating vertical space. */
+  margin: 4px 0 0;
+}
 </style>
