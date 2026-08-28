@@ -61,6 +61,32 @@ def _is_complete_company_info(info):
     return bool(info) and bool(info.get("longname"))
 
 
+def _fetch_company_info_with_fallback(symbol):
+    try:
+        info = slugify_keys(fetch_stock_info(symbol))
+    except Exception:
+        log.exception("Failed to fetch yfinance info for ticker %s", symbol)
+        info = {}
+
+    if _is_complete_company_info(info):
+        return info
+
+    # yfinance's heavier quoteSummary scrape is the specific endpoint Yahoo
+    # rate-limits hardest from datacenter IPs, while lighter endpoints
+    # (quotes/history) keep working - hence sparse info but a fine chart.
+    # Alpha Vantage is a different provider entirely, not subject to that
+    # block, so it's a real fallback rather than retrying the same wall.
+    try:
+        av_info = AlphaVantage.fetch_company_overview(symbol)
+    except Exception:
+        log.exception("Failed to fetch Alpha Vantage overview for ticker %s", symbol)
+        av_info = None
+
+    if not av_info:
+        return info
+    return {**av_info, **info}
+
+
 def make_cache_key(*args, **kwargs):
     return request.url
 
@@ -133,31 +159,20 @@ def get_company_info(symbol):
     # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
     if stock:
         if not _is_complete_company_info(stock.company_info):
-            try:
-                fresh_info = slugify_keys(fetch_stock_info(symbol))
-            except Exception:
-                # Don't let a Yahoo hiccup 500 the whole quote page; the
-                # frontend already renders an empty state for {}, and next
-                # request will retry since nothing incomplete gets persisted.
-                log.exception("Failed to fetch company info for ticker %s", symbol)
-                return jsonify(stock.company_info or {})
+            fresh_info = _fetch_company_info_with_fallback(symbol)
             if _is_complete_company_info(fresh_info):
                 stock.company_info = fresh_info
                 db.session.commit()
                 return jsonify(stock.company_info)
-            # Sparse result - serve it without persisting, so the next
-            # request tries again instead of getting stuck on this forever.
-            return jsonify(fresh_info)
+            # Still sparse (or empty) even after the Alpha Vantage fallback -
+            # serve it without persisting, so the next request tries again
+            # instead of getting stuck on this forever.
+            return jsonify(fresh_info or stock.company_info or {})
         return jsonify(stock.company_info)
 
     # recommendations = IEXFinance.get_recommendations(symbol)
     # company_info.update({"recommendations": recommendations})
-    try:
-        company_info = slugify_keys(fetch_stock_info(symbol))
-    except Exception:
-        log.exception("Failed to fetch company info for ticker %s", symbol)
-        return jsonify({})
-
+    company_info = _fetch_company_info_with_fallback(symbol)
     if not _is_complete_company_info(company_info):
         return jsonify(company_info)
 

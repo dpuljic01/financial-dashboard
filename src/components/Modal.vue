@@ -32,8 +32,11 @@ export default {
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
   z-index: 1000;
 }
 
@@ -42,12 +45,12 @@ export default {
   background: #fff;
   border-radius: 4px;
   padding: 24px;
-  min-width: 320px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
+  width: 100%;
+  max-width: 480px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   text-align: left;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .modal-close {
