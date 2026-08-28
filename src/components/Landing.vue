@@ -1,15 +1,12 @@
 <template>
   <div class="landing">
-    <header class="landing-nav">
-      <div class="landing-brand">
-        <md-icon>insights</md-icon>
-        <span>Financial Dashboard</span>
-      </div>
-      <router-link to="/login" class="landing-nav-link">Log in</router-link>
-    </header>
-
     <section class="hero">
       <div class="hero-copy">
+        <div class="landing-brand">
+          <md-icon>insights</md-icon>
+          <span>Financial Dashboard</span>
+        </div>
+
         <span class="eyebrow">Personal portfolio intelligence</span>
         <h1 class="hero-title">Every holding.<br>Every tick.<br><em>One dashboard.</em></h1>
         <p class="hero-subtitle">
@@ -27,32 +24,17 @@
         </div>
       </div>
 
-      <div class="ticker-tape" aria-hidden="true">
+      <div class="ticker-tape" v-if="tickers.length > 0" aria-hidden="true">
         <div class="ticker-tape-track">
-          <div class="ticker-tape-card up fin" v-for="n in 2" :key="`spx-${n}`">
-            <span class="tt-label">S&amp;P 500</span>
-            <span class="tt-price">5,943.12</span>
-            <span class="tt-change">+0.84%</span>
-          </div>
-          <div class="ticker-tape-card down fin" v-for="n in 2" :key="`nasdaq-${n}`">
-            <span class="tt-label">NASDAQ</span>
-            <span class="tt-price">19,281.45</span>
-            <span class="tt-change">&minus;0.42%</span>
-          </div>
-          <div class="ticker-tape-card up fin" v-for="n in 2" :key="`aapl-${n}`">
-            <span class="tt-label">AAPL</span>
-            <span class="tt-price">312.44</span>
-            <span class="tt-change">+1.86%</span>
-          </div>
-          <div class="ticker-tape-card up fin" v-for="n in 2" :key="`gold-${n}`">
-            <span class="tt-label">GOLD</span>
-            <span class="tt-price">2,415.60</span>
-            <span class="tt-change">+1.12%</span>
-          </div>
-          <div class="ticker-tape-card down fin" v-for="n in 2" :key="`eurusd-${n}`">
-            <span class="tt-label">EUR/USD</span>
-            <span class="tt-price">1.0842</span>
-            <span class="tt-change">&minus;0.18%</span>
+          <div
+            class="ticker-tape-card fin"
+            :class="item.trend"
+            v-for="(item, index) in tapeItems"
+            :key="`${item.symbol}-${index}`"
+          >
+            <span class="tt-label">{{ item.label }}</span>
+            <span class="tt-price">{{ item.price }}</span>
+            <span class="tt-change">{{ item.change }}</span>
           </div>
         </div>
       </div>
@@ -85,11 +67,15 @@
       </div>
     </section>
 
-    <section class="final-cta">
-      <h2>Set it up in under a minute.</h2>
-      <router-link to="/register">
-        <md-button class="md-raised hero-cta-primary">Create free account</md-button>
-      </router-link>
+    <section class="final-cta-wrap">
+      <div class="final-cta">
+        <h2>Set it up in under a minute.</h2>
+        <p>Create a portfolio, add what you hold, and watch it update live.</p>
+        <router-link to="/register">
+          <md-button class="md-raised hero-cta-primary">Create free account</md-button>
+        </router-link>
+        <span class="final-cta-note">No credit card required</span>
+      </div>
     </section>
 
     <footer class="landing-footer">
@@ -99,8 +85,61 @@
 </template>
 
 <script>
+import { getMarketSnapshot } from '../api';
+
+const SNAPSHOT_ORDER = ['^gspc', '^ixic', '^dji', 'gc=f', 'EURUSD=X'];
+const SNAPSHOT_LABELS = {
+  '^gspc': 'S&P 500',
+  '^ixic': 'NASDAQ',
+  '^dji': 'DOW 30',
+  'gc=f': 'Gold',
+  'EURUSD=X': 'EUR/USD',
+};
+
 export default {
   name: 'Landing',
+  data() {
+    return {
+      tickers: [],
+    };
+  },
+  computed: {
+    // Duplicate the whole set once (not each item) so the CSS marquee can
+    // loop seamlessly at translateX(-50%) without any ticker appearing
+    // twice back-to-back.
+    tapeItems() {
+      return [...this.tickers, ...this.tickers];
+    },
+  },
+  async mounted() {
+    try {
+      const resp = await getMarketSnapshot();
+      this.tickers = SNAPSHOT_ORDER
+        .map((symbol) => ({ symbol, quote: resp.data[symbol] }))
+        .filter(({ quote }) => quote && quote.changepercent != null)
+        .map(({ symbol, quote }) => {
+          let trend = 'flat';
+          if (quote.changepercent > 0) trend = 'up';
+          else if (quote.changepercent < 0) trend = 'down';
+          const sign = quote.changepercent > 0 ? '+' : '';
+          return {
+            symbol,
+            label: SNAPSHOT_LABELS[symbol],
+            price: this.formatPrice(quote.price),
+            change: `${sign}${quote.changepercent.toFixed(2)}%`,
+            trend,
+          };
+        });
+    } catch (e) {
+      this.tickers = [];
+    }
+  },
+  methods: {
+    formatPrice(value) {
+      if (value < 10) return value.toFixed(4);
+      return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+  },
 };
 </script>
 
@@ -115,41 +154,27 @@ export default {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- nav ---------- */
-.landing-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 28px 24px 0;
-}
+/* ---------- brand ---------- */
 .landing-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 600;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: 0.01em;
+  margin-bottom: 40px;
 }
 .landing-brand :deep(.md-icon) {
   color: #2fd8d4 !important;
-  font-size: 22px !important;
-}
-.landing-nav-link {
-  color: rgba(234, 243, 241, 0.8);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-.landing-nav-link:hover {
-  color: #fff;
+  font-size: 28px !important;
+  filter: drop-shadow(0 0 10px rgba(47, 216, 212, 0.5));
 }
 
 /* ---------- hero ---------- */
 .hero {
   background: radial-gradient(ellipse 900px 500px at 20% 0%, rgba(0, 170, 173, 0.25), transparent 60%),
     linear-gradient(160deg, #051617 0%, #0c2a2c 55%, #114347 100%);
-  padding: 64px 24px 0;
+  padding: 56px 24px 0;
 }
 .hero-copy {
   max-width: 1180px;
@@ -204,7 +229,7 @@ export default {
   box-shadow: none !important;
 }
 
-/* ---------- ticker tape (signature element) ---------- */
+/* ---------- ticker tape (signature element, real live data) ---------- */
 .ticker-tape {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
@@ -294,25 +319,44 @@ export default {
 }
 
 /* ---------- final CTA ---------- */
+.final-cta-wrap {
+  background: #f5f7f6;
+  padding: 0 24px 80px;
+}
 .final-cta {
-  background: #116468;
-  color: #fff;
+  max-width: 880px;
+  margin: 0 auto;
+  border-radius: 24px;
+  padding: 64px 40px;
   text-align: center;
-  padding: 64px 24px;
+  color: #fff;
+  background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(47, 216, 212, 0.18), transparent 60%),
+    linear-gradient(160deg, #051617 0%, #0c2a2c 55%, #114347 100%);
 }
 .final-cta h2 {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 600;
-  font-size: 30px;
+  font-size: 32px;
+  margin: 0 0 12px;
+}
+.final-cta p {
   margin: 0 0 28px;
+  color: rgba(234, 243, 241, 0.72);
+  font-size: 15px;
+}
+.final-cta-note {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(234, 243, 241, 0.5);
 }
 
 /* ---------- footer ---------- */
 .landing-footer {
-  background: #0a383a;
-  color: rgba(255, 255, 255, 0.5);
+  background: #f5f7f6;
+  color: rgba(15, 34, 36, 0.45);
   text-align: center;
-  padding: 20px;
+  padding: 8px 24px 28px;
   font-size: 13px;
 }
 

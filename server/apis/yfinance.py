@@ -141,6 +141,22 @@ def get_stock_news(ticker, max_results=8):
     return articles
 
 
+def _get_one_quote(ticker):
+    try:
+        return ticker, get_quote(ticker)[ticker]
+    except Exception:
+        log.exception("Failed to fetch quote for ticker %s", ticker)
+        return ticker, None
+
+
+def get_market_snapshot(tickers):
+    # Used by the public landing page ticker tape - lightweight quotes only
+    # (no history), for a small fixed set of indices/commodities/FX.
+    with ThreadPoolExecutor(max_workers=min(len(tickers), MAX_HISTORY_WORKERS)) as executor:
+        results = executor.map(_get_one_quote, tickers)
+        return {ticker: quote for ticker, quote in results if quote}
+
+
 def get_quote(ticker):
     # pandas_datareader's get_quote_yahoo hits a Yahoo endpoint that's been
     # broken for years (hangs/errors unpredictably); fast_info is yfinance's

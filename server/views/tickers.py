@@ -13,6 +13,7 @@ from server.apis.nasdaq import Nasdaq
 from server.apis.yfinance import (
     fetch_stock_history,
     fetch_stock_info,
+    get_market_snapshot,
     get_quote,
     get_stock_recommendations,
     search_symbols,
@@ -211,6 +212,20 @@ def search_iex_companies(args):
 )
 def search_symbols_view(args):
     return jsonify(search_symbols(args["q"]))
+
+
+# Fixed, non-empty set of major indices/commodities/FX for the public landing
+# page's ticker tape - no user input, so no injection surface, and it's the
+# same handful of symbols already shown in the (authenticated) market
+# overview chart.
+MARKET_SNAPSHOT_SYMBOLS = ["^gspc", "^ixic", "^dji", "gc=f", "EURUSD=X"]
+
+
+@bp.route("/public/market-snapshot", methods=["GET"])
+@cache.cached(timeout=60, key_prefix=make_cache_key)
+def public_market_snapshot():
+    snapshot = get_market_snapshot(MARKET_SNAPSHOT_SYMBOLS)
+    return jsonify({ticker: slugify_keys(quote) for ticker, quote in snapshot.items()})
 
 
 @bp.route("/alpha-timeseries", methods=["GET"])

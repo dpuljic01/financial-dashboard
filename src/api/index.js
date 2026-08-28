@@ -6,6 +6,10 @@ export function getUser(accessToken) {
   return axios.get(`${API_URL}/users/self`, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
+export function getMarketSnapshot() {
+  return axios.get(`${API_URL}/stocks/public/market-snapshot`);
+}
+
 export function login(userData) {
   return axios.post(`${API_URL}/session/auth`, userData);
 }
