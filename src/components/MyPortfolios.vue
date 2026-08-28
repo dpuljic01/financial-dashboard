@@ -97,13 +97,19 @@ export default {
       this.$router.push(`/portfolios/${id}/summary`);
     },
     async createPortfolio() {
-      this.open = false;
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      this.portfolios = await this.$store.dispatch('getPortfolios');
-      this.portfolioName = '';
-      this.info = '';
-      this.$store.commit('setLoading', false);
+      try {
+        const portfolio = await this.$store.dispatch('submitNewPortfolio', {
+          name: this.portfolioName,
+          info: this.info,
+        });
+        this.open = false;
+        this.portfolioName = '';
+        this.info = '';
+        this.$router.push(`/portfolios/${portfolio.id}/summary`);
+      } finally {
+        this.$store.commit('setLoading', false);
+      }
     },
     submit() {
       if (this.valid) {

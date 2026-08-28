@@ -1,83 +1,33 @@
 <template>
   <div class="app-shell">
     <md-toolbar class="md-primary app-toolbar">
-      <md-button class="md-icon-button md-dense menu-trigger" @click="toggleMenu" v-if="!menuVisible">
-        <md-icon>menu</md-icon>
-      </md-button>
-      <span class="mobile-title">{{ title }}</span>
+      <router-link to="/dashboard" class="toolbar-brand">
+        <md-icon>insights</md-icon>
+        <span class="toolbar-brand-name">Financial Dashboard</span>
+      </router-link>
 
-      <div class="toolbar-desktop">
-        <router-link to="/dashboard" class="toolbar-brand">
-          <md-icon>insights</md-icon>
-          <span>Financial Dashboard</span>
-        </router-link>
+      <nav class="toolbar-nav">
+        <router-link
+          v-for="link in navLinks"
+          :key="link.path"
+          :to="link.path"
+          class="toolbar-nav-link"
+          :class="{ 'toolbar-nav-link--active': isActive(link.path) }"
+        >{{ link.label }}</router-link>
+      </nav>
 
-        <nav class="toolbar-nav">
-          <router-link
-            v-for="link in navLinks"
-            :key="link.path"
-            :to="link.path"
-            class="toolbar-nav-link"
-            :class="{ 'toolbar-nav-link--active': isActive(link.path) }"
-          >{{ link.label }}</router-link>
-        </nav>
-
-        <md-menu :md-offset-x="-150" :md-offset-y="8">
-          <md-button class="toolbar-user-trigger" md-menu-trigger>
-            <md-icon>account_circle</md-icon>
-            <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
-          </md-button>
-          <md-menu-content>
-            <md-menu-item @click="goToProfile">Profile</md-menu-item>
-            <md-menu-item @click="logout">Log out</md-menu-item>
-          </md-menu-content>
-        </md-menu>
-      </div>
+      <md-menu :md-offset-x="-150" :md-offset-y="8">
+        <md-button class="toolbar-user-trigger" md-menu-trigger>
+          <span class="toolbar-user-avatar">{{ userInitials }}</span>
+          <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
+        </md-button>
+        <md-menu-content>
+          <md-menu-item @click="goToProfile">Profile</md-menu-item>
+          <md-menu-item @click="logout">Log out</md-menu-item>
+        </md-menu-content>
+      </md-menu>
     </md-toolbar>
 
-    <md-drawer v-model:md-active="menuVisible" md-swipeable>
-      <md-toolbar class="md-transparent" md-elevation="0">
-        <span flex>Financial Dashboard</span>
-        <div class="md-toolbar-section-end">
-          <md-button class="md-icon-button md-dense" @click="toggleMenu">
-            <md-icon>menu_open</md-icon>
-          </md-button>
-        </div>
-      </md-toolbar>
-
-      <md-list>
-        <md-list-item @click="goTo('/dashboard')">
-          <md-icon>dashboard</md-icon>
-          <span class="md-list-item-text">Dashboard</span>
-        </md-list-item>
-
-        <md-list-item @click="goTo('/portfolios')">
-          <md-icon>pie_chart</md-icon>
-          <span class="md-list-item-text">Portfolios</span>
-        </md-list-item>
-
-        <md-list-item @click="goTo('/compare')">
-          <md-icon>multiline_chart</md-icon>
-          <span class="md-list-item-text">Compare</span>
-        </md-list-item>
-
-        <md-menu :md-offset-x="200" :md-offset-y="-110">
-          <md-list-item @click="toggleSubmenu" md-menu-trigger>
-            <md-icon>person_outline</md-icon>
-            <span class="md-list-item-text">{{ this.$store.getters.getCurrentUser.email || 'Profile' }}</span>
-            <md-icon>keyboard_arrow_right</md-icon>
-          </md-list-item>
-          <md-menu-content>
-            <md-menu-item @click="goTo('/profile')">
-              Profile
-            </md-menu-item>
-            <md-menu-item @click="logout">
-              Logout
-            </md-menu-item>
-          </md-menu-content>
-        </md-menu>
-      </md-list>
-    </md-drawer>
     <div class="app-content">
       <progress-bar class="progress-bar" v-if="this.$store.getters.isLoading"></progress-bar>
       <router-view></router-view>
@@ -95,9 +45,6 @@ export default {
   },
   data() {
     return {
-      menuVisible: false,
-      submenuVisible: false,
-      title: this.$route.name,
       navLinks: [
         { path: '/dashboard', label: 'Dashboard' },
         { path: '/portfolios', label: 'Portfolios' },
@@ -111,38 +58,25 @@ export default {
       if (!user) return '';
       return user.first_name || user.email || '';
     },
-  },
-  watch: {
-    $route(to) {
-      this.title = to.name;
+    userInitials() {
+      const user = this.$store.getters.getCurrentUser;
+      if (!user) return '?';
+      const first = (user.first_name || '').charAt(0);
+      const last = (user.last_name || '').charAt(0);
+      const initials = `${first}${last}`.toUpperCase();
+      if (initials) return initials;
+      return user.email ? user.email.charAt(0).toUpperCase() : '?';
     },
   },
   methods: {
     isActive(prefix) {
       return this.$route.path === prefix || this.$route.path.startsWith(`${prefix}/`);
     },
-    goTo(path) {
-      this.toggleMenu();
-      if (this.$route.path !== path) {
-        this.$router.push(path);
-      }
-    },
     goToProfile() {
       this.$router.push('/profile');
     },
-    toggleMenu() {
-      this.menuVisible = !this.menuVisible;
-
-      if (this.title !== this.$route.name) {
-        this.title = this.$route.name;
-      }
-    },
-    toggleSubmenu() {
-      this.submenuVisible = !this.submenuVisible;
-    },
     async logout() {
       this.$store.commit('setLoading', true);
-      this.menuVisible = false;
       await this.$store.dispatch('logout');
       this.$store.dispatch('resetState');
       this.$router.replace('/login');
@@ -153,10 +87,6 @@ export default {
 </script>
 
 <style scoped>
-.md-drawer {
-  max-width: 250px;
-}
-
 .app-toolbar {
   position: fixed;
   top: 0;
@@ -165,6 +95,8 @@ export default {
   z-index: 10;
   display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 0 12px;
 }
 
 .app-content {
@@ -179,30 +111,10 @@ export default {
   }
 }
 
-.mobile-title {
-  flex: 1;
-}
-.toolbar-desktop {
-  display: none;
-}
-
-@media (min-width: 960px) {
-  .menu-trigger,
-  .mobile-title {
-    display: none;
-  }
-  .toolbar-desktop {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    gap: 32px;
-  }
-}
-
 .toolbar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   /* !important throughout this block: vue-material's own link/button
      theming otherwise wins over a plain `color` declaration here and the
      text renders as a tinted teal instead of solid white. */
@@ -211,9 +123,6 @@ export default {
   font-weight: 700;
   font-size: 15px;
   flex-shrink: 0;
-}
-.toolbar-brand span {
-  color: #fff !important;
 }
 .toolbar-brand :deep(.md-icon) {
   display: inline-flex !important;
@@ -226,20 +135,37 @@ export default {
   font-size: 22px !important;
   line-height: 1 !important;
 }
+.toolbar-brand-name {
+  display: none;
+  color: #fff !important;
+}
+@media (min-width: 560px) {
+  .toolbar-brand-name {
+    display: inline;
+  }
+}
 
 .toolbar-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.toolbar-nav::-webkit-scrollbar {
+  display: none;
 }
 .toolbar-nav-link {
   color: #fff !important;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  padding: 8px 14px;
+  padding: 7px 10px;
   border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background-color 0.15s ease;
 }
 .toolbar-nav-link:hover {
@@ -248,6 +174,12 @@ export default {
 .toolbar-nav-link--active {
   background: rgba(255, 255, 255, 0.18);
   font-weight: 700;
+}
+@media (min-width: 700px) {
+  .toolbar-nav-link {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
 }
 
 .toolbar-user-trigger {
@@ -258,7 +190,7 @@ export default {
   min-width: 0 !important;
   height: auto !important;
   margin: 0 !important;
-  padding: 6px 14px !important;
+  padding: 4px 6px !important;
   border-radius: 8px !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -266,16 +198,34 @@ export default {
 .toolbar-user-trigger:hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
-.toolbar-user-trigger :deep(.md-icon) {
-  color: #fff !important;
-  font-size: 26px !important;
-  margin: 0 !important;
+.toolbar-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .toolbar-user-name {
+  display: none;
   color: #fff !important;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   white-space: nowrap;
+}
+@media (min-width: 700px) {
+  .toolbar-user-trigger {
+    padding: 6px 12px 6px 6px !important;
+  }
+  .toolbar-user-name {
+    display: inline;
+  }
 }
 </style>

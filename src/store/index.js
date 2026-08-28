@@ -89,8 +89,9 @@ const actions = {
     });
   },
   submitNewPortfolio(context, portfolio) {
-    return api.createNewPortfolio(portfolio, context.state.jwt.access_token).then(() => {
+    return api.createNewPortfolio(portfolio, context.state.jwt.access_token).then((response) => {
       context.dispatch('successMessage');
+      return response.data;
     });
   },
   createNewHolding(context, data) {

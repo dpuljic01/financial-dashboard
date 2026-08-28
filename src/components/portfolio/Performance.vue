@@ -37,6 +37,7 @@
 import moment from 'moment';
 import Area from '../charts/Area.vue';
 import { QUOTE_OPTIONS } from '../../consts';
+import { formatCompactNumber } from '../../utils';
 
 const BENCHMARK_TICKER = '^gspc';
 const BENCHMARK_LABEL = 'S&P 500';
@@ -279,6 +280,11 @@ export default {
           position: 'top',
           horizontalAlign: 'left',
         },
+        yaxis: {
+          labels: {
+            formatter: (val) => `$${formatCompactNumber(val)}`,
+          },
+        },
         tooltip: {
           shared: true,
           x: {
@@ -288,6 +294,18 @@ export default {
             formatter: (val) => `$${(+val).toFixed(2)}`,
           },
         },
+        // Raw dollar labels ("$100,000") eat too much of a narrow mobile
+        // chart's width for what they add - drop them there entirely
+        // rather than just compacting the format further.
+        responsive: [
+          {
+            breakpoint: 768,
+            options: {
+              yaxis: { labels: { show: false } },
+              legend: { position: 'bottom', horizontalAlign: 'center' },
+            },
+          },
+        ],
       };
     },
     formatNumber(val) {
@@ -325,5 +343,16 @@ export default {
 .stat-value {
   font-size: 20px;
   font-weight: 600;
+}
+@media (max-width: 600px) {
+  .performance-stats {
+    gap: 16px 20px;
+  }
+  .stat-label {
+    font-size: 10px;
+  }
+  .stat-value {
+    font-size: 15px;
+  }
 }
 </style>
