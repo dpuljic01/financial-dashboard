@@ -141,3 +141,18 @@ export function percentChange(first, last) {
 export function percent(number, total) {
   return (number / total) * 100;
 }
+
+// Compacts large numbers for display, e.g. 12000000 -> "12M", 32248789 -> "32.25M".
+export function formatCompactNumber(value) {
+  if (value === null || value === undefined || value === '' || Number.isNaN(+value)) return null;
+  const num = +value;
+  const units = [
+    { threshold: 1e12, suffix: 'T' },
+    { threshold: 1e9, suffix: 'B' },
+    { threshold: 1e6, suffix: 'M' },
+    { threshold: 1e3, suffix: 'K' },
+  ];
+  const unit = units.find((u) => Math.abs(num) >= u.threshold);
+  if (!unit) return num.toLocaleString('en-US');
+  return `${(num / unit.threshold).toFixed(2).replace(/\.?0+$/, '')}${unit.suffix}`;
+}

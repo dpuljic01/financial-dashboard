@@ -29,7 +29,7 @@
           <td @click="goToQuote(item.ticker)">
             {{ roundFloat(item.latest_market_data.changepercent) || 'NA' }}
           </td>
-          <td @click="goToQuote(item.ticker)">{{ item.latest_market_data.volume || 'NA' }}</td>
+          <td @click="goToQuote(item.ticker)">{{ formatVolume(item.latest_market_data.volume) || 'NA' }}</td>
         </tr>
       </tbody>
     </table>
@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { formatCompactNumber } from '../../utils';
+
 export default {
   name: 'Summary',
   props: {
@@ -63,6 +65,9 @@ export default {
     roundFloat(val) {
       if (val) return +val.toFixed(2);
       return val;
+    },
+    formatVolume(val) {
+      return formatCompactNumber(val);
     },
     async deleteSymbol(stockId) {
       if (!window.confirm('Delete?')) return;

@@ -1,3 +1,5 @@
+import logging
+
 from flask_jwt_extended import jwt_required
 
 from flask import Blueprint, jsonify, request
@@ -19,6 +21,8 @@ from server.apis.alpha_vantage import AlphaVantage
 from server.decorators import check_confirmed
 from server.extensions import cache, db
 
+log = logging.getLogger(__name__)
+
 bp = Blueprint("tickers", __name__, url_prefix="/api/stocks")
 
 
@@ -33,6 +37,16 @@ def _has_stock_history_data(response):
     if not data:
         return False
     return any(ticker_data.get("Close") for ticker_data in data.values())
+
+
+def _has_company_info(response):
+    # Same problem as above but for company-info: a transient Yahoo failure
+    # returning {} shouldn't get cached and served as "no data" for 5 minutes.
+    try:
+        data = response.get_json()
+    except Exception:
+        return False
+    return bool(data)
 
 
 def make_cache_key(*args, **kwargs):
@@ -99,7 +113,7 @@ def yf_stock_quote(symbol):
 @bp.route("/<string:symbol>/company-info", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=60 * 5, key_prefix=make_cache_key)
+@cache.cached(timeout=60 * 5, key_prefix=make_cache_key, response_filter=_has_company_info)
 def get_company_info(symbol):
     symbol = symbol.upper()
     stock = Stock.query.filter_by(ticker=symbol).one_or_none()
@@ -107,17 +121,30 @@ def get_company_info(symbol):
     # for faster loading, fetch already existing info from DB TODO: see when to update DB with fresh info
     if stock:
         if not stock.company_info:
-            stock.company_info = slugify_keys(
-                fetch_stock_info(symbol)
-            )  # company profile
+            try:
+                stock.company_info = slugify_keys(
+                    fetch_stock_info(symbol)
+                )  # company profile
+                db.session.commit()
+            except Exception:
+                # Don't let a Yahoo hiccup 500 the whole quote page; the
+                # frontend already renders an empty state for {}, and next
+                # request will retry since nothing empty gets persisted.
+                log.exception("Failed to fetch company info for ticker %s", symbol)
+                return jsonify({})
         return jsonify(stock.company_info)
 
     # recommendations = IEXFinance.get_recommendations(symbol)
     # company_info.update({"recommendations": recommendations})
-    company_info = slugify_keys(fetch_stock_info(symbol))
+    try:
+        company_info = slugify_keys(fetch_stock_info(symbol))
+    except Exception:
+        log.exception("Failed to fetch company info for ticker %s", symbol)
+        return jsonify({})
+
     stock_db = Stock(
         ticker=symbol,
-        short_name=company_info["shortname"],
+        short_name=company_info.get("shortname", symbol),
         company_info=company_info,
     )
     db.session.add(stock_db)
