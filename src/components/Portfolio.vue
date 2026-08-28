@@ -1,49 +1,50 @@
 <template>
-  <div v-if="loaded" class="portfolio">
-    <div>
+  <div v-if="loaded" class="page-container">
+    <div class="page-section">
       <Search @search="addSymbol($event)" v-bind:placeholder="'Add symbol'"></Search>
     </div>
-    <div class="md-layout md-size-100">
-      <h3 class="md-title md-layout-item">
+
+    <div class="page-section card-surface portfolio-card">
+      <h3 class="md-title portfolio-heading">
         Portfolio: <strong>{{ portfolio.name }}</strong>
       </h3>
-    </div>
-    <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
+      <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
 
-    <div v-if="path === 'summary'">
-      <md-empty-state
-        v-if="portfolio.stocks.length == 0"
-        md-description="Your list is empty. Add symbols to get relevant info."
-      >
-      </md-empty-state>
-      <Summary v-else :stocks="portfolio.stocks"></Summary>
-    </div>
+      <div v-if="path === 'summary'">
+        <md-empty-state
+          v-if="portfolio.stocks.length == 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <Summary v-else :stocks="portfolio.stocks"></Summary>
+      </div>
 
-    <div v-if="path === 'holdings'">
-      <md-empty-state
-        v-if="portfolio.stocks.length === 0"
-        md-description="Your list is empty. Add symbols to get relevant info."
-      >
-      </md-empty-state>
-      <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
-    </div>
+      <div v-if="path === 'holdings'">
+        <md-empty-state
+          v-if="portfolio.stocks.length === 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
+      </div>
 
-    <div v-if="path === 'news'">
-      <md-empty-state
-        v-if="portfolio.stocks.length === 0"
-        md-description="Your list is empty. Add symbols to get relevant info."
-      >
-      </md-empty-state>
-      <News v-else :tickers="tickers"></News>
-    </div>
+      <div v-if="path === 'news'">
+        <md-empty-state
+          v-if="portfolio.stocks.length === 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <News v-else :tickers="tickers"></News>
+      </div>
 
-    <div v-if="path === 'performance'">
-      <md-empty-state
-        v-if="portfolio.stocks.length === 0"
-        md-description="Your list is empty. Add symbols to get relevant info."
-      >
-      </md-empty-state>
-      <Performance v-else :portfolio="portfolio"></Performance>
+      <div v-if="path === 'performance'">
+        <md-empty-state
+          v-if="portfolio.stocks.length === 0"
+          md-description="Your list is empty. Add symbols to get relevant info."
+        >
+        </md-empty-state>
+        <Performance v-else :portfolio="portfolio"></Performance>
+      </div>
     </div>
   </div>
 </template>
@@ -150,6 +151,12 @@ export default {
 };
 </script>
 <style scoped>
+.portfolio-card {
+  padding: 28px;
+}
+.portfolio-heading {
+  margin-top: 0;
+}
 iframe {
   border: 0px none;
   height: 500px;

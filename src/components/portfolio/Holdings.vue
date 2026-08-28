@@ -1,24 +1,26 @@
 <template>
-  <div v-if="loaded">
-    <table class="plain-table">
+  <div v-if="loaded" class="table-scroll">
+    <table class="fin-table">
       <thead>
         <tr>
-          <th class="col-add">Add</th>
+          <th class="col-add"></th>
           <th>Symbol</th>
-          <th>Shares</th>
-          <th>Worth (USD)</th>
+          <th class="num">Shares</th>
+          <th class="num">Worth (USD)</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="stock in currentPortfolio.stocks" :key="stock.id">
           <td class="col-add">
-            <md-button class="md-icon md-primary md-raised" @click="add(stock.ticker)"
-              ><md-icon>add</md-icon></md-button
-            >
+            <button type="button" class="row-action row-action--add" title="Add holding" @click="add(stock.ticker)">
+              <md-icon>add</md-icon>
+            </button>
           </td>
-          <td>{{ stock.ticker }}</td>
-          <td>{{ getNumberOfShares(stock.id) }}</td>
-          <td>{{ calculatePortfolioValue(currentPortfolio.holdings, stock.id) }}</td>
+          <td><strong>{{ stock.ticker }}</strong></td>
+          <td class="num fin-figure">{{ roundFloat(getNumberOfShares(stock.id)) }}</td>
+          <td class="num fin-figure">
+            {{ formatCurrency(calculatePortfolioValue(currentPortfolio.holdings, stock.id)) }}
+          </td>
         </tr>
       </tbody>
     </table>
@@ -131,6 +133,12 @@ export default {
       }
       return shares;
     },
+    roundFloat(val) {
+      return +val.toFixed(2);
+    },
+    formatCurrency(val) {
+      return `$${val.toFixed(2)}`;
+    },
   },
   watch: {
     portfolio(val) {
@@ -149,18 +157,60 @@ export default {
   position: absolute;
   right: 4%;
 }
-.plain-table {
+.table-scroll {
+  overflow-x: auto;
+}
+.fin-table {
   width: 100%;
+  min-width: 420px;
   border-collapse: collapse;
 }
-.plain-table th,
-.plain-table td {
+.fin-table th {
   text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 0 12px 10px 0;
+}
+.fin-table th.num {
+  text-align: right;
+}
+.fin-table td {
+  padding: 12px 12px 12px 0;
+  border-top: 1px solid var(--surface-border);
+}
+.fin-table td.num {
+  text-align: right;
+}
+.fin-table tbody tr:hover td {
+  background: rgba(17, 100, 104, 0.04);
 }
 .col-add {
-  max-width: 50px;
+  width: 32px;
+  padding-right: 0;
+}
+.row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.row-action--add:hover {
+  background: var(--gain-tint);
+  color: var(--gain-color);
+}
+.row-action .md-icon {
+  margin: 0;
+  font-size: 18px !important;
 }
 .modal-title {
   margin: 0 0 16px;

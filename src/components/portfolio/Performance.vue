@@ -10,15 +10,15 @@
     <div class="performance-stats">
       <div class="stat">
         <span class="stat-label">Current Value</span>
-        <span class="stat-value">${{ formatNumber(currentValue) }}</span>
+        <span class="stat-value fin-figure">${{ formatNumber(currentValue) }}</span>
       </div>
       <div class="stat">
         <span class="stat-label">Cost Basis</span>
-        <span class="stat-value">${{ formatNumber(currentCostBasis) }}</span>
+        <span class="stat-value fin-figure">${{ formatNumber(currentCostBasis) }}</span>
       </div>
       <div class="stat">
         <span class="stat-label">Total Return</span>
-        <span class="stat-value" :style="`color:${totalReturn >= 0 ? '#1dbfac' : '#bf1d63'}`">
+        <span class="stat-value fin-figure" :class="totalReturn >= 0 ? 'fin-gain' : 'fin-loss'">
           {{ totalReturn >= 0 ? '+' : '' }}${{ formatNumber(totalReturn) }} ({{ totalReturnPercent.toFixed(2) }}%)
         </span>
       </div>
@@ -192,7 +192,7 @@ export default {
           width: [2, 1.5],
           dashArray: [0, 4],
         },
-        colors: ['#1dbfac', '#8c8c8c'],
+        colors: ['#0f9d70', 'rgba(0, 0, 0, 0.35)'],
         fill: {
           type: ['gradient', 'solid'],
           gradient: {

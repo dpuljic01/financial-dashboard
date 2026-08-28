@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <h2 v-if="multiple" class="md-heading">Compare multiple tickers and analyze their movement.</h2>
-    <div class="chart">
-      <p v-if="multiple" class="md-body-2" style="text-align:left;">Enter exact ticker symbols:</p>
+  <div class="compare card-surface" :class="{ 'compare--single': !multiple }">
+    <h2 v-if="multiple" class="md-heading compare-heading">Compare multiple tickers and analyze their movement.</h2>
+
+    <div v-if="multiple" class="compare-input">
+      <p class="compare-input-label">Enter exact ticker symbols</p>
       <md-chips
-        v-if="multiple"
         v-model="localSymbols"
         :md-auto-insert="true"
         :md-format="toUppercase"
@@ -12,15 +12,21 @@
         @md-delete="delayedCompare"
       >
       </md-chips>
+    </div>
 
-      <h3 v-if="multiple">COMPARISON CHART</h3>
-      <TabBar
-        class="tabs md-elevation-2"
-        style="overflow-x: auto; margin-bottom: 15px;"
-        :tabs="periodTabs"
-        v-model="activeTab"
-        @change="onTabChange"
-      />
+    <div v-else-if="loaded" class="compare-price-header">
+      <span class="compare-price fin-figure">{{ formattedPrice }}</span>
+      <span
+        class="compare-change fin-figure"
+        :class="trend === 'up' ? 'fin-gain' : 'fin-loss'"
+      >{{ formattedChange }}</span>
+    </div>
+
+    <div class="compare-toolbar">
+      <TabBar variant="pill" :tabs="periodTabs" v-model="activeTab" @change="onTabChange" />
+    </div>
+
+    <div class="chart">
       <Area v-if="loaded" :options="options" :series="series" />
       <md-progress-spinner
         v-else
@@ -38,7 +44,7 @@ import moment from 'moment';
 import Area from './charts/Area.vue';
 import TabBar from './TabBar.vue';
 import { QUOTE_OPTIONS } from '../consts';
-import { setQuoteSeries, setYAxis } from '../utils';
+import { setQuoteSeries, setYAxis, percentChange } from '../utils';
 
 export default {
   name: 'Compare',
@@ -56,6 +62,16 @@ export default {
     Area,
     TabBar,
   },
+  computed: {
+    formattedPrice() {
+      return this.latestPrice != null ? `$${(+this.latestPrice).toFixed(2)}` : '';
+    },
+    formattedChange() {
+      if (this.changePercent == null) return '';
+      const sign = this.changePercent > 0 ? '+' : '';
+      return `${sign}${this.changePercent.toFixed(2)}%`;
+    },
+  },
   data() {
     return {
       localSymbols: [...this.symbols],
@@ -64,6 +80,9 @@ export default {
       options: QUOTE_OPTIONS,
       series: [],
       loaded: false,
+      latestPrice: null,
+      trend: 'flat',
+      changePercent: null,
       activeTab: 'tab-1d',
       periodTabs: [
         { id: 'tab-1d', label: '1D' },
@@ -118,6 +137,9 @@ export default {
       if (this.localSymbols.length > 0) {
         this.loaded = false;
         await this.getQuoteHistory();
+        if (!this.multiple) {
+          this.updateSingleSymbolStats();
+        }
         this.options = {
           ...this.options,
           ...{
@@ -126,9 +148,11 @@ export default {
             },
             yaxis: setYAxis(this.series),
             legend: {
+              show: this.multiple,
               position: 'top',
               horizontalAlign: 'left',
             },
+            colors: this.multiple ? undefined : [this.trend === 'down' ? '#d1435c' : '#0f9d70'],
             tooltip: {
               x: {
                 formatter: function f(val) {
@@ -153,6 +177,26 @@ export default {
           },
         };
         this.loaded = true;
+      }
+    },
+    updateSingleSymbolStats() {
+      const [serie] = this.series;
+      if (!serie || serie.data.length === 0) {
+        this.latestPrice = null;
+        this.changePercent = null;
+        this.trend = 'flat';
+        return;
+      }
+      const [, openPrice] = serie.data[0];
+      const [, latestPrice] = serie.data[serie.data.length - 1];
+      this.latestPrice = latestPrice;
+      this.changePercent = percentChange(openPrice, latestPrice);
+      if (this.changePercent > 0) {
+        this.trend = 'up';
+      } else if (this.changePercent < 0) {
+        this.trend = 'down';
+      } else {
+        this.trend = 'flat';
       }
     },
     async getQuoteHistory() {
@@ -185,6 +229,42 @@ export default {
 </script>
 
 <style scoped>
+.compare {
+  padding: 24px 28px 12px;
+}
+.compare--single {
+  max-width: 820px;
+  margin: 0 auto;
+}
+.compare-heading {
+  margin-top: 0;
+}
+.compare-input-label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.compare-input {
+  margin-bottom: 8px;
+}
+.compare-price-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.compare-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0a2f31;
+}
+.compare-change {
+  font-size: 15px;
+  font-weight: 600;
+}
+.compare-toolbar {
+  margin-bottom: 16px;
+}
 .chart {
   margin: 0 auto;
   width: 100%;

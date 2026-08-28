@@ -1,18 +1,17 @@
 <template>
-  <div
-    v-if="loaded"
-    style="max-width: 800px; display: flex; flex-direction: column; justify-content: space-around; margin: 0 auto;"
-  >
-    <div>
+  <div v-if="loaded" class="page-container quote-page">
+    <div class="page-section">
       <Search @search="searchQuote($event)"></Search>
     </div>
 
-    <h3 class="md-title">
-      {{ quote.toUpperCase() }}<span v-if="companyInfo.shortname"> &middot; {{ companyInfo.shortname }}</span>
-    </h3>
-    <Compare :multiple="false" :symbols="quoteSymbols"></Compare>
+    <div class="page-section">
+      <h3 class="md-title">
+        {{ quote.toUpperCase() }}<span v-if="companyInfo.shortname"> &middot; {{ companyInfo.shortname }}</span>
+      </h3>
+      <Compare :multiple="false" :symbols="quoteSymbols"></Compare>
+    </div>
 
-    <div v-if="quote[0] !== '^'">
+    <div v-if="quote[0] !== '^'" class="page-section">
       <TabBar :tabs="quoteTabs" :modelValue="'tab-' + path" @change="onQuoteTabChange" />
 
       <div v-if="path === 'profile'">
@@ -22,7 +21,7 @@
           md-label="Couldn't retrieve info about this company"
         >
         </md-empty-state>
-        <div v-else class="profile">
+        <div v-else class="profile card-surface">
           <div class="profile-header">
             <div class="profile-badge">
               <img
@@ -50,7 +49,7 @@
               <a v-if="stat.link" class="stat-value stat-link" :href="stat.link" target="_blank" rel="noopener">{{
                 stat.value
               }}</a>
-              <span v-else class="stat-value">{{ stat.value }}</span>
+              <span v-else class="stat-value" :class="{ 'fin-figure': stat.numeric }">{{ stat.value }}</span>
             </div>
           </div>
 
@@ -115,18 +114,18 @@ export default {
     stats() {
       const c = this.companyInfo;
       const items = [
-        { label: 'Market cap', value: this.formatMarketCap(c.marketcap) },
-        { label: 'Volume', value: formatCompactNumber(c.volume) },
-        { label: 'Avg volume', value: formatCompactNumber(c.averagevolume) },
-        { label: 'Employees', value: formatCompactNumber(c.fulltimeemployees) },
+        { label: 'Market cap', value: this.formatMarketCap(c.marketcap), numeric: true },
+        { label: 'Volume', value: formatCompactNumber(c.volume), numeric: true },
+        { label: 'Avg volume', value: formatCompactNumber(c.averagevolume), numeric: true },
+        { label: 'Employees', value: formatCompactNumber(c.fulltimeemployees), numeric: true },
         { label: 'Headquarters', value: this.formatHeadquarters(c) },
         { label: 'Website', value: this.formatWebsite(c.website), link: c.website },
-        { label: 'P/E (TTM)', value: this.formatDecimal(c.trailingpe) },
-        { label: 'Forward P/E', value: this.formatDecimal(c.forwardpe) },
-        { label: 'Dividend yield', value: c.dividendyield != null ? `${c.dividendyield}%` : null },
-        { label: 'Beta', value: this.formatDecimal(c.beta) },
-        { label: 'Day range', value: this.formatRange(c.dayrange) },
-        { label: '52-week range', value: this.formatRange(c.fiftytwoweekrange) },
+        { label: 'P/E (TTM)', value: this.formatDecimal(c.trailingpe), numeric: true },
+        { label: 'Forward P/E', value: this.formatDecimal(c.forwardpe), numeric: true },
+        { label: 'Dividend yield', value: c.dividendyield != null ? `${c.dividendyield}%` : null, numeric: true },
+        { label: 'Beta', value: this.formatDecimal(c.beta), numeric: true },
+        { label: 'Day range', value: this.formatRange(c.dayrange), numeric: true },
+        { label: '52-week range', value: this.formatRange(c.fiftytwoweekrange), numeric: true },
         { label: 'Analyst rating', value: c.averageanalystrating },
       ];
       return items.filter((item) => item.value !== null && item.value !== undefined && item.value !== '');
@@ -197,6 +196,7 @@ export default {
 }
 .profile {
   text-align: left;
+  padding: 24px 28px 28px;
 }
 .profile-header {
   display: flex;
@@ -239,11 +239,11 @@ export default {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-  padding: 16px;
-  margin-bottom: 20px;
-  background: rgba(17, 100, 104, 0.05);
-  border-radius: 8px;
+  gap: 20px;
+  padding: 20px 0;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--surface-border);
 }
 .stat {
   display: flex;

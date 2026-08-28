@@ -1,40 +1,41 @@
 <template>
-  <div v-if="loaded">
-    <div v-if="portfolios.length > 0" class="md-layout md-subheader md-size-100 md-alignment-center-space-between">
-      <div class="md-size-40">
-        <h3>PORTFOLIOS</h3>
+  <div v-if="loaded" class="page-container">
+    <div v-if="portfolios.length > 0" class="page-section card-surface portfolios-card">
+      <div class="portfolios-header">
+        <h3 class="portfolios-title">Portfolios</h3>
+        <md-button class="md-icon-button md-dense md-raised md-primary" @click="open = true">
+          <md-icon>add</md-icon>
+        </md-button>
       </div>
-      <md-button class="md-size-40 md-fab md-mini md-primary" @click="open = true">
-        <md-icon>add</md-icon>
-      </md-button>
+      <div class="table-scroll">
+        <table class="fin-table">
+          <thead>
+            <tr>
+              <th class="col-del"></th>
+              <th>Name</th>
+              <th class="num">Symbols</th>
+              <th class="num">Holdings</th>
+              <th class="num">Worth (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in portfolios" :key="item.id">
+              <td class="col-del">
+                <button type="button" class="row-action" title="Delete" @click="deletePortfolio(item.id)">
+                  <md-icon>delete_outline</md-icon>
+                </button>
+              </td>
+              <td @click="goToSummary(item.id)"><strong>{{ item.name }}</strong></td>
+              <td @click="goToSummary(item.id)" class="num fin-figure">{{ item.stocks.length }}</td>
+              <td @click="goToSummary(item.id)" class="num fin-figure">{{ item.holdings.length }}</td>
+              <td @click="goToSummary(item.id)" class="num fin-figure">
+                {{ formatCurrency(calculatePortfolioValue(item.holdings)) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <table v-if="portfolios.length > 0" class="md-content tbl plain-table">
-      <thead>
-        <tr>
-          <th class="col-del">Del</th>
-          <th>Name</th>
-          <th>Symbols</th>
-          <th>Shares</th>
-          <th>Worth (USD)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in portfolios" :key="item.id">
-          <td class="col-del">
-            <md-button
-              class="md-icon md-raised md-primary"
-              style="background-color: #d00000;"
-              @click="deletePortfolio(item.id)"
-              ><md-icon>delete_outline</md-icon></md-button
-            >
-          </td>
-          <td @click="goToSummary(item.id)">{{ item.name }}</td>
-          <td @click="goToSummary(item.id)">{{ item.stocks.length }}</td>
-          <td @click="goToSummary(item.id)">{{ item.holdings.length }}</td>
-          <td @click="goToSummary(item.id)">{{ calculatePortfolioValue(item.holdings) }}</td>
-        </tr>
-      </tbody>
-    </table>
     <div v-if="portfolios.length === 0" class="empty-state">
       <strong class="empty-state-label">Create your first portfolio</strong>
       <div>
@@ -113,11 +114,14 @@ export default {
       return value.length > 1;
     },
     calculatePortfolioValue(holdings) {
-      let price = 0;
+      let worth = 0;
       for (let i = 0; i < holdings.length; i += 1) {
-        price += holdings[i].price;
+        worth += holdings[i].price * holdings[i].shares;
       }
-      return price;
+      return worth;
+    },
+    formatCurrency(val) {
+      return `$${val.toFixed(2)}`;
     },
     async deletePortfolio(pId) {
       if (!window.confirm('Are you sure about that?')) return;
@@ -148,23 +152,77 @@ export default {
   position: absolute;
   right: 4%;
 }
-.plain-table {
+.portfolios-card {
+  padding: 28px;
+}
+.portfolios-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.portfolios-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+.fin-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
 }
-.plain-table th,
-.plain-table td {
-  text-align: center;
-  padding: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+.fin-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 0 12px 10px 0;
 }
-.plain-table td:not(.col-del) {
+.fin-table th.num {
+  text-align: right;
+}
+.fin-table td {
+  padding: 12px 12px 12px 0;
+  border-top: 1px solid var(--surface-border);
+}
+.fin-table td:not(.col-del) {
   cursor: pointer;
 }
+.fin-table td.num {
+  text-align: right;
+}
+.fin-table tbody tr:hover td {
+  background: rgba(17, 100, 104, 0.04);
+}
 .col-del {
-  max-width: 40px;
+  width: 32px;
+  padding-right: 0;
+}
+.row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.row-action:hover {
+  background: var(--loss-tint);
+  color: var(--loss-color);
+}
+.row-action .md-icon {
   margin: 0;
+  font-size: 18px !important;
 }
 .modal-title {
   margin: 0 0 16px;

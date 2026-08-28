@@ -1,7 +1,40 @@
 <template>
   <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <md-icon class="sidebar-brand-icon">insights</md-icon>
+        <span class="sidebar-brand-name">Financial Dashboard</span>
+      </div>
+
+      <div class="sidebar-nav">
+        <router-link to="/dashboard" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/dashboard') }">
+          <md-icon>dashboard</md-icon>
+          <span>Dashboard</span>
+        </router-link>
+        <router-link to="/portfolios" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/portfolios') }">
+          <md-icon>pie_chart</md-icon>
+          <span>Portfolios</span>
+        </router-link>
+        <router-link to="/compare" class="sidebar-link" :class="{ 'sidebar-link--active': isActive('/compare') }">
+          <md-icon>multiline_chart</md-icon>
+          <span>Compare</span>
+        </router-link>
+      </div>
+
+      <div class="sidebar-footer">
+        <router-link to="/profile" class="sidebar-link">
+          <md-icon>person_outline</md-icon>
+          <span>{{ this.$store.getters.getCurrentUser.email || 'Profile' }}</span>
+        </router-link>
+        <button type="button" class="sidebar-link sidebar-logout" @click="logout">
+          <md-icon>logout</md-icon>
+          <span>Log out</span>
+        </button>
+      </div>
+    </nav>
+
     <md-toolbar class="md-primary app-toolbar">
-      <md-button class="md-icon-button md-dense" @click="toggleMenu" v-if="!menuVisible">
+      <md-button class="md-icon-button md-dense menu-trigger" @click="toggleMenu" v-if="!menuVisible">
         <md-icon>menu</md-icon>
       </md-button>
       <span class="md-title">{{ title }}</span>
@@ -78,6 +111,9 @@ export default {
     },
   },
   methods: {
+    isActive(prefix) {
+      return this.$route.path === prefix || this.$route.path.startsWith(`${prefix}/`);
+    },
     goTo(path) {
       this.toggleMenu();
       if (this.$route.path !== path) {
@@ -129,5 +165,114 @@ export default {
   .app-content {
     padding: 76px 16px 32px;
   }
+}
+
+/* Persistent sidebar, desktop only - mobile keeps the hamburger + drawer
+   above untouched. */
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width, 240px);
+    background: #116468;
+    z-index: 11;
+  }
+  .menu-trigger {
+    display: none;
+  }
+  .app-toolbar,
+  .app-content {
+    margin-left: var(--sidebar-width, 240px);
+  }
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 64px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+.sidebar-brand-icon {
+  color: #fff !important;
+}
+.sidebar-brand-name {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sidebar-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-link :deep(.md-icon) {
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 20px !important;
+  flex-shrink: 0;
+}
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.sidebar-link:hover :deep(.md-icon) {
+  color: #fff !important;
+}
+.sidebar-link--active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.sidebar-link--active :deep(.md-icon) {
+  color: #2fd8d4 !important;
 }
 </style>

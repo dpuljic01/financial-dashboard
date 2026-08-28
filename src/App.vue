@@ -29,6 +29,8 @@ export default {
   --surface-color: #ffffff;
   --surface-border: rgba(17, 100, 104, 0.08);
   --surface-shadow: 0 2px 10px rgba(17, 40, 40, 0.06);
+  --surface-shadow-hover: 0 10px 24px rgba(17, 40, 40, 0.14);
+  --sidebar-width: 240px;
 }
 #app .md-app {
   min-height: 100vh;
@@ -57,5 +59,25 @@ h4 {
 }
 .fin-loss {
   color: var(--loss-color);
+}
+
+/* Shared page/card scaffolding so every page reads as one system instead
+   of ad hoc per-component spacing. */
+.page-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  text-align: left;
+}
+.page-section {
+  margin-bottom: 44px;
+}
+.page-section:last-child {
+  margin-bottom: 0;
+}
+.card-surface {
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  box-shadow: var(--surface-shadow);
 }
 </style>

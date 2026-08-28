@@ -1,15 +1,15 @@
 <template>
-  <div v-if="loaded" class="dashboard">
-    <div class="dashboard-section">
+  <div v-if="loaded" class="page-container">
+    <div class="page-section">
       <Search @search="searchQuote($event)"></Search>
     </div>
 
-    <div class="dashboard-section">
+    <div class="page-section">
       <h2 v-if="marketOverviewLoaded" class="md-heading">Market overview</h2>
       <TrendChart @loaded="marketOverviewLoaded = $event" />
     </div>
 
-    <div v-if="Object.keys(portfolio).length !== 0" class="dashboard-section summary-card">
+    <div v-if="Object.keys(portfolio).length !== 0" class="page-section card-surface summary-card">
       <div class="summary-card-header">
         <h2 class="md-heading">Portfolio summary</h2>
         <div class="portfolio-switcher">
@@ -153,22 +153,7 @@ export default {
 </script>
 
 <style scoped>
-.dashboard {
-  max-width: 1180px;
-  margin: 0 auto;
-  text-align: left;
-}
-.dashboard-section {
-  margin-bottom: 48px;
-}
-.dashboard-section:last-child {
-  margin-bottom: 0;
-}
 .summary-card {
-  background: var(--surface-color);
-  border: 1px solid var(--surface-border);
-  border-radius: 16px;
-  box-shadow: var(--surface-shadow);
   padding: 28px 28px 8px;
 }
 .summary-card-header {
