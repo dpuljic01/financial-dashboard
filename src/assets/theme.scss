@@ -31,9 +31,30 @@ $accent: rgb(0, 170, 173);
   /* color: #0D47A1; */
 }
 
+// Modernized snackbar - vue-toasted's default is a sharp-cornered, dated
+// Material 2015-era grey pill. Rounded corners, app palette, real shadow.
+.toasted.toasted-primary {
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #16292b;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.toasted.toasted-primary.success {
+  background-color: #0f9d70;
+}
+.toasted.toasted-primary.error {
+  background-color: #d1435c;
+}
+.toasted.toasted-primary.info {
+  background-color: #116468;
+}
 .toasted.toasted-primary .action {
-  color: black;
-  font-weight: 900;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
 }
 
 .dp-accent {
