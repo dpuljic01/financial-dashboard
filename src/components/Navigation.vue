@@ -239,9 +239,11 @@ export default {
   gap: 12px;
   padding: 10px 12px;
   border-radius: 10px;
-  /* Solid color, not alpha-blended white - rgba(255,255,255,0.75) over the
-     teal background computes to a washed cyan instead of a muted white. */
-  color: #bcdad9;
+  /* Plain solid white throughout - hierarchy comes from the active pill
+     background below, not from dimming the text/icon color. Any alpha-
+     blended "muted white" over this teal background picks up a visible
+     cyan cast instead of reading as a neutral gray. */
+  color: #fff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -254,7 +256,7 @@ export default {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 .sidebar-link span {
   overflow: hidden;
@@ -268,23 +270,16 @@ export default {
   width: 20px;
   height: 20px;
   margin: 0 !important;
-  color: #bcdad9 !important;
+  color: #fff !important;
   font-size: 20px !important;
   line-height: 1 !important;
   flex-shrink: 0;
 }
 .sidebar-link:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-.sidebar-link:hover :deep(.md-icon) {
-  color: #fff !important;
 }
 .sidebar-link--active {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-.sidebar-link--active :deep(.md-icon) {
-  color: #2fd8d4 !important;
+  background: rgba(255, 255, 255, 0.16);
+  font-weight: 600;
 }
 </style>

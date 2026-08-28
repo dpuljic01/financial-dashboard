@@ -5,8 +5,8 @@
     </div>
 
     <div class="page-section">
-      <h2 v-if="marketOverviewLoaded" class="md-heading">Market overview</h2>
-      <TrendChart @loaded="marketOverviewLoaded = $event" />
+      <h2 class="md-heading">Market overview</h2>
+      <TrendChart />
     </div>
 
     <div v-if="Object.keys(portfolio).length !== 0" class="page-section card-surface summary-card">
@@ -29,15 +29,6 @@
 
       <TabBar :tabs="portfolioTabs" v-model="activeTab" @change="onPortfolioSummaryTabChange" />
 
-      <div v-if="activeTab === 'tab-allocation'">
-        <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
-          <router-link :to="`/portfolios/${portfolio.id}/holdings`">
-            <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
-          </router-link>
-        </md-empty-state>
-        <Allocation v-else class="allocation" :portfolio="portfolio" />
-      </div>
-
       <div v-if="activeTab === 'tab-performance'">
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
           <router-link :to="`/portfolios/${portfolio.id}/holdings`">
@@ -45,6 +36,15 @@
           </router-link>
         </md-empty-state>
         <Performance v-else class="performance" :portfolio="portfolio" />
+      </div>
+
+      <div v-if="activeTab === 'tab-allocation'">
+        <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
+          <router-link :to="`/portfolios/${portfolio.id}/holdings`">
+            <md-button class="md-primary md-raised"><md-icon>add</md-icon> Add holdings</md-button>
+          </router-link>
+        </md-empty-state>
+        <Allocation v-else class="allocation" :portfolio="portfolio" />
       </div>
     </div>
     <div v-else-if="loaded" class="page-section card-surface welcome-card">
@@ -102,15 +102,14 @@ export default {
   data() {
     return {
       loaded: false,
-      marketOverviewLoaded: false,
       hasHoldings: false,
       portfolios: [],
       portfolio: {},
       portfolioTabs: [
-        { id: 'tab-allocation', label: 'Allocation' },
         { id: 'tab-performance', label: 'Performance' },
+        { id: 'tab-allocation', label: 'Allocation' },
       ],
-      activeTab: 'tab-allocation',
+      activeTab: 'tab-performance',
     };
   },
   async mounted() {

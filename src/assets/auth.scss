@@ -1,50 +1,168 @@
 .centered-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    height: 100vh;
-    .title {
-      text-align: center;
-      margin-bottom: 30px;
-      img {
-        margin-bottom: 16px;
-        max-width: 80px;
-      }
-    }
-    .actions {
-      .md-button {
-        margin: 0;
-      }
-    }
-    .form {
-      margin-bottom: 40px;
-    }
-    .md-content {
-      z-index: 1;
-      padding: 40px;
-      width: 90%;
-      max-width: 400px;
-      position: relative;
-      top: -20px;
-    }
-    .loading-overlay {
-      z-index: 10;
-      top: 0;
-      left: 0;
-      right: 0;
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: radial-gradient(ellipse 900px 500px at 20% 0%, rgba(0, 170, 173, 0.25), transparent 60%),
+    linear-gradient(160deg, #051617 0%, #0c2a2c 55%, #114347 100%);
+}
+
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  color: #116468;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+.auth-brand .md-icon {
+  color: #116468 !important;
+  font-size: 22px !important;
+}
+
+.auth-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f2224;
+  text-align: left;
+}
+.auth-subtitle {
+  margin: 0 0 28px;
+  color: rgba(15, 34, 36, 0.6);
+  font-size: 14px;
+  text-align: left;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(0, 0, 0, 0.5);
+  margin: 16px 0 6px;
+  text-align: left;
+}
+.field-label:first-of-type {
+  margin-top: 0;
+}
+.field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field-input:focus {
+  outline: none;
+  border-color: #116468;
+  box-shadow: 0 0 0 3px rgba(17, 100, 104, 0.12);
+}
+.field-with-action {
+  position: relative;
+}
+.field-with-action .field-input {
+  padding-right: 40px;
+}
+.field-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.4);
+}
+.field-toggle:hover {
+  color: #116468;
+}
+.field-toggle .md-icon {
+  font-size: 20px !important;
+}
+
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 24px;
+  font-size: 13px;
+}
+.auth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+}
+.auth-link {
+  color: #116468;
+  cursor: pointer;
+  font-weight: 500;
+}
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-submit {
+  width: 100%;
+  margin: 4px 0 0 !important;
+  justify-content: center;
+}
+
+.auth-footer {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+}
+.auth-footer a {
+  color: #116468;
+  font-weight: 600;
+}
+
+.dp-error {
+  text-align: left;
+}
+
+.loading-overlay {
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 // Modal.vue teleports its content to <body>, outside .centered-container,
-// so these can't be nested under it like the rules above.
+// so these stay top-level rather than nested under it.
 .modal-title {
   margin: 0 0 16px;
 }

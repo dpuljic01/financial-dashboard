@@ -1,12 +1,12 @@
 <template>
   <div class="market-overview">
-    <md-progress-spinner
-      v-if="!loaded"
-      :md-diameter="50"
-      :md-stroke="4"
-      style="margin-top: 50px;"
-      md-mode="indeterminate"
-    ></md-progress-spinner>
+    <div v-if="!loaded" class="futures noselect" aria-hidden="true">
+      <div class="ticker-card ticker-card-skeleton" v-for="n in 9" :key="n">
+        <div class="skeleton-line skeleton-label"></div>
+        <div class="skeleton-line skeleton-price"></div>
+        <div class="skeleton-block skeleton-chart"></div>
+      </div>
+    </div>
     <div v-else>
       <div class="market-overview-toolbar">
         <md-button class="md-icon-button md-dense" @click="fetchStockHistory(true)">
@@ -47,7 +47,6 @@ export default {
   components: {
     Area,
   },
-  emits: ['loaded'],
   data() {
     return {
       symbols: ['EURUSD=X', '^gspc', '^dji', '^ixic', '^rut', 'cl=f', 'gc=f', 'si=f', '^vix'], // most popular indexes
@@ -64,13 +63,11 @@ export default {
   methods: {
     async fetchStockHistory(reload = false) {
       this.loaded = false;
-      this.$emit('loaded', false);
       this.trendData = [];
       const data = await this.fetchTrendData(reload);
       const series = setQuoteSeries(data);
       this.setTrendData(series);
       this.loaded = true;
-      this.$emit('loaded', true);
     },
     async fetchTrendData(reload) {
       const cached = reload ? null : JSON.parse(localStorage.getItem('_trendData'));
@@ -301,6 +298,45 @@ export default {
   font-weight: 700;
   color: #0a2f31;
   margin: 8px 0 6px;
+}
+
+.ticker-card-skeleton {
+  gap: 0;
+}
+.skeleton-line,
+.skeleton-block {
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0.12) 37%, rgba(0, 0, 0, 0.06) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+.skeleton-label {
+  width: 60%;
+  height: 13px;
+}
+.skeleton-price {
+  width: 80%;
+  height: 22px;
+  margin: 8px 0 6px;
+}
+.skeleton-chart {
+  flex: 1;
+  width: 100%;
+  border-radius: 8px;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line,
+  .skeleton-block {
+    animation: none;
+  }
 }
 
 ::-webkit-scrollbar {

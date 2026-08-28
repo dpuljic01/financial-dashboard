@@ -1,46 +1,45 @@
 <template>
-  <div class="centered-container dp-bg">
-    <md-content class="md-elevation-3">
-      <div>
-        <div style="text-align: right;"><router-link to="/landing">Back to home</router-link></div>
-        <div>
-          <md-icon class="md-size-3x md-primary">person</md-icon>
-        </div>
-        <h1 class="dp-primary">REGISTER</h1>
-      </div>
+  <div class="centered-container">
+    <div class="auth-card">
+      <router-link to="/landing" class="auth-brand">
+        <md-icon>insights</md-icon>
+        <span>Financial Dashboard</span>
+      </router-link>
+
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Takes less than a minute — no credit card required.</p>
 
       <form novalidate @submit.prevent="onSubmit">
-        <md-field>
-          <label for="firstName">First name</label>
-          <md-input v-model="firstName" name="firstName" id="firstName" autofocus></md-input>
-        </md-field>
+        <label class="field-label" for="firstName">First name</label>
+        <input id="firstName" class="field-input" type="text" v-model="firstName" autofocus />
         <p class="dp-error" v-if="msg.firstName">Must have at least two characters</p>
 
-        <md-field>
-          <label for="lastName">Last name</label>
-          <md-input v-model="lastName" name="lastName" id="lastName"></md-input>
-        </md-field>
+        <label class="field-label" for="lastName">Last name</label>
+        <input id="lastName" class="field-input" type="text" v-model="lastName" />
         <p class="dp-error" v-if="msg.lastName">Must have at least two characters</p>
 
-        <md-field>
-          <label for="email">Email</label>
-          <md-input v-model="email" name="email" id="email" autocomplete="off"></md-input>
-        </md-field>
+        <label class="field-label" for="email">Email</label>
+        <input id="email" class="field-input" type="email" v-model="email" autocomplete="off" />
         <p class="dp-error" v-if="msg.email">Invalid email address</p>
 
-        <md-button class="md-raised md-primary" type="submit" :disabled="this.$store.getters.isLoading"
-          >Submit</md-button
+        <md-button
+          class="md-raised md-primary auth-submit"
+          type="submit"
+          :disabled="this.$store.getters.isLoading"
         >
-        <p>
+          Create account
+        </md-button>
+
+        <p class="auth-footer">
           Already have an account?
-          <router-link to="/login">Login</router-link>
+          <router-link to="/login">Log in</router-link>
         </p>
       </form>
 
       <div class="loading-overlay" v-if="this.$store.getters.isLoading">
         <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
       </div>
-    </md-content>
+    </div>
   </div>
 </template>
 
@@ -51,7 +50,6 @@ export default {
   name: 'Register',
   data() {
     return {
-      firstClick: true,
       email: '',
       firstName: '',
       lastName: '',

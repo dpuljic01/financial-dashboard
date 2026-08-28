@@ -8,7 +8,7 @@
         </div>
 
         <span class="eyebrow">Personal portfolio intelligence</span>
-        <h1 class="hero-title">Every holding.<br>Every tick.<br><em>One dashboard.</em></h1>
+        <h1 class="hero-title">Your portfolio,<br><em>finally in focus.</em></h1>
         <p class="hero-subtitle">
           Track what your portfolio is actually worth, compare any two tickers side by side,
           and see market moves the moment they happen — all in one place, built for people who
@@ -158,16 +158,24 @@ export default {
 .landing-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
+  gap: 10px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.01em;
   margin-bottom: 40px;
+  line-height: 1;
 }
 .landing-brand :deep(.md-icon) {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: 0 !important;
   color: #2fd8d4 !important;
-  font-size: 28px !important;
-  filter: drop-shadow(0 0 10px rgba(47, 216, 212, 0.5));
+  font-size: 24px !important;
+  line-height: 1 !important;
+  flex-shrink: 0;
 }
 
 /* ---------- hero ---------- */
