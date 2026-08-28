@@ -239,16 +239,21 @@ export default {
   gap: 12px;
   padding: 10px 12px;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.75);
+  /* Solid color, not alpha-blended white - rgba(255,255,255,0.75) over the
+     teal background computes to a washed cyan instead of a muted white. */
+  color: #bcdad9;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
   background: none;
   border: none;
+  margin: 0;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .sidebar-link span {
@@ -257,8 +262,15 @@ export default {
   white-space: nowrap;
 }
 .sidebar-link :deep(.md-icon) {
-  color: rgba(255, 255, 255, 0.75) !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 !important;
+  color: #bcdad9 !important;
   font-size: 20px !important;
+  line-height: 1 !important;
   flex-shrink: 0;
 }
 .sidebar-link:hover {

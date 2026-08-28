@@ -47,16 +47,34 @@
         <Performance v-else class="performance" :portfolio="portfolio" />
       </div>
     </div>
-    <md-empty-state
-      v-else-if="loaded"
-      md-icon="post_add"
-      md-label="No portfolios found"
-      md-description="By creating a portfolio, you'll be able to add your holdings and get valuable information."
-    >
+    <div v-else-if="loaded" class="page-section card-surface welcome-card">
+      <div class="welcome-icon" aria-hidden="true">&#128075;</div>
+      <h2 class="welcome-title">Welcome{{ userFirstName ? `, ${userFirstName}` : '' }}!</h2>
+      <p class="welcome-subtitle">Let's get your dashboard set up — it only takes a minute.</p>
+
+      <ol class="welcome-steps">
+        <li>
+          <span class="step-index">1</span>
+          <div>
+            <strong>Create a portfolio</strong>
+            <p>Give it a name — you can create as many as you like.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-index">2</span>
+          <div>
+            <strong>Add the symbols you hold</strong>
+            <p>Search any ticker and add your shares to start tracking performance.</p>
+          </div>
+        </li>
+      </ol>
+
       <router-link to="/portfolios">
-        <md-button class="md-primary md-raised">Go to portfolios</md-button>
+        <md-button class="md-primary md-raised">
+          <md-icon>add</md-icon> Create your first portfolio
+        </md-button>
       </router-link>
-    </md-empty-state>
+    </div>
   </div>
 </template>
 
@@ -76,6 +94,11 @@ export default {
     Search,
     TabBar,
   },
+  computed: {
+    userFirstName() {
+      return this.$store.getters.getCurrentUser.first_name || '';
+    },
+  },
   data() {
     return {
       loaded: false,
@@ -87,28 +110,7 @@ export default {
         { id: 'tab-allocation', label: 'Allocation' },
         { id: 'tab-performance', label: 'Performance' },
       ],
-      industrySeries: [30, 40, 30],
-      series: [44, 55, 41, 17, 15],
-      chartOptions: {
-        chart: {
-          type: 'donut',
-        },
-        responsive: [
-          {
-            breakpoint: 480,
-            options: {
-              chart: {
-                width: '100%',
-              },
-              legend: {
-                position: 'top',
-              },
-            },
-          },
-        ],
-      },
       activeTab: 'tab-allocation',
-      ploaded: false,
     };
   },
   async mounted() {
@@ -142,9 +144,6 @@ export default {
         this.hasHoldings = this.$store.getters.hasHoldings;
       }
     },
-    toggleSubmenu() {
-      this.submenuVisible = !this.submenuVisible;
-    },
     searchQuote(event) {
       this.$router.push(`/quote/${event.symbol}/profile`);
     },
@@ -176,5 +175,55 @@ export default {
 .allocation {
   display: flex;
   justify-content: space-around;
+}
+.welcome-card {
+  padding: 40px 36px;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.welcome-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.welcome-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+.welcome-subtitle {
+  margin: 0 0 28px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.welcome-steps {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+.welcome-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.step-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(17, 100, 104, 0.1);
+  color: #116468;
+  font-weight: 700;
+  font-size: 14px;
+}
+.welcome-steps p {
+  margin: 2px 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
 }
 </style>

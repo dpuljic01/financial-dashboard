@@ -1,51 +1,48 @@
 <template>
   <div v-if="loaded" class="page-container">
-    <div class="page-section">
-      <Search @search="addSymbol($event)" v-bind:placeholder="'Add symbol'"></Search>
-    </div>
-
     <div class="page-section card-surface portfolio-card">
-      <h3 class="md-title portfolio-heading">
-        Portfolio: <strong>{{ portfolio.name }}</strong>
-      </h3>
+      <div class="portfolio-card-header">
+        <h3 class="md-title portfolio-heading">
+          Portfolio: <strong>{{ portfolio.name }}</strong>
+        </h3>
+        <md-button class="md-raised md-primary" @click="addSymbolOpen = true">
+          <md-icon>add</md-icon> Add symbol
+        </md-button>
+      </div>
       <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
 
-      <div v-if="path === 'summary'">
-        <md-empty-state
-          v-if="portfolio.stocks.length == 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <Summary v-else :stocks="portfolio.stocks"></Summary>
-      </div>
+      <md-empty-state
+        v-if="portfolio.stocks.length === 0"
+        md-icon="playlist_add"
+        md-label="No symbols yet"
+        md-description="Add a symbol to start tracking it in this portfolio."
+      >
+        <md-button class="md-primary md-raised" @click="addSymbolOpen = true">
+          <md-icon>add</md-icon> Add symbol
+        </md-button>
+      </md-empty-state>
 
-      <div v-if="path === 'holdings'">
-        <md-empty-state
-          v-if="portfolio.stocks.length === 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <Holdings @deletedSymbol="onDelete" v-else :portfolio="portfolio"></Holdings>
-      </div>
-
-      <div v-if="path === 'news'">
-        <md-empty-state
-          v-if="portfolio.stocks.length === 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <News v-else :tickers="tickers"></News>
-      </div>
-
-      <div v-if="path === 'performance'">
-        <md-empty-state
-          v-if="portfolio.stocks.length === 0"
-          md-description="Your list is empty. Add symbols to get relevant info."
-        >
-        </md-empty-state>
-        <Performance v-else :portfolio="portfolio"></Performance>
-      </div>
+      <template v-else>
+        <div v-if="path === 'summary'">
+          <Summary :stocks="portfolio.stocks"></Summary>
+        </div>
+        <div v-if="path === 'holdings'">
+          <Holdings @deletedSymbol="onDelete" :portfolio="portfolio"></Holdings>
+        </div>
+        <div v-if="path === 'news'">
+          <News :tickers="tickers"></News>
+        </div>
+        <div v-if="path === 'performance'">
+          <Performance :portfolio="portfolio"></Performance>
+        </div>
+      </template>
     </div>
+
+    <Modal v-model="addSymbolOpen">
+      <h3 class="modal-title">Add a symbol</h3>
+      <p class="modal-subtitle">Search for a ticker to add it to this portfolio.</p>
+      <Search @search="onAddSymbol($event)" placeholder="e.g. AAPL, MSFT..."></Search>
+    </Modal>
   </div>
 </template>
 
@@ -56,6 +53,7 @@ import Summary from './portfolio/Summary.vue';
 import News from './portfolio/News.vue';
 import Performance from './portfolio/Performance.vue';
 import TabBar from './TabBar.vue';
+import Modal from './Modal.vue';
 
 export default {
   name: 'Portfolio',
@@ -66,13 +64,12 @@ export default {
     News,
     Performance,
     TabBar,
+    Modal,
   },
   data() {
     return {
-      open: false,
-      valid: false,
+      addSymbolOpen: false,
       portfolio: {},
-      newSymbol: null,
       loaded: false,
       tickers: [],
       path: 'summary',
@@ -107,23 +104,7 @@ export default {
       const tickers = this.portfolio.stocks.map((stock) => stock.ticker);
       this.tickers = tickers;
     },
-    async createPortfolio() {
-      this.open = false;
-      this.$store.commit('setLoading', true);
-      await this.$store.dispatch('submitNewPortfolio', { name: this.portfolioName, info: this.info });
-      this.portfolioName = '';
-      this.info = '';
-      this.$store.commit('setLoading', false);
-    },
-    submit() {
-      if (this.valid) {
-        this.createPortfolio();
-      }
-    },
-    validName(value) {
-      return value.length > 1;
-    },
-    async addSymbol(payload) {
+    async onAddSymbol(payload) {
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('addSymbol', {
         portfolio: this.portfolio.id,
@@ -133,6 +114,8 @@ export default {
         },
       });
       this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
+      this.getTickers();
+      this.addSymbolOpen = false;
       this.$store.dispatch('successMessage');
       this.$store.commit('setLoading', false);
     },
@@ -157,27 +140,23 @@ export default {
 .portfolio-heading {
   margin-top: 0;
 }
-iframe {
-  border: 0px none;
-  height: 500px;
-  width: 100%;
-  overflow: hidden;
-  margin-right: -40px;
-  margin-top: -150px;
-}
-iframe html {
-  overflow: hidden;
-}
-
-.md-content {
-  width: 100%;
+.portfolio-card-header {
   display: flex;
-  padding: 10px;
-  justify-content: left;
-  align-items: left;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
 }
-
-.md-tab {
-  padding: 0;
+.portfolio-card-header .portfolio-heading {
+  margin-bottom: 0;
+}
+.modal-title {
+  margin: 0 0 4px;
+}
+.modal-subtitle {
+  margin: 0 0 16px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
 }
 </style>
