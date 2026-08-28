@@ -22,6 +22,12 @@
           {{ totalReturn >= 0 ? '+' : '' }}${{ formatNumber(totalReturn) }} ({{ totalReturnPercent.toFixed(2) }}%)
         </span>
       </div>
+      <div class="stat" v-if="showBenchmark">
+        <span class="stat-label">vs S&amp;P 500</span>
+        <span class="stat-value fin-figure" :class="vsBenchmark >= 0 ? 'fin-gain' : 'fin-loss'">
+          {{ vsBenchmark >= 0 ? '+' : '' }}{{ vsBenchmark.toFixed(2) }} pts
+        </span>
+      </div>
     </div>
     <Area :series="series" :options="chartOptions" />
   </div>
@@ -31,6 +37,9 @@
 import moment from 'moment';
 import Area from '../charts/Area.vue';
 import { QUOTE_OPTIONS } from '../../consts';
+
+const BENCHMARK_TICKER = '^gspc';
+const BENCHMARK_LABEL = 'S&P 500';
 
 export default {
   name: 'Performance',
@@ -53,7 +62,14 @@ export default {
       currentCostBasis: 0,
       totalReturn: 0,
       totalReturnPercent: 0,
+      showBenchmark: false,
+      benchmarkReturnPercent: 0,
     };
+  },
+  computed: {
+    vsBenchmark() {
+      return this.totalReturnPercent - this.benchmarkReturnPercent;
+    },
   },
   async mounted() {
     await this.loadPerformance();
@@ -75,7 +91,7 @@ export default {
       const endDate = moment().format('YYYY-MM-DD');
 
       const resp = await this.$store.dispatch('getStockHistoryData', {
-        symbols: tickers.join(),
+        symbols: [...tickers, BENCHMARK_TICKER].join(),
         interval: '1d',
         period: 'max',
         start: startDate,
@@ -84,7 +100,8 @@ export default {
       });
 
       const closesByTicker = this.extractCloses(resp.data, tickers);
-      const timeline = this.buildTimeline(closesByTicker);
+      const benchmarkCloses = this.extractCloses(resp.data, [BENCHMARK_TICKER])[BENCHMARK_TICKER];
+      const timeline = this.buildTimeline({ ...closesByTicker, [BENCHMARK_TICKER]: benchmarkCloses });
 
       if (timeline.length === 0) {
         this.hasHistory = false;
@@ -92,12 +109,17 @@ export default {
         return;
       }
 
-      const { valueSeries, costSeries } = this.calcSeries(timeline, closesByTicker, normalizedHoldings);
+      const {
+        valueSeries, costSeries, benchmarkSeries,
+      } = this.calcSeries(timeline, closesByTicker, normalizedHoldings, benchmarkCloses);
 
       this.series = [
         { name: 'Portfolio Value', data: valueSeries },
         { name: 'Cost Basis', data: costSeries },
       ];
+      if (benchmarkSeries) {
+        this.series.push({ name: `${BENCHMARK_LABEL} (same contributions)`, data: benchmarkSeries });
+      }
       this.chartOptions = this.buildChartOptions();
 
       const lastValue = valueSeries[valueSeries.length - 1];
@@ -108,6 +130,15 @@ export default {
       this.totalReturnPercent = this.currentCostBasis
         ? (this.totalReturn / this.currentCostBasis) * 100
         : 0;
+
+      this.showBenchmark = !!benchmarkSeries;
+      if (benchmarkSeries) {
+        const lastBenchmark = benchmarkSeries[benchmarkSeries.length - 1];
+        const currentBenchmarkValue = lastBenchmark ? lastBenchmark[1] : 0;
+        this.benchmarkReturnPercent = this.currentCostBasis
+          ? ((currentBenchmarkValue - this.currentCostBasis) / this.currentCostBasis) * 100
+          : 0;
+      }
 
       this.hasHistory = true;
       this.loaded = true;
@@ -149,11 +180,27 @@ export default {
       });
       return [...dateSet].sort();
     },
-    calcSeries(timeline, closesByTicker, normalizedHoldings) {
+    calcSeries(timeline, closesByTicker, normalizedHoldings, benchmarkCloses) {
       const tickers = Object.keys(closesByTicker);
       const lastKnownPrice = {};
       const valueSeries = [];
       const costSeries = [];
+      const benchmarkSeries = [];
+
+      const hasBenchmark = !!benchmarkCloses && Object.keys(benchmarkCloses).length > 0;
+      const benchmarkPriceByDate = hasBenchmark ? this.forwardFill(timeline, benchmarkCloses) : {};
+
+      // Each holding's cost basis converted into "shares" of the benchmark
+      // bought on that holding's own purchase date - so a holding added
+      // later isn't unfairly compared against the benchmark's price from
+      // the portfolio's very first day.
+      const holdings = hasBenchmark
+        ? normalizedHoldings.map((holding) => ({
+          ...holding,
+          benchmarkShares: (holding.shares * holding.price)
+            / this.priceOnOrBefore(timeline, benchmarkPriceByDate, holding.purchasedAt),
+        }))
+        : normalizedHoldings;
 
       timeline.forEach((date) => {
         tickers.forEach((ticker) => {
@@ -164,21 +211,47 @@ export default {
 
         let value = 0;
         let cost = 0;
-        normalizedHoldings.forEach((holding) => {
+        let benchmarkValue = 0;
+        holdings.forEach((holding) => {
           if (holding.purchasedAt > date) return;
           const price = lastKnownPrice[holding.ticker];
           if (price !== undefined) {
             value += holding.shares * price;
           }
           cost += holding.shares * holding.price;
+          if (hasBenchmark && benchmarkPriceByDate[date] !== undefined) {
+            benchmarkValue += holding.benchmarkShares * benchmarkPriceByDate[date];
+          }
         });
 
         const timestamp = moment(date).valueOf();
         valueSeries.push([timestamp, +value.toFixed(2)]);
         costSeries.push([timestamp, +cost.toFixed(2)]);
+        if (hasBenchmark) {
+          benchmarkSeries.push([timestamp, +benchmarkValue.toFixed(2)]);
+        }
       });
 
-      return { valueSeries, costSeries };
+      return { valueSeries, costSeries, benchmarkSeries: hasBenchmark ? benchmarkSeries : null };
+    },
+    forwardFill(timeline, closes) {
+      const filled = {};
+      let last;
+      timeline.forEach((date) => {
+        if (closes[date] !== undefined) last = closes[date];
+        if (last !== undefined) filled[date] = last;
+      });
+      return filled;
+    },
+    priceOnOrBefore(timeline, filledPrices, targetDate) {
+      let result;
+      for (let i = 0; i < timeline.length; i += 1) {
+        if (timeline[i] > targetDate) break;
+        if (filledPrices[timeline[i]] !== undefined) {
+          result = filledPrices[timeline[i]];
+        }
+      }
+      return result !== undefined ? result : filledPrices[timeline[0]];
     },
     buildChartOptions() {
       return {
@@ -189,17 +262,17 @@ export default {
         },
         stroke: {
           curve: 'smooth',
-          width: [2, 1.5],
-          dashArray: [0, 4],
+          width: [2, 1.5, 1.5],
+          dashArray: [0, 4, 2],
         },
-        colors: ['#0f9d70', 'rgba(0, 0, 0, 0.35)'],
+        colors: ['#0f9d70', 'rgba(0, 0, 0, 0.35)', '#00aaad'],
         fill: {
-          type: ['gradient', 'solid'],
+          type: ['gradient', 'solid', 'solid'],
           gradient: {
             opacityFrom: 0.35,
             opacityTo: 0,
           },
-          opacity: [1, 0],
+          opacity: [1, 0, 0],
         },
         legend: {
           show: true,
