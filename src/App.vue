@@ -22,6 +22,13 @@ export default {
   text-align: center;
   color: #2c3e50;
   min-height: 100vh;
+  --gain-color: #0f9d70;
+  --loss-color: #d1435c;
+  --gain-tint: rgba(15, 157, 112, 0.12);
+  --loss-tint: rgba(209, 67, 92, 0.12);
+  --surface-color: #ffffff;
+  --surface-border: rgba(17, 100, 104, 0.08);
+  --surface-shadow: 0 2px 10px rgba(17, 40, 40, 0.06);
 }
 #app .md-app {
   min-height: 100vh;
@@ -35,5 +42,20 @@ h4 {
 }
 .md-heading {
   margin: 24px 0 12px;
+}
+
+/* Tabular, monospaced figures for prices/changes/volume - reads as an
+   instrument panel rather than plain body text, and digits no longer
+   shift width as they tick up/down. */
+.fin-figure {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.fin-gain {
+  color: var(--gain-color);
+}
+.fin-loss {
+  color: var(--loss-color);
 }
 </style>

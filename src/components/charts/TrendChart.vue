@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="market-overview">
     <md-progress-spinner
       v-if="!loaded"
       :md-diameter="50"
@@ -7,29 +7,28 @@
       style="margin-top: 50px;"
       md-mode="indeterminate"
     ></md-progress-spinner>
-    <div v-else class="futures noselect">
-      <md-button
-        class="md-icon-button md-dense"
-        style="position: relative; top: 60px; margin-right: -32px;"
-        @click="fetchStockHistory(true)"
-      >
-        <md-icon>refresh</md-icon>
-      </md-button>
-      <a
-        class="charts"
-        v-for="(value, index) in trendData"
-        :key="index"
-        :href="`/quote/${value.name}`"
-        style="text-decoration: none;"
-      >
-        <div style="margin: 0;padding: 0; height: 0;text-align:left;">
-          <span class="md-subheading">{{ value.label }}</span
-          ><br />
-          <strong>{{ value.price }}</strong>
-          <span :style="`color:${value.color}`"> ({{ value.change }}%)</span>
-        </div>
-        <Area :series="[value.serie]" :options="value.options" />
-      </a>
+    <div v-else>
+      <div class="market-overview-toolbar">
+        <md-button class="md-icon-button md-dense" @click="fetchStockHistory(true)">
+          <md-icon>refresh</md-icon>
+        </md-button>
+      </div>
+      <div class="futures noselect">
+        <router-link
+          class="ticker-card"
+          :class="`ticker-card--${value.trend}`"
+          v-for="(value, index) in trendData"
+          :key="index"
+          :to="`/quote/${value.name}`"
+        >
+          <div class="ticker-card-header">
+            <span class="ticker-label">{{ value.label }}</span>
+            <span class="ticker-change fin-figure" :class="`ticker-change--${value.trend}`">{{ value.change }}</span>
+          </div>
+          <div class="ticker-price fin-figure">{{ value.price }}</div>
+          <Area :series="[value.serie]" :options="value.options" />
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -97,6 +96,10 @@ export default {
         const { openPrice } = series[i];
         const positiveTrend = openPrice < latestPrice;
         const changePercent = percentChange(openPrice, latestPrice);
+        let trend = 'flat';
+        if (changePercent) {
+          trend = positiveTrend ? 'up' : 'down';
+        }
         const { name } = series[i];
         /* eslint-disable-next-line no-param-reassign */
         series[i].name = symbol;
@@ -104,8 +107,8 @@ export default {
           name,
           label: symbol,
           price: `$${(+latestPrice).toFixed(2)}`, // last value is the newest
-          color: positiveTrend ? 'green' : 'red',
-          change: changePercent ? changePercent.toFixed(2) : 'NA',
+          trend,
+          change: changePercent ? `${changePercent > 0 ? '+' : ''}${changePercent.toFixed(2)}%` : 'NA',
           serie: series[i],
           options: this.setOptions(series[i]),
         };
@@ -178,7 +181,7 @@ export default {
               bottom: 0,
             },
           },
-          colors: positiveTrend ? ['rgba(29, 191, 172)'] : ['rgba(191, 29, 99)'],
+          colors: positiveTrend ? ['#0f9d70'] : ['#d1435c'],
           chart: {
             zoom: {
               enabled: false,
@@ -204,27 +207,100 @@ export default {
 </script>
 
 <style scoped>
+.market-overview-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -4px;
+}
 .futures {
   display: flex;
+  gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
+  align-items: stretch;
+  padding: 4px 4px 18px;
 }
-a {
+.ticker-card {
+  position: relative;
+  width: 240px;
+  min-width: 240px;
+  max-width: 240px;
+  height: 210px;
+  min-height: 210px;
+  padding: 16px 18px 10px 22px;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  box-shadow: var(--surface-shadow);
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.charts {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  height: 160px;
-  min-height: 150px;
-  padding: 5px;
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 400;
+.ticker-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+.ticker-card--up::before {
+  background: var(--gain-color);
+}
+.ticker-card--down::before {
+  background: var(--loss-color);
+}
+.ticker-card--flat::before {
+  background: rgba(0, 0, 0, 0.15);
+}
+.ticker-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(17, 40, 40, 0.14);
+}
+.ticker-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ticker-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ticker-change {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ticker-change--up {
+  color: var(--gain-color);
+  background: var(--gain-tint);
+}
+.ticker-change--down {
+  color: var(--loss-color);
+  background: var(--loss-tint);
+}
+.ticker-change--flat {
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.06);
+}
+.ticker-price {
+  font-size: 23px;
+  font-weight: 700;
+  color: #0a2f31;
+  margin: 8px 0 6px;
 }
 
 ::-webkit-scrollbar {

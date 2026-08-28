@@ -1,25 +1,32 @@
 <template>
-  <div v-if="loaded">
-    <div>
+  <div v-if="loaded" class="dashboard">
+    <div class="dashboard-section">
       <Search @search="searchQuote($event)"></Search>
     </div>
-    <h2 v-if="marketOverviewLoaded" class="md-heading">Market overview</h2>
-    <TrendChart @loaded="marketOverviewLoaded = $event" />
-    <div v-if="Object.keys(portfolio).length !== 0">
-      <h2 class="md-heading">Portfolio summary</h2>
-      <label>Choose portfolio: <strong>{{ portfolio.name }}</strong></label>
-      <md-menu :md-offset-x="150" :md-offset-y="-50">
-        <md-button class="md-icon md-accent" md-menu-trigger>
-          <md-icon>keyboard_arrow_down</md-icon>
-        </md-button>
-        <md-menu-content>
-          <md-menu-item v-for="p in portfolios" :key="p.id" @click="switchPortfolio(p.id)">
-            {{ p.name }}
-          </md-menu-item>
-        </md-menu-content>
-      </md-menu>
+
+    <div class="dashboard-section">
+      <h2 v-if="marketOverviewLoaded" class="md-heading">Market overview</h2>
+      <TrendChart @loaded="marketOverviewLoaded = $event" />
     </div>
-    <div v-if="Object.keys(portfolio).length !== 0">
+
+    <div v-if="Object.keys(portfolio).length !== 0" class="dashboard-section summary-card">
+      <div class="summary-card-header">
+        <h2 class="md-heading">Portfolio summary</h2>
+        <div class="portfolio-switcher">
+          <span>Portfolio: <strong>{{ portfolio.name }}</strong></span>
+          <md-menu :md-offset-x="150" :md-offset-y="-50">
+            <md-button class="md-icon-button md-dense" md-menu-trigger>
+              <md-icon>keyboard_arrow_down</md-icon>
+            </md-button>
+            <md-menu-content>
+              <md-menu-item v-for="p in portfolios" :key="p.id" @click="switchPortfolio(p.id)">
+                {{ p.name }}
+              </md-menu-item>
+            </md-menu-content>
+          </md-menu>
+        </div>
+      </div>
+
       <TabBar :tabs="portfolioTabs" v-model="activeTab" @change="onPortfolioSummaryTabChange" />
 
       <div v-if="activeTab === 'tab-allocation'">
@@ -146,6 +153,41 @@ export default {
 </script>
 
 <style scoped>
+.dashboard {
+  max-width: 1180px;
+  margin: 0 auto;
+  text-align: left;
+}
+.dashboard-section {
+  margin-bottom: 48px;
+}
+.dashboard-section:last-child {
+  margin-bottom: 0;
+}
+.summary-card {
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  box-shadow: var(--surface-shadow);
+  padding: 28px 28px 8px;
+}
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.summary-card-header .md-heading {
+  margin: 0;
+}
+.portfolio-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+}
 .allocation {
   display: flex;
   justify-content: space-around;
