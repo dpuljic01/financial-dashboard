@@ -7,43 +7,79 @@
       <Search @search="searchQuote($event)"></Search>
     </div>
 
-    <h3 class="md-title">{{ this.companyInfo.shortname || this.quote }}</h3>
-    <Compare :multiple="false" :symbols="[this.quote]"></Compare>
+    <h3 class="md-title">
+      {{ quote.toUpperCase() }}<span v-if="companyInfo.shortname"> &middot; {{ companyInfo.shortname }}</span>
+    </h3>
+    <Compare :multiple="false" :symbols="quoteSymbols"></Compare>
 
-    <div v-if="this.quote[0] !== '^'">
+    <div v-if="quote[0] !== '^'">
       <TabBar :tabs="quoteTabs" :modelValue="'tab-' + path" @change="onQuoteTabChange" />
 
       <div v-if="path === 'profile'">
         <md-empty-state
-          v-if="Object.values(companyInfo).length == 0"
-          md-description="We couldn't retrieve company info"
+          v-if="Object.values(companyInfo).length === 0"
+          md-icon="error"
+          md-label="Couldn't retrieve info about this company"
         >
         </md-empty-state>
-        <CompanyProfile v-else :company-info="companyInfo"></CompanyProfile>
+        <div v-else class="profile">
+          <div class="profile-header">
+            <div class="profile-badge">
+              <img
+                v-if="logoUrl && !logoFailed"
+                :src="logoUrl"
+                :alt="`${quote} logo`"
+                class="profile-logo"
+                @error="logoFailed = true"
+              />
+              <span v-else>{{ quote.slice(0, 2) }}</span>
+            </div>
+            <div>
+              <h2 class="md-title profile-title">{{ companyInfo.longname || companyInfo.shortname || quote }}</h2>
+              <div class="profile-subtitle">
+                <span class="profile-symbol">{{ quote.toUpperCase() }}</span>
+                <span v-if="companyInfo.sector"> &middot; {{ companyInfo.sector }}</span>
+                <span v-if="companyInfo.industry"> &middot; {{ companyInfo.industry }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat" v-for="stat in stats" :key="stat.label">
+              <span class="stat-label">{{ stat.label }}</span>
+              <a v-if="stat.link" class="stat-value stat-link" :href="stat.link" target="_blank" rel="noopener">{{
+                stat.value
+              }}</a>
+              <span v-else class="stat-value">{{ stat.value }}</span>
+            </div>
+          </div>
+
+          <p v-if="companyInfo.longbusinesssummary" class="summary">
+            {{ companyInfo.longbusinesssummary }}
+          </p>
+        </div>
       </div>
 
       <div v-if="path === 'news'">
-        <News :tickers="[this.quote]"></News>
+        <News :tickers="[quote]"></News>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import moment from 'moment';
 import Search from './Search.vue';
-import CompanyProfile from './portfolio/CompanyProfile.vue';
 import Compare from './Compare.vue';
 import News from './portfolio/News.vue';
 import TabBar from './TabBar.vue';
-import { QUOTE_OPTIONS } from '../consts';
-import { setQuoteSeries, setYAxis } from '../utils';
+import { formatCompactNumber } from '../utils';
+
+const VALID_QUOTE_PATHS = ['profile', 'news'];
 
 export default {
   name: 'Quote',
   components: {
     Search,
-    CompanyProfile,
     News,
     Compare,
     TabBar,
@@ -51,13 +87,8 @@ export default {
   data() {
     return {
       quote: this.$route.params.quote,
-      period: '1d',
-      fullPeriod: '1 day',
-      interval: '5m',
-      options: QUOTE_OPTIONS,
-      series: [],
       loaded: false,
-      activeTab: 'tab-1d',
+      logoFailed: false,
       companyInfo: {},
       path: 'profile',
       quoteTabs: [
@@ -67,123 +98,83 @@ export default {
     };
   },
   async mounted() {
-    this.path = this.$route.path.split('/').pop();
+    const requestedPath = this.$route.path.split('/').pop();
+    this.path = VALID_QUOTE_PATHS.includes(requestedPath) ? requestedPath : 'profile';
     this.companyInfo = await this.$store.dispatch('getCompanyInfo', this.quote);
-    await this.loadQuote();
     this.$store.commit('setLoading', false);
     this.loaded = true;
+  },
+  computed: {
+    quoteSymbols() {
+      return [this.quote];
+    },
+    logoUrl() {
+      const domain = this.formatWebsite(this.companyInfo.website);
+      return domain ? `https://logo.clearbit.com/${domain}` : null;
+    },
+    stats() {
+      const c = this.companyInfo;
+      const items = [
+        { label: 'Market cap', value: this.formatMarketCap(c.marketcap) },
+        { label: 'Volume', value: formatCompactNumber(c.volume) },
+        { label: 'Avg volume', value: formatCompactNumber(c.averagevolume) },
+        { label: 'Employees', value: formatCompactNumber(c.fulltimeemployees) },
+        { label: 'Headquarters', value: this.formatHeadquarters(c) },
+        { label: 'Website', value: this.formatWebsite(c.website), link: c.website },
+        { label: 'P/E (TTM)', value: this.formatDecimal(c.trailingpe) },
+        { label: 'Forward P/E', value: this.formatDecimal(c.forwardpe) },
+        { label: 'Dividend yield', value: c.dividendyield != null ? `${c.dividendyield}%` : null },
+        { label: 'Beta', value: this.formatDecimal(c.beta) },
+        { label: 'Day range', value: this.formatRange(c.dayrange) },
+        { label: '52-week range', value: this.formatRange(c.fiftytwoweekrange) },
+        { label: 'Analyst rating', value: c.averageanalystrating },
+      ];
+      return items.filter((item) => item.value !== null && item.value !== undefined && item.value !== '');
+    },
   },
   methods: {
     onQuoteTabChange(tabId) {
       this.path = tabId.replace('tab-', '');
       this.$router.push(`/quote/${this.quote}/${this.path}`);
     },
-    switchPeriod(period) {
-      this.period = period;
-      switch (this.period) {
-        case '1d':
-          this.fullPeriod = '1 day';
-          this.interval = '5m';
-          break;
-        case '5d':
-          this.fullPeriod = '5 days';
-          this.interval = '30m';
-          break;
-        case '1mo':
-          this.fullPeriod = '1 month';
-          this.interval = '1d';
-          break;
-        case '6mo':
-          this.fullPeriod = '6 months';
-          this.interval = '1d';
-          break;
-        case '1y':
-          this.fullPeriod = '1 year';
-          this.interval = '1d';
-          break;
-        case '5y':
-          this.fullPeriod = '5 years';
-          this.interval = '1wk';
-          break;
-        case 'max':
-          this.fullPeriod = 'Since going public';
-          this.interval = '1mo';
-          break;
-        default:
-          this.period = '1d';
-          this.interval = '5m';
-      }
-      this.loadQuote();
-    },
-    async loadQuote() {
-      if (this.quote) {
-        this.$store.commit('setLoading', true);
-        await this.getQuoteHistory();
-        this.options = {
-          ...this.options,
-          ...{
-            xaxis: {
-              type: 'datetime',
-            },
-            yaxis: setYAxis(this.series),
-            legend: {
-              position: 'top',
-              horizontalAlign: 'left',
-            },
-            tooltip: {
-              x: {
-                formatter: function f(val) {
-                  return moment(val).format('LLL');
-                },
-              },
-              y: {
-                formatter: function f(val) {
-                  return +val.toFixed(4);
-                },
-              },
-            },
-            title: {
-              text: this.companyInfo.shortname,
-            },
-            subtitle: {
-              text: this.fullPeriod,
-            },
-            chart: {
-              animations: {
-                enabled: false,
-              },
-              height: 'auto',
-            },
-          },
-        };
-        this.$store.commit('setLoading', false);
-      }
-    },
     async searchQuote(event) {
       await this.$router.push(`/quote/${event.symbol}/profile`);
       this.path = 'profile';
       this.quote = event.symbol;
-      await this.loadQuote();
     },
-    async getQuoteHistory() {
-      const resp = await this.$store.dispatch('getStockHistoryData', {
-        symbols: this.quote,
-        interval: this.interval,
-        period: this.period,
-        include_info: false,
-      });
-      this.series = setQuoteSeries(resp.data);
-      this.$store.commit('setLoading', false);
+    formatMarketCap(value) {
+      const compact = formatCompactNumber(value);
+      return compact ? `$${compact}` : null;
     },
-    async delayedCompare() {
-      await this.compare();
+    formatDecimal(value) {
+      if (value == null) return null;
+      return value.toFixed(2);
+    },
+    formatRange(range) {
+      if (!range) return null;
+      const parts = range.split('-').map((part) => parseFloat(part));
+      if (parts.length !== 2 || parts.some(Number.isNaN)) return range;
+      return `${parts[0].toFixed(2)} - ${parts[1].toFixed(2)}`;
+    },
+    formatHeadquarters(c) {
+      const parts = [c.city, c.state, c.country].filter(Boolean);
+      return parts.length ? parts.join(', ') : null;
+    },
+    formatWebsite(website) {
+      if (!website) return null;
+      try {
+        return new URL(website).hostname.replace(/^www\./, '');
+      } catch (e) {
+        return website;
+      }
     },
   },
   watch: {
     async quote(val) {
       this.loaded = false;
+      this.logoFailed = false;
       this.quote = val;
-      if (this.quote.toLowerCase() !== this.companyInfo.symbol.toLowerCase()) {
+      if (this.quote.toLowerCase() !== (this.companyInfo.symbol || '').toLowerCase()) {
         this.companyInfo = await this.$store.dispatch('getCompanyInfo', this.quote);
       }
       this.loaded = true;
@@ -192,7 +183,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .chart {
   width: 100%;
   height: 100%;
@@ -203,5 +194,85 @@ export default {
 }
 .active {
   background-color: #01a2a8;
+}
+.profile {
+  text-align: left;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.profile-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #116468;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.profile-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+.profile-title {
+  margin: 0;
+}
+.profile-subtitle {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+.profile-symbol {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: rgba(17, 100, 104, 0.05);
+  border-radius: 8px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(0, 0, 0, 0.54);
+}
+.stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a383a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stat-link {
+  text-decoration: none;
+}
+.stat-link:hover {
+  text-decoration: underline;
+}
+.summary {
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.8);
 }
 </style>

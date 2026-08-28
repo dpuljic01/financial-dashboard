@@ -11,8 +11,8 @@ const PROTECTED_ROUTES = [
   'News',
   'Performance',
   'Quote',
-  'CompanyProfile',
-  'CompanyNews',
+  'QuoteProfile',
+  'QuoteNews',
 ];
 const QUOTE_OPTIONS = {
   dataLabels: {

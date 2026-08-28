@@ -14,7 +14,6 @@ import Performance from '../components/portfolio/Performance.vue';
 import Quote from '../components/Quote.vue';
 import Compare from '../components/Compare.vue';
 import Profile from '../components/Profile.vue';
-import CompanyProfile from '../components/portfolio/CompanyProfile.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
 
@@ -85,14 +84,17 @@ const router = createRouter({
       component: Quote,
       children: [
         {
-          name: 'CompanyProfile',
+          // Quote.vue renders the profile/news tabs itself (no nested
+          // <router-view>) - these children only exist so vue-router
+          // matches /quote/:quote/profile and /quote/:quote/news.
+          name: 'QuoteProfile',
           path: 'profile',
-          component: CompanyProfile,
+          component: Quote,
         },
         {
-          name: 'CompanyNews',
+          name: 'QuoteNews',
           path: 'news',
-          component: News,
+          component: Quote,
         },
       ],
     },

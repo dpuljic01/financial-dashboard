@@ -174,7 +174,11 @@ export default {
       this.onTabChange('1d');
     },
     symbols(val) {
-      this.localSymbols = [...val];
+      const unchanged = val.length === this.localSymbols.length
+        && val.every((symbol, i) => symbol === this.localSymbols[i]);
+      if (!unchanged) {
+        this.localSymbols = [...val];
+      }
     },
   },
 };

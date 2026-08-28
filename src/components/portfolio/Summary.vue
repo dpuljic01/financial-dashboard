@@ -60,7 +60,7 @@ export default {
   },
   methods: {
     goToQuote(ticker) {
-      this.$router.push(`/quote/${ticker}`);
+      this.$router.push(`/quote/${ticker}/profile`);
     },
     roundFloat(val) {
       if (val) return +val.toFixed(2);
