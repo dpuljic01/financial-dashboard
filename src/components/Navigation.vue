@@ -23,8 +23,9 @@
         </nav>
 
         <md-menu :md-offset-x="-150" :md-offset-y="8">
-          <md-button class="md-icon-button md-dense toolbar-user-trigger" md-menu-trigger>
+          <md-button class="toolbar-user-trigger" md-menu-trigger>
             <md-icon>account_circle</md-icon>
+            <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
           </md-button>
           <md-menu-content>
             <md-menu-item @click="goToProfile">Profile</md-menu-item>
@@ -103,6 +104,13 @@ export default {
         { path: '/compare', label: 'Compare' },
       ],
     };
+  },
+  computed: {
+    currentUserName() {
+      const user = this.$store.getters.getCurrentUser;
+      if (!user) return '';
+      return user.first_name || user.email || '';
+    },
   },
   watch: {
     $route(to) {
@@ -195,11 +203,17 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  /* !important throughout this block: vue-material's own link/button
+     theming otherwise wins over a plain `color` declaration here and the
+     text renders as a tinted teal instead of solid white. */
+  color: #fff !important;
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
   flex-shrink: 0;
+}
+.toolbar-brand span {
+  color: #fff !important;
 }
 .toolbar-brand :deep(.md-icon) {
   display: inline-flex !important;
@@ -220,9 +234,7 @@ export default {
   flex: 1;
 }
 .toolbar-nav-link {
-  /* Solid white, not alpha-blended - see .sidebar-link's old note: any
-     alpha white over this teal background picks up a visible cyan cast. */
-  color: #fff;
+  color: #fff !important;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -239,10 +251,31 @@ export default {
 }
 
 .toolbar-user-trigger {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.toolbar-user-trigger:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 .toolbar-user-trigger :deep(.md-icon) {
   color: #fff !important;
   font-size: 26px !important;
+  margin: 0 !important;
+}
+.toolbar-user-name {
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  white-space: nowrap;
 }
 </style>
