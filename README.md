@@ -5,7 +5,7 @@ A full-stack fintech dashboard built as part of a Master's thesis, with a Flask/
 **Live app:** [finance.puljic.ch](https://finance.puljic.ch)
 *(Frontend on Vercel, backend on Render, database on Neon Postgres)*
 
-![Financial Dashboard](/public/images/dashboard.png)
+![Financial Dashboard](/public/dashboard.jpg)
 
 ## Stack
 
