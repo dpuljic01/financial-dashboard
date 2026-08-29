@@ -26,7 +26,7 @@
             <span class="ticker-change fin-figure" :class="`ticker-change--${value.trend}`">{{ value.change }}</span>
           </div>
           <div class="ticker-price fin-figure">{{ value.price }}</div>
-          <Area :series="[value.serie]" :options="value.options" />
+          <LightweightChart :series="value.lwcSeries" :height="110" sparkline />
         </router-link>
       </div>
     </div>
@@ -34,9 +34,8 @@
 </template>
 
 <script>
-import { setQuoteSeries, setYAxis, percentChange } from '../../utils';
-import Area from './Area.vue';
-import { QUOTE_OPTIONS } from '../../consts';
+import { setQuoteSeries, percentChange } from '../../utils';
+import LightweightChart from './LightweightChart.vue';
 
 // Matches the backend's yfinance history cache timeout, so the localStorage
 // cache never holds data staler than what a fresh request would return anyway.
@@ -45,7 +44,7 @@ const TREND_CACHE_TTL_MS = 5 * 60 * 1000;
 export default {
   name: 'TrendChart',
   components: {
-    Area,
+    LightweightChart,
   },
   data() {
     return {
@@ -53,7 +52,6 @@ export default {
       trendData: [],
       interval: '1m',
       period: '1d',
-      options: QUOTE_OPTIONS,
       loaded: false,
     };
   },
@@ -100,17 +98,41 @@ export default {
         const { name } = series[i];
         /* eslint-disable-next-line no-param-reassign */
         series[i].name = symbol;
+        const gain = trend !== 'down';
         const chartData = {
           name,
           label: symbol,
           price: `$${(+latestPrice).toFixed(2)}`, // last value is the newest
           trend,
           change: changePercent ? `${changePercent > 0 ? '+' : ''}${changePercent.toFixed(2)}%` : 'NA',
-          serie: series[i],
-          options: this.setOptions(series[i]),
+          lwcSeries: [
+            {
+              type: 'area',
+              data: this.toLwcData(series[i].data),
+              color: gain ? '#0f9d70' : '#d1435c',
+              lineWidth: 1.5,
+              topColor: gain ? 'rgba(15, 157, 112, 0.25)' : 'rgba(209, 67, 92, 0.25)',
+              bottomColor: 'rgba(0, 0, 0, 0)',
+            },
+          ],
         };
         this.trendData.push(chartData);
       }
+    },
+    // apexcharts-era data shape ([isoDateString, value] pairs) into
+    // lightweight-charts' {time (unix seconds), value} points - sorted and
+    // deduped by second, since the library rejects out-of-order/duplicate
+    // timestamps.
+    toLwcData(pairs) {
+      const bySecond = new Map();
+      pairs.forEach(([isoDate, value]) => {
+        if (value === null || value === undefined) return;
+        const time = Math.floor(new Date(isoDate).getTime() / 1000);
+        bySecond.set(time, value);
+      });
+      return [...bySecond.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([time, value]) => ({ time, value }));
     },
     nameFromSymbol(symbol) {
       const mapping = {
@@ -125,79 +147,6 @@ export default {
         '^vix': 'Vix',
       };
       return mapping[symbol];
-    },
-    setOptions(serie) {
-      const positiveTrend = serie.data[0][1] < serie.data[Object.keys(serie.data).length - 1][1];
-      const yAxis = setYAxis(serie);
-      return {
-        ...this.options,
-        ...{
-          stroke: {
-            curve: 'straight',
-            width: 1,
-          },
-          xaxis: {
-            type: 'datetime',
-            floating: true,
-            axisTicks: {
-              show: false,
-            },
-            axisBorder: {
-              show: false,
-            },
-            labels: {
-              show: false,
-              format: 'HH:MM',
-            },
-          },
-          yaxis: yAxis,
-          legend: {
-            show: false,
-          },
-          tooltip: {
-            x: {
-              show: false,
-              formatter: function f(val) {
-                const formattedDate = new Date(val);
-                return `${formattedDate.getHours()}:${formattedDate.getMinutes()}`;
-              },
-            },
-            y: {
-              show: false,
-              formatter: function f(val) {
-                return +val.toFixed(2);
-              },
-            },
-          },
-          grid: {
-            show: false,
-            padding: {
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,
-            },
-          },
-          colors: positiveTrend ? ['#0f9d70'] : ['#d1435c'],
-          chart: {
-            zoom: {
-              enabled: false,
-            },
-            selection: {
-              enabled: false,
-            },
-            width: '100%',
-            height: 300,
-            animations: {
-              enabled: false,
-            },
-            toolbar: {
-              maxHeight: 0,
-              show: false,
-            },
-          },
-        },
-      };
     },
   },
 };

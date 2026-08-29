@@ -18,6 +18,7 @@
     "core-js": "^3.6.5",
     "css-loader": "^4.3.0",
     "floating-vue": "^5.2.2",
+    "lightweight-charts": "^5.2.1",
     "moment": "^2.29.4",
     "vue": "^3.4.0",
     "vue-axios": "^3.5.2",
