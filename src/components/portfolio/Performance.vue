@@ -259,7 +259,8 @@ export default {
         ...QUOTE_OPTIONS,
         chart: {
           animations: { enabled: false },
-          toolbar: { show: true },
+          toolbar: { show: false },
+          zoom: { enabled: false },
         },
         stroke: {
           curve: 'smooth',

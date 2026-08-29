@@ -172,6 +172,8 @@ export default {
               animations: {
                 enabled: false,
               },
+              toolbar: { show: false },
+              zoom: { enabled: false },
               height: 'auto',
             },
           },
