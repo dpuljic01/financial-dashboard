@@ -1,33 +1,26 @@
+# Financial Dashboard
 
-# Masters Thesis - Financial Dashboard
+A full-stack fintech dashboard built as part of a Master's thesis, with a Flask/Python backend, Vue.js frontend, and PostgreSQL data layer.
 
-
-
-NOTE: this is still WIP, here is the [LIVE DEMO](https://dp-finance.herokuapp.com/) of the current progress.
-
-<sub>PS: If it's slow when first time opening app, that's because Heroku shuts down app after 30mins of inactivity, 
-so it takes a while to run it again.</sub>
-
-Here is the look of the main page :heart_eyes:
+**Live app:** [finance.puljic.ch](https://finance.puljic.ch)
+*(Frontend on Vercel, backend on Render, database on Neon Postgres)*
 
 ![Financial Dashboard](/public/images/dashboard.png)
 
+## Stack
+
+- **Backend:** Python, Flask
+- **Frontend:** Vue.js
+- **Database:** PostgreSQL (hosted on Neon)
+- **Hosting:** Render (API) + Vercel (client)
 
 ## Server
 
-  
-
 ### Project setup
 
-
-
 ```
-
 pip install -r requirements.txt
-
 ```
-
-
 
 ### Run
 
@@ -36,101 +29,54 @@ export FLASK_APP=wsgi.py
 flask run
 ```
 
-
 or
-
 
 ```
 python manage.py runserver
 ```
 
-
-
 ## Client
-
-
 
 ### Project setup
 
 ```
 npm install
-
 ```
-
-
 
 ### Compiles and hot-reloads for development
 
 ```
 npm start
-
 ```
-
-
 
 ### Compiles and minifies for production
 
 ```
 npm run build
-
 ```
-
-
 
 ### Lints and fixes files
 
 ```
 npm run lint
-
 ```
-
 
 ### Customize configuration
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
+## Deployment
 
-# Heroku
+### Render (API)
 
-* Set environmental variables (change `SECRET_KEY` value)
+This repo includes a `render.yaml` file for deploying the backend on [Render](https://render.com).
+Create a new **Web Service** from this repository — Render will use the build and start commands defined in that file.
+Set environment variables based on `.env.example` (including the Neon Postgres connection string).
 
+### Vercel (Client)
 
-```bash
+The Vue client is deployed separately on [Vercel](https://vercel.com), pointed at the Render API.
 
-heroku config:set SECRET_KEY=not-so-secret
+### Database (Neon)
 
-heroku config:set FLASK_APP=wsgi.py
-...
-
-```
-
-
-
-* Deploy on Heroku by pushing to the `heroku` branch or some other branch you created
-
-
-
-```bash
-
-git push <heroku|staging|production> master
-
-```
-
-* Running the app
-
-	-  *locally* -> `python manage.py runserver`
-
-	-  *production* -> `heroku run python manage.py runserver --app app_name`
-
-
-
-* Create user manually (these are automatically verified, no need for email confirmation)
-
-        -  `heroku run python manage.py create_user --app app_name`
-
-
-# Render
-
-This repo includes a `render.yaml` file for deploying on [Render](https://render.com).
-Create a new **Web Service** from this repository and Render will automatically use the build and start commands defined in that file.
-Remember to configure the required environment variables based on `.env.example`.
+PostgreSQL is hosted on [Neon](https://neon.tech). Set `DATABASE_URL` in your environment to the Neon connection string for both local development and deployment.
