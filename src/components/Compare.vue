@@ -18,8 +18,20 @@
       <span class="compare-price fin-figure">{{ formattedPrice }}</span>
       <span
         class="compare-change fin-figure"
-        :class="trend === 'up' ? 'fin-gain' : 'fin-loss'"
+        :class="displayTrend === 'up' ? 'fin-gain' : 'fin-loss'"
       >{{ formattedChange }}</span>
+    </div>
+
+    <div v-if="multiple && loaded" class="compare-legend">
+      <div v-for="item in legendItems" :key="item.name" class="compare-legend-item">
+        <span class="compare-legend-swatch" :style="{ background: item.color }"></span>
+        <span class="compare-legend-name">{{ item.name }}</span>
+        <span
+          v-if="item.value != null"
+          class="compare-legend-value fin-figure"
+          :class="item.value >= 0 ? 'fin-gain' : 'fin-loss'"
+        >{{ item.value >= 0 ? '+' : '' }}{{ item.value.toFixed(2) }}%</span>
+      </div>
     </div>
 
     <div class="compare-toolbar">
@@ -27,7 +39,12 @@
     </div>
 
     <div class="chart">
-      <Area v-if="loaded" :options="options" :series="series" />
+      <LightweightChart
+        v-if="loaded"
+        :series="lwcSeries"
+        :height="320"
+        @crosshair-move="onCrosshairMove"
+      />
       <md-progress-spinner
         v-else
         :md-diameter="50"
@@ -40,11 +57,11 @@
 </template>
 
 <script>
-import moment from 'moment';
-import Area from './charts/Area.vue';
+import LightweightChart from './charts/LightweightChart.vue';
 import TabBar from './TabBar.vue';
-import { QUOTE_OPTIONS } from '../consts';
-import { setQuoteSeries, setYAxis, percentChange } from '../utils';
+import { setQuoteSeries, percentChange } from '../utils';
+
+const PALETTE = ['#116468', '#0f9d70', '#d1435c', '#00aaad', '#8c6dfd', '#e8873a', '#3a86ff'];
 
 export default {
   name: 'Compare',
@@ -59,28 +76,21 @@ export default {
     },
   },
   components: {
-    Area,
+    LightweightChart,
     TabBar,
-  },
-  computed: {
-    formattedPrice() {
-      return this.latestPrice != null ? `$${(+this.latestPrice).toFixed(2)}` : '';
-    },
-    formattedChange() {
-      if (this.changePercent == null) return '';
-      const sign = this.changePercent > 0 ? '+' : '';
-      return `${sign}${this.changePercent.toFixed(2)}%`;
-    },
   },
   data() {
     return {
       localSymbols: [...this.symbols],
       period: '1d',
       interval: '5m',
-      options: QUOTE_OPTIONS,
       series: [],
+      lwcSeries: [],
+      legendItems: [],
       loaded: false,
       latestPrice: null,
+      periodOpenPrice: null,
+      hoveredPrice: null,
       trend: 'flat',
       changePercent: null,
       activeTab: 'tab-1d',
@@ -94,6 +104,32 @@ export default {
         { id: 'tab-max', label: 'MAX' },
       ],
     };
+  },
+  computed: {
+    // Falls back to the latest value when nothing's being hovered, so the
+    // header reads live as you drag the crosshair (like a real trading
+    // platform) without needing separate "hovering vs not" template logic.
+    displayPrice() {
+      return this.hoveredPrice != null ? this.hoveredPrice : this.latestPrice;
+    },
+    displayChangePercent() {
+      if (this.hoveredPrice != null && this.periodOpenPrice) {
+        return percentChange(this.periodOpenPrice, this.hoveredPrice);
+      }
+      return this.changePercent;
+    },
+    displayTrend() {
+      if (this.displayChangePercent == null) return 'flat';
+      return this.displayChangePercent >= 0 ? 'up' : 'down';
+    },
+    formattedPrice() {
+      return this.displayPrice != null ? `$${(+this.displayPrice).toFixed(2)}` : '';
+    },
+    formattedChange() {
+      if (this.displayChangePercent == null) return '';
+      const sign = this.displayChangePercent > 0 ? '+' : '';
+      return `${sign}${this.displayChangePercent.toFixed(2)}%`;
+    },
   },
   mounted() {
     this.compare();
@@ -140,51 +176,16 @@ export default {
         if (!this.multiple) {
           this.updateSingleSymbolStats();
         }
-        this.options = {
-          ...this.options,
-          ...{
-            xaxis: {
-              type: 'datetime',
-            },
-            yaxis: setYAxis(this.series),
-            legend: {
-              show: this.multiple,
-              position: 'top',
-              horizontalAlign: 'left',
-            },
-            colors: this.multiple ? undefined : [this.trend === 'down' ? '#d1435c' : '#0f9d70'],
-            tooltip: {
-              x: {
-                formatter: function f(val) {
-                  return moment(val).format('LLL');
-                },
-                tooltip: {
-                  shared: true,
-                },
-              },
-              y: {
-                formatter: function f(val) {
-                  return +val.toFixed(4);
-                },
-              },
-            },
-            chart: {
-              animations: {
-                enabled: false,
-              },
-              toolbar: { show: false },
-              zoom: { enabled: false },
-              height: 'auto',
-            },
-          },
-        };
+        this.buildLwcSeries();
         this.loaded = true;
       }
     },
     updateSingleSymbolStats() {
       const [serie] = this.series;
+      this.hoveredPrice = null;
       if (!serie || serie.data.length === 0) {
         this.latestPrice = null;
+        this.periodOpenPrice = null;
         this.changePercent = null;
         this.trend = 'flat';
         return;
@@ -192,6 +193,7 @@ export default {
       const [, openPrice] = serie.data[0];
       const [, latestPrice] = serie.data[serie.data.length - 1];
       this.latestPrice = latestPrice;
+      this.periodOpenPrice = openPrice;
       this.changePercent = percentChange(openPrice, latestPrice);
       if (this.changePercent > 0) {
         this.trend = 'up';
@@ -200,6 +202,78 @@ export default {
       } else {
         this.trend = 'flat';
       }
+    },
+    buildLwcSeries() {
+      if (!this.multiple) {
+        const [serie] = this.series;
+        const data = serie ? this.toLwcData(serie.data) : [];
+        const gain = this.trend !== 'down';
+        this.lwcSeries = [
+          {
+            type: 'area',
+            data,
+            color: gain ? '#0f9d70' : '#d1435c',
+            lineWidth: 2,
+            topColor: gain ? 'rgba(15, 157, 112, 0.25)' : 'rgba(209, 67, 92, 0.25)',
+            bottomColor: 'rgba(0, 0, 0, 0)',
+          },
+        ];
+        this.legendItems = [];
+        return;
+      }
+
+      // Different symbols trade at very different absolute prices, so a
+      // shared raw-price scale makes the cheaper one unreadable. Normalize
+      // every series to % change from the start of the visible period -
+      // the same thing a real "compare" tool on a trading platform does -
+      // so they're all directly comparable on one scale.
+      this.lwcSeries = this.series.map((serie, index) => ({
+        type: 'line',
+        data: this.toPercentSeries(serie),
+        color: PALETTE[index % PALETTE.length],
+        lineWidth: 2,
+        priceFormat: { type: 'percent', precision: 2 },
+      }));
+      this.legendItems = this.computeLegendItems();
+    },
+    toPercentSeries(serie) {
+      const points = this.toLwcData(serie.data);
+      const base = points.length > 0 ? points[0].value : null;
+      if (!base) return [];
+      return points.map((point) => ({ time: point.time, value: ((point.value / base) - 1) * 100 }));
+    },
+    computeLegendItems() {
+      return this.series.map((serie, index) => {
+        const percentPoints = this.toPercentSeries(serie);
+        const last = percentPoints.length > 0 ? percentPoints[percentPoints.length - 1] : null;
+        return { name: serie.name, color: PALETTE[index % PALETTE.length], value: last ? last.value : null };
+      });
+    },
+    onCrosshairMove({ time, values }) {
+      if (this.multiple) {
+        if (time) {
+          this.legendItems = this.legendItems.map((item, i) => (
+            values[i] != null ? { ...item, value: values[i] } : item
+          ));
+        } else {
+          this.legendItems = this.computeLegendItems();
+        }
+        return;
+      }
+      this.hoveredPrice = time && values[0] != null ? values[0] : null;
+    },
+    // apexcharts-era data shape ([isoDateString, value] pairs) into
+    // lightweight-charts' {time (unix seconds), value} points.
+    toLwcData(pairs) {
+      const bySecond = new Map();
+      pairs.forEach(([isoDate, value]) => {
+        if (value === null || value === undefined) return;
+        const time = Math.floor(new Date(isoDate).getTime() / 1000);
+        bySecond.set(time, value);
+      });
+      return [...bySecond.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([time, value]) => ({ time, value }));
     },
     async getQuoteHistory() {
       const resp = await this.$store.dispatch('getStockHistoryData', {
@@ -263,6 +337,31 @@ export default {
 .compare-change {
   font-size: 15px;
   font-weight: 600;
+}
+.compare-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+.compare-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.compare-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.compare-legend-name {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+}
+.compare-legend-value {
+  font-size: 12px;
 }
 .compare-toolbar {
   margin-bottom: 16px;

@@ -90,7 +90,15 @@ export default {
       });
 
       this.chart.subscribeCrosshairMove((param) => {
-        this.$emit('crosshair-move', param);
+        // Translate lightweight-charts' own param (keyed by internal series
+        // instances the parent has no handle on) into a plain array aligned
+        // with the `series` prop order, so callers don't need to know
+        // anything about how this wrapper built its series.
+        const values = this.seriesInstances.map((instance) => {
+          const point = param.seriesData && param.seriesData.get(instance);
+          return point && point.value !== undefined ? point.value : null;
+        });
+        this.$emit('crosshair-move', { time: param.time || null, values });
       });
     },
     renderSeries() {
