@@ -26,6 +26,13 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Auto-hides the right price scale when the chart's own rendered width
+    // drops below this (0 = never). Raw dollar labels ("$100,000") eat too
+    // much of a narrow chart's width for what they add.
+    hidePriceScaleBelow: {
+      type: Number,
+      default: 0,
+    },
   },
   emits: ['crosshair-move'],
   data() {
@@ -130,7 +137,11 @@ export default {
     },
     handleResize() {
       if (!this.chart || !this.$refs.container) return;
-      this.chart.resize(this.$refs.container.clientWidth, this.height);
+      const width = this.$refs.container.clientWidth;
+      this.chart.resize(width, this.height);
+      if (this.hidePriceScaleBelow > 0) {
+        this.chart.applyOptions({ rightPriceScale: { visible: width >= this.hidePriceScaleBelow } });
+      }
     },
   },
 };

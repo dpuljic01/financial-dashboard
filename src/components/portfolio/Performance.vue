@@ -29,14 +29,29 @@
         </span>
       </div>
     </div>
-    <Area :series="series" :options="chartOptions" />
+
+    <div class="performance-legend">
+      <div class="performance-legend-item">
+        <span class="performance-legend-swatch performance-legend-swatch--solid"></span>
+        <span>Portfolio Value</span>
+      </div>
+      <div class="performance-legend-item">
+        <span class="performance-legend-swatch performance-legend-swatch--dashed"></span>
+        <span>Cost Basis</span>
+      </div>
+      <div v-if="showBenchmark" class="performance-legend-item">
+        <span class="performance-legend-swatch performance-legend-swatch--dotted"></span>
+        <span>S&amp;P 500 (same contributions)</span>
+      </div>
+    </div>
+
+    <LightweightChart :series="lwcSeries" :height="320" :hide-price-scale-below="500" />
   </div>
 </template>
 
 <script>
 import moment from 'moment';
-import Area from '../charts/Area.vue';
-import { QUOTE_OPTIONS } from '../../consts';
+import LightweightChart from '../charts/LightweightChart.vue';
 import { formatCompactNumber } from '../../utils';
 
 const BENCHMARK_TICKER = '^gspc';
@@ -45,7 +60,7 @@ const BENCHMARK_LABEL = 'S&P 500';
 export default {
   name: 'Performance',
   components: {
-    Area,
+    LightweightChart,
   },
   props: {
     portfolio: {
@@ -58,7 +73,6 @@ export default {
       loaded: false,
       hasHistory: false,
       series: [],
-      chartOptions: {},
       currentValue: 0,
       currentCostBasis: 0,
       totalReturn: 0,
@@ -70,6 +84,40 @@ export default {
   computed: {
     vsBenchmark() {
       return this.totalReturnPercent - this.benchmarkReturnPercent;
+    },
+    lwcSeries() {
+      if (this.series.length === 0) return [];
+      const priceFormat = { type: 'custom', formatter: (price) => `$${formatCompactNumber(price)}` };
+      const specs = [
+        {
+          type: 'area',
+          data: this.toLwcPoints(this.series[0].data),
+          color: '#0f9d70',
+          lineWidth: 2,
+          topColor: 'rgba(15, 157, 112, 0.3)',
+          bottomColor: 'rgba(15, 157, 112, 0)',
+          priceFormat,
+        },
+        {
+          type: 'line',
+          data: this.toLwcPoints(this.series[1].data),
+          color: 'rgba(0, 0, 0, 0.35)',
+          lineWidth: 1.5,
+          lineStyle: 2, // dashed
+          priceFormat,
+        },
+      ];
+      if (this.series[2]) {
+        specs.push({
+          type: 'line',
+          data: this.toLwcPoints(this.series[2].data),
+          color: '#00aaad',
+          lineWidth: 1.5,
+          lineStyle: 1, // dotted
+          priceFormat,
+        });
+      }
+      return specs;
     },
   },
   async mounted() {
@@ -121,7 +169,6 @@ export default {
       if (benchmarkSeries) {
         this.series.push({ name: `${BENCHMARK_LABEL} (same contributions)`, data: benchmarkSeries });
       }
-      this.chartOptions = this.buildChartOptions();
 
       const lastValue = valueSeries[valueSeries.length - 1];
       const lastCost = costSeries[costSeries.length - 1];
@@ -254,60 +301,12 @@ export default {
       }
       return result !== undefined ? result : filledPrices[timeline[0]];
     },
-    buildChartOptions() {
-      return {
-        ...QUOTE_OPTIONS,
-        chart: {
-          animations: { enabled: false },
-          toolbar: { show: false },
-          zoom: { enabled: false },
-        },
-        stroke: {
-          curve: 'smooth',
-          width: [2, 1.5, 1.5],
-          dashArray: [0, 4, 2],
-        },
-        colors: ['#0f9d70', 'rgba(0, 0, 0, 0.35)', '#00aaad'],
-        fill: {
-          type: ['gradient', 'solid', 'solid'],
-          gradient: {
-            opacityFrom: 0.35,
-            opacityTo: 0,
-          },
-          opacity: [1, 0, 0],
-        },
-        legend: {
-          show: true,
-          position: 'top',
-          horizontalAlign: 'left',
-        },
-        yaxis: {
-          labels: {
-            formatter: (val) => `$${formatCompactNumber(val)}`,
-          },
-        },
-        tooltip: {
-          shared: true,
-          x: {
-            formatter: (val) => moment(val).format('LL'),
-          },
-          y: {
-            formatter: (val) => `$${(+val).toFixed(2)}`,
-          },
-        },
-        // Raw dollar labels ("$100,000") eat too much of a narrow mobile
-        // chart's width for what they add - drop them there entirely
-        // rather than just compacting the format further.
-        responsive: [
-          {
-            breakpoint: 768,
-            options: {
-              yaxis: { labels: { show: false } },
-              legend: { position: 'bottom', horizontalAlign: 'center' },
-            },
-          },
-        ],
-      };
+    // calcSeries already produces sorted, one-point-per-day [timestampMs,
+    // value] pairs, so unlike TrendChart/Compare (which parse raw ISO
+    // strings that could collide or arrive unsorted) this just needs the
+    // ms-to-seconds unit conversion lightweight-charts expects.
+    toLwcPoints(pairs) {
+      return pairs.map(([timestampMs, value]) => ({ time: Math.floor(timestampMs / 1000), value }));
     },
     formatNumber(val) {
       return (+val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -355,5 +354,36 @@ export default {
   .stat-value {
     font-size: 15px;
   }
+}
+.performance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.7);
+}
+.performance-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.performance-legend-swatch {
+  display: inline-block;
+  width: 20px;
+  border-top-width: 2px;
+  border-top-style: solid;
+}
+.performance-legend-swatch--solid {
+  border-top-color: #0f9d70;
+}
+.performance-legend-swatch--dashed {
+  border-top-color: rgba(0, 0, 0, 0.35);
+  border-top-style: dashed;
+}
+.performance-legend-swatch--dotted {
+  border-top-color: #00aaad;
+  border-top-style: dotted;
+  border-top-width: 3px;
 }
 </style>
