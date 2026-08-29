@@ -14,38 +14,8 @@ const PROTECTED_ROUTES = [
   'QuoteProfile',
   'QuoteNews',
 ];
-const QUOTE_OPTIONS = {
-  dataLabels: {
-    enabled: false,
-  },
-  stroke: {
-    curve: 'smooth',
-    width: 1.5,
-  },
-  xaxis: {
-    tickPlacement: 'on',
-    type: 'datetime',
-    labels: {
-      show: true,
-      format: 'dd/MM',
-    },
-  },
-  tooltip: {
-    shared: true,
-  },
-  chart: {
-    animations: {
-      enabled: false,
-    },
-  },
-  markers: {
-    size: 0,
-  },
-};
-
 export {
   AUTH_COOKIE_NAME,
   PUBLIC_ROUTES,
   PROTECTED_ROUTES,
-  QUOTE_OPTIONS,
 };

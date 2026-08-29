@@ -71,61 +71,6 @@ export function setQuoteSeries(data) {
   return series;
 }
 
-function seriesMinMax(series) {
-  let minPrice = series.data[0][1];
-  let maxPrice = minPrice;
-  for (let j = 0; j < series.data.length; j += 1) {
-    if (series.data[j][1] < minPrice) {
-      [, minPrice] = series.data[j];
-    }
-    if (series.data[j][1] > maxPrice) {
-      [, maxPrice] = series.data[j];
-    }
-  }
-  return [minPrice, maxPrice];
-}
-
-export function setYAxis(series) {
-  if (!Array.isArray(series)) {
-    const [smin, smax] = seriesMinMax(series);
-    const yAxis = {
-      floating: true,
-      axisTicks: {
-        show: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-      labels: {
-        show: false,
-      },
-      seriesName: series.name,
-      min: smin - smax / 100,
-      max: smax + smax / 100,
-    };
-    return yAxis;
-  }
-  const yAxes = [];
-
-  for (let i = 0; i < series.length; i += 1) {
-    const [smin, smax] = seriesMinMax(series[i]);
-    yAxes.push({
-      floating: true,
-      labels: {
-        show: false,
-        maxWidth: 0,
-      },
-      tooltip: {
-        shared: true,
-      },
-      seriesName: series[i].name,
-      min: smin - smax / 10,
-      max: smax + smax / 10,
-    });
-  }
-  return yAxes;
-}
-
 export function groupBy(xs, key) {
   return xs.reduce((rv, x) => {
     /* eslint-disable-next-line no-param-reassign */

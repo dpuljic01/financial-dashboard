@@ -1,25 +1,52 @@
 <template>
-  <div class="md-layout md-gutter md-layout-wrap">
-    <div class="md-flex-45 md-flex-xsmall-100 md-flex-medium-50 md-flex-large-40">
-      <apexchart type="donut" :options="allocationChart" :series="allocationChart.series"></apexchart>
+  <div class="allocation-grid">
+    <div class="allocation-chart">
+      <h3 class="allocation-title">Holdings</h3>
+      <Doughnut :data="holdingsChartData" :options="chartOptions" />
     </div>
-    <div class="md-flex-45 md-flex-xsmall-100 md-flex-medium-50 md-flex-large-40">
-      <apexchart type="donut" :options="sectorChart" :series="sectorChart.series"></apexchart>
+    <div class="allocation-chart">
+      <h3 class="allocation-title">Sector</h3>
+      <Doughnut :data="sectorChartData" :options="chartOptions" />
     </div>
   </div>
 </template>
 
 <script>
+import { Doughnut } from 'vue-chartjs';
+import {
+  Chart as ChartJS, ArcElement, Tooltip, Legend,
+} from 'chart.js';
 import { groupBy } from '../../utils';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+const PALETTE = ['#116468', '#0f9d70', '#00aaad', '#d1435c', '#8c6dfd', '#e8873a', '#3a86ff', '#c9a227'];
 
 export default {
   name: 'Allocation',
+  components: {
+    Doughnut,
+  },
   props: ['portfolio'],
   data() {
     return {
-      allocationChart: this.initialChartValue('Holdings'),
-      sectorChart: this.initialChartValue('Sector'),
-      loaded: false,
+      holdingsChartData: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+      sectorChartData: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+      chartOptions: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 16,
+              font: { family: "'IBM Plex Sans', sans-serif", size: 12 },
+            },
+          },
+        },
+      },
     };
   },
   mounted() {
@@ -43,72 +70,67 @@ export default {
       }
       return name;
     },
-    calculateTotalPrice(holdings) {
-      let price = 0;
-      for (let i = 0; i < holdings.length; i += 1) {
-        for (let j = 0; j < holdings[i].length; j += 1) {
-          price += this.calcHoldingWorth(holdings[i][j]);
-        }
-      }
-      return price;
-    },
     calculatePortfolioAlloc() {
-      this.loaded = false;
       const holdingsPerStock = Object.values(groupBy(this.portfolio.holdings, 'stock_id'));
+      const labels = [];
+      const values = [];
+      holdingsPerStock.forEach((holdings) => {
+        values.push(this.calcHoldingsWorth(holdings));
+        labels.push(this.getCompanyTicker(holdings[0].stock_id));
+      });
+      this.holdingsChartData = {
+        labels,
+        datasets: [{ data: values, backgroundColor: labels.map((label, i) => PALETTE[i % PALETTE.length]) }],
+      };
       this.mapIndustries();
-      for (let i = 0; i < holdingsPerStock.length; i += 1) {
-        const holdingPrice = this.calcHoldingsWorth(holdingsPerStock[i]);
-        this.allocationChart.series.push(holdingPrice);
-        this.allocationChart.labels.push(this.getCompanyTicker(holdingsPerStock[i][0].stock_id));
-      }
-      this.loaded = true;
     },
     mapIndustries() {
-      for (let i = 0; i < this.portfolio.stocks.length; i += 1) {
-        const { sector } = this.portfolio.stocks[i].company_info;
-        if (!sector) {
-          this.sectorChart.series.push(1);
-          this.sectorChart.labels.push('Other');
-          break;
-        }
-        const sectorIndex = this.sectorChart.labels.indexOf(sector);
-        if (sectorIndex === -1) {
-          this.sectorChart.series.push(1);
-          this.sectorChart.labels.push(sector);
+      // Was previously `break`-ing out of the whole loop on the first
+      // sector-less stock, silently dropping every stock after it from the
+      // sector chart entirely - now just buckets each one as "Other" and
+      // keeps going.
+      const labels = [];
+      const counts = [];
+      this.portfolio.stocks.forEach((stock) => {
+        const sector = (stock.company_info && stock.company_info.sector) || 'Other';
+        const index = labels.indexOf(sector);
+        if (index === -1) {
+          labels.push(sector);
+          counts.push(1);
         } else {
-          this.sectorChart.series[sectorIndex] += 1;
+          counts[index] += 1;
         }
-      }
-    },
-    initialChartValue(title) {
-      return {
-        series: [],
-        labels: [],
-        legend: {
-          show: true,
-          position: 'bottom',
-          horizontalAlign: 'center',
-          floating: false,
-        },
-        title: {
-          text: title,
-        },
+      });
+      this.sectorChartData = {
+        labels,
+        datasets: [{ data: counts, backgroundColor: labels.map((label, i) => PALETTE[i % PALETTE.length]) }],
       };
     },
   },
   watch: {
-    allocationChart(val) {
-      this.allocationChart = val;
-    },
-    sectorChart(val) {
-      this.sectorChart = val;
-    },
     portfolio() {
-      this.loaded = false;
-      this.allocationChart = this.initialChartValue('Holdings');
-      this.sectorChart = this.initialChartValue('Sector');
       this.calculatePortfolioAlloc();
     },
   },
 };
 </script>
+
+<style scoped>
+.allocation-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+}
+.allocation-chart {
+  flex: 1 1 320px;
+  max-width: 380px;
+}
+.allocation-title {
+  text-align: center;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+}
+</style>
