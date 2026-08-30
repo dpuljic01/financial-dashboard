@@ -37,16 +37,16 @@ $accent: rgb(0, 170, 173);
 // and just renders as an unstyled full-bleed block at the top of <body>.
 // This is a complete, self-authored replacement rather than a partial
 // override on top of the missing base CSS.
+// Deliberately not display:flex on the container - a fixed-position block
+// box with both `left` and `right` set gets an unambiguous computed width
+// (viewport minus the two offsets) with no flex width-resolution involved.
+// Toasts stack via plain margin, not gap.
 .toasted-container {
   position: fixed !important;
   z-index: 2100 !important; // above ProgressBar (2000) and Modal (1000)
   top: 84px;
   right: 16px;
   left: 16px;
-  display: flex !important;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
   pointer-events: none;
 }
 @media (min-width: 520px) {
@@ -58,11 +58,12 @@ $accent: rgb(0, 170, 173);
 
 .toasted.toasted-primary {
   pointer-events: auto;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  box-sizing: border-box;
+  margin: 0 0 10px !important;
   border-radius: 10px;
   min-height: 44px;
   padding: 12px 14px;
@@ -75,13 +76,12 @@ $accent: rgb(0, 170, 173);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   // vue-toasted animates its enter/exit via anime.js setting inline
   // transform/margin directly, tuned for its own (unused here) CSS's
-  // margin-stacked layout - left alone, that fights this flex/gap
-  // container (toasts sliding by a hardcoded -35px, or collapsing via a
-  // negative margin that shoves flex siblings around). Block both and
-  // keep only the opacity fade, which anime.js drives independently of
-  // any of this and looks fine on its own.
+  // margin-stacked layout - left alone, that fights this margin-stacked
+  // layout differently (toasts sliding by a hardcoded -35px, or collapsing
+  // via a larger negative margin than the one set above). Block the slide
+  // and pin the margin; only the opacity fade (driven independently by
+  // anime.js) is left alone, and looks fine on its own.
   transform: none !important;
-  margin: 0 !important;
 }
 .toasted.toasted-primary.success {
   background-color: #0f9d70;
