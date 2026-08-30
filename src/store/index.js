@@ -140,6 +140,9 @@ const actions = {
       context.dispatch('successMessage', 'Deleted');
     });
   },
+  deleteHolding(context, holdingId) {
+    return api.deleteHolding(holdingId, context.state.jwt.access_token);
+  },
   changePassword(context, payload) {
     return api.changePassword(payload, state.jwt.access_token).then(() => {
       context.dispatch('successMessage', 'Password updated');

@@ -9,23 +9,67 @@
           <th class="num">Worth (USD)</th>
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="stock in currentPortfolio.stocks" :key="stock.id">
+      <tbody v-for="stock in currentPortfolio.stocks" :key="stock.id">
+        <tr
+          class="stock-row"
+          :class="{ 'stock-row--expanded': expandedStockId === stock.id }"
+          @click="toggleExpand(stock.id)"
+        >
           <td class="col-add">
-            <button type="button" class="row-action row-action--add" title="Add holding" @click="add(stock.ticker)">
+            <button
+              type="button"
+              class="row-action row-action--add"
+              title="Add holding"
+              @click.stop="add(stock.ticker)"
+            >
               <md-icon>add</md-icon>
             </button>
           </td>
-          <td><strong>{{ stock.ticker }}</strong></td>
+          <td>
+            <span class="stock-caret">{{ expandedStockId === stock.id ? '▾' : '▸' }}</span>
+            <strong>{{ stock.ticker }}</strong>
+          </td>
           <td class="num fin-figure">{{ roundFloat(getNumberOfShares(stock.id)) }}</td>
           <td class="num fin-figure">
             {{ formatCurrency(calculatePortfolioValue(currentPortfolio.holdings, stock.id)) }}
           </td>
         </tr>
+        <tr v-if="expandedStockId === stock.id" class="lots-row">
+          <td></td>
+          <td colspan="3" class="lots-cell">
+            <div class="lots-list">
+              <div v-for="lot in lotsFor(stock.id)" :key="lot.id" class="lot-row">
+                <span class="lot-date">{{ formatDate(lot.purchased_at) }}</span>
+                <span class="lot-detail fin-figure">
+                  {{ roundFloat(lot.shares) }} sh @ ${{ roundFloat(lot.price) }}
+                </span>
+                <span class="lot-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    title="Edit"
+                    @click.stop="editLot(stock.ticker, lot)"
+                  >
+                    <md-icon>edit</md-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="row-action row-action--delete"
+                    title="Delete"
+                    @click.stop="deleteLot(lot.id)"
+                  >
+                    <md-icon>close</md-icon>
+                  </button>
+                </span>
+              </div>
+              <p v-if="lotsFor(stock.id).length === 0" class="lots-empty">No purchase lots.</p>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
     <Modal v-model="open">
-      <h3 class="modal-title">Add holding</h3>
+      <h3 class="modal-title">{{ editingHoldingId ? 'Edit holding' : 'Add holding' }}</h3>
       <form @submit.prevent="submit">
         <md-field>
           <label for="shares">Number of shares</label>
@@ -44,7 +88,7 @@
           <md-datepicker name="purchased" v-model="purchasedOn" />
         </md-field>
         <div class="modal-actions">
-          <md-button class="md-raised" :disabled="submitting" @click="open = false">Cancel</md-button>
+          <md-button class="md-raised" :disabled="submitting" @click="cancel">Cancel</md-button>
           <md-button class="md-raised md-primary" type="submit" :disabled="submitting">
             {{ submitting ? 'Saving…' : 'Save' }}
           </md-button>
@@ -55,6 +99,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import Modal from '../Modal.vue';
 
 export default {
@@ -82,6 +127,8 @@ export default {
       currentPortfolio: this.portfolio,
       portfolioId: this.portfolio.id,
       symbol: '',
+      expandedStockId: null,
+      editingHoldingId: null,
     };
   },
   async mounted() {
@@ -89,14 +136,49 @@ export default {
     this.loaded = true;
   },
   methods: {
+    toggleExpand(stockId) {
+      this.expandedStockId = this.expandedStockId === stockId ? null : stockId;
+    },
+    lotsFor(stockId) {
+      return this.currentPortfolio.holdings.filter((holding) => holding.stock_id === stockId);
+    },
     add(ticker) {
+      this.editingHoldingId = null;
+      this.newShares = 1;
+      this.average = 1;
+      this.purchasedOn = new Date();
       this.open = true;
       this.symbol = ticker;
+    },
+    editLot(ticker, lot) {
+      this.editingHoldingId = lot.id;
+      this.symbol = ticker;
+      this.newShares = lot.shares;
+      this.average = lot.price;
+      this.purchasedOn = new Date(lot.purchased_at);
+      this.open = true;
+    },
+    cancel() {
+      this.open = false;
+      this.editingHoldingId = null;
+    },
+    async deleteLot(holdingId) {
+      if (!window.confirm('Delete this holding?')) return;
+      this.$store.commit('setLoading', true);
+      try {
+        await this.$store.dispatch('deleteHolding', holdingId);
+        this.currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
+      } finally {
+        this.$store.commit('setLoading', false);
+      }
     },
     async createHolding() {
       this.submitting = true;
       this.$store.commit('setLoading', true);
       try {
+        if (this.editingHoldingId) {
+          await this.$store.dispatch('deleteHolding', this.editingHoldingId);
+        }
         await this.$store.dispatch('createNewHolding', {
           portfolio: this.portfolioId,
           payload: {
@@ -108,6 +190,7 @@ export default {
         });
         this.currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
         this.open = false;
+        this.editingHoldingId = null;
       } finally {
         this.submitting = false;
         this.$store.commit('setLoading', false);
@@ -146,6 +229,9 @@ export default {
     },
     formatCurrency(val) {
       return `$${val.toFixed(2)}`;
+    },
+    formatDate(val) {
+      return moment(val).format('MMM D, YYYY');
     },
   },
   watch: {
@@ -192,8 +278,17 @@ export default {
 .fin-table td.num {
   text-align: right;
 }
-.fin-table tbody tr:hover td {
+.fin-table tbody tr.stock-row:hover td {
   background: rgba(17, 100, 104, 0.04);
+}
+.stock-row {
+  cursor: pointer;
+}
+.stock-caret {
+  display: inline-block;
+  width: 14px;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 10px;
 }
 .col-add {
   width: 32px;
@@ -211,14 +306,61 @@ export default {
   background: none;
   color: rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  flex-shrink: 0;
 }
 .row-action--add:hover {
   background: var(--gain-tint);
   color: var(--gain-color);
 }
+.row-action--delete:hover {
+  background: var(--loss-tint);
+  color: var(--loss-color);
+}
 .row-action .md-icon {
   margin: 0;
   font-size: 18px !important;
+}
+.lots-row td {
+  padding: 0 12px 10px 0;
+  border-top: none;
+}
+.lots-cell {
+  background: rgba(17, 100, 104, 0.03);
+  border-radius: 8px;
+}
+.lots-list {
+  padding: 4px 12px;
+}
+.lot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+.lot-row + .lot-row {
+  border-top: 1px solid var(--surface-border);
+}
+.lot-date {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+}
+.lot-detail {
+  flex: 1;
+  text-align: right;
+  font-size: 13px;
+}
+.lot-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.lots-empty {
+  margin: 0;
+  padding: 8px 0;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
 }
 .modal-title {
   margin: 0 0 16px;

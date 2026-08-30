@@ -120,3 +120,9 @@ export function deletePortfolio(params, accessToken) {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
+
+export function deleteHolding(holdingId, accessToken) {
+  return axios.delete(`${API_URL}/portfolios/${holdingId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}

@@ -1,41 +1,35 @@
 <template>
-  <div v-if="loaded" class="table-scroll">
-    <table class="fin-table">
-      <thead>
-        <tr>
-          <th class="col-del"></th>
-          <th>Symbol</th>
-          <th>Name</th>
-          <th class="num">Price (USD)</th>
-          <th class="num">Change (%)</th>
-          <th class="num">Volume</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in stonks" :key="item.id">
-          <td class="col-del">
-            <button type="button" class="row-action" title="Remove" @click="deleteSymbol(item.id)">
-              <md-icon>close</md-icon>
-            </button>
-          </td>
-          <td @click="goToQuote(item.ticker)"><strong>{{ item.ticker }}</strong></td>
-          <td @click="goToQuote(item.ticker)">{{ item.short_name }}</td>
-          <td @click="goToQuote(item.ticker)" class="num fin-figure">
-            {{ roundFloat(item.latest_market_data.price) || roundFloat(item.latest_market_data.delayedprice) || 'NA' }}
-          </td>
-          <td
-            @click="goToQuote(item.ticker)"
-            class="num fin-figure"
-            :class="changeClass(item.latest_market_data.changepercent)"
-          >
-            {{ roundFloat(item.latest_market_data.changepercent) || 'NA' }}
-          </td>
-          <td @click="goToQuote(item.ticker)" class="num fin-figure">
-            {{ formatVolume(item.latest_market_data.volume) || 'NA' }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div v-if="loaded" class="holdings-list">
+    <div class="holdings-header">
+      <span></span>
+      <span>Symbol</span>
+      <span>Price</span>
+      <span>Change</span>
+      <span>Volume</span>
+    </div>
+    <div
+      v-for="item in stonks"
+      :key="item.id"
+      class="holdings-row"
+      @click="goToQuote(item.ticker)"
+    >
+      <button type="button" class="row-action" title="Remove" @click.stop="deleteSymbol(item.id)">
+        <md-icon>close</md-icon>
+      </button>
+      <div class="holdings-identity">
+        <span class="holdings-symbol">{{ item.ticker }}</span>
+        <span v-if="showName(item)" class="holdings-name">{{ item.short_name }}</span>
+      </div>
+      <span class="holdings-price fin-figure">
+        {{ roundFloat(item.latest_market_data.price) || roundFloat(item.latest_market_data.delayedprice) || 'NA' }}
+      </span>
+      <span class="holdings-change fin-figure" :class="changeClass(item.latest_market_data.changepercent)">
+        {{ roundFloat(item.latest_market_data.changepercent) || 'NA' }}%
+      </span>
+      <span class="holdings-volume fin-figure">
+        {{ formatVolume(item.latest_market_data.volume) || 'NA' }}
+      </span>
+    </div>
   </div>
 </template>
 
@@ -64,6 +58,13 @@ export default {
   methods: {
     goToQuote(ticker) {
       this.$router.push(`/quote/${ticker}/profile`);
+    },
+    // Placeholder/fallback company data (e.g. a stalled provider fetch that
+    // defaulted short_name to the ticker itself) reads as a duplicate
+    // column, not useful information - just hide it rather than show
+    // "AAPL / AAPL" twice.
+    showName(item) {
+      return item.short_name && item.short_name.toUpperCase() !== item.ticker.toUpperCase();
     },
     roundFloat(val) {
       if (val) return +val.toFixed(2);
@@ -96,42 +97,56 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.table-scroll {
-  overflow-x: auto;
-}
-.fin-table {
-  width: 100%;
-  min-width: 560px;
-  border-collapse: collapse;
-}
-.fin-table th {
-  text-align: left;
+$grid-columns: 32px minmax(0, 1fr) 90px 80px 80px;
+
+.holdings-header {
+  display: grid;
+  grid-template-columns: $grid-columns;
+  gap: 8px;
+  padding: 0 0 10px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(0, 0, 0, 0.5);
-  padding: 0 12px 10px 0;
 }
-.fin-table th.num {
+.holdings-header span:not(:first-child) {
   text-align: right;
 }
-.fin-table td {
-  padding: 12px 12px 12px 0;
+
+.holdings-row {
+  display: grid;
+  grid-template-columns: $grid-columns;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
   border-top: 1px solid var(--surface-border);
-}
-.fin-table td:not(.col-del) {
   cursor: pointer;
 }
-.fin-table td.num {
-  text-align: right;
-}
-.fin-table tbody tr:hover td {
+.holdings-row:hover {
   background: rgba(17, 100, 104, 0.04);
 }
-.col-del {
-  width: 32px;
-  padding-right: 0;
+.holdings-row > * {
+  text-align: right;
+}
+.holdings-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+.holdings-symbol {
+  font-weight: 700;
+}
+.holdings-name {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.holdings-volume {
+  color: rgba(0, 0, 0, 0.55);
 }
 .row-action {
   display: flex;
@@ -153,5 +168,42 @@ export default {
 .row-action .md-icon {
   margin: 0;
   font-size: 18px !important;
+}
+
+@media (max-width: 600px) {
+  .holdings-header {
+    display: none;
+  }
+  .holdings-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "identity price"
+      "change volume";
+    row-gap: 4px;
+    position: relative;
+    padding: 14px 32px 14px 0;
+  }
+  .holdings-row > .row-action {
+    position: absolute;
+    top: 8px;
+    right: 0;
+  }
+  .holdings-identity {
+    grid-area: identity;
+  }
+  .holdings-price {
+    grid-area: price;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .holdings-change {
+    grid-area: change;
+    text-align: left;
+    font-size: 12px;
+  }
+  .holdings-volume {
+    grid-area: volume;
+    font-size: 12px;
+  }
 }
 </style>
