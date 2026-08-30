@@ -1,48 +1,53 @@
 <template>
-  <div v-if="loaded" class="page-container">
-    <div class="page-section card-surface portfolio-card">
-      <div class="portfolio-card-header">
-        <h3 class="md-title portfolio-heading">
-          Portfolio: <strong>{{ portfolio.name }}</strong>
-        </h3>
-        <md-button class="md-raised md-primary" @click="addSymbolOpen = true">
-          <md-icon>add</md-icon> Add symbol
-        </md-button>
-      </div>
-      <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
-
-      <md-empty-state
-        v-if="portfolio.stocks.length === 0"
-        md-icon="playlist_add"
-        md-label="No symbols yet"
-        md-description="Add a symbol to start tracking it in this portfolio."
-      >
-        <md-button class="md-primary md-raised" @click="addSymbolOpen = true">
-          <md-icon>add</md-icon> Add symbol
-        </md-button>
-      </md-empty-state>
-
-      <template v-else>
-        <div v-if="path === 'summary'">
-          <Summary :stocks="portfolio.stocks"></Summary>
-        </div>
-        <div v-if="path === 'holdings'">
-          <Holdings @deletedSymbol="onDelete" :portfolio="portfolio"></Holdings>
-        </div>
-        <div v-if="path === 'news'">
-          <News :tickers="tickers"></News>
-        </div>
-        <div v-if="path === 'performance'">
-          <Performance :portfolio="portfolio"></Performance>
-        </div>
-      </template>
+  <div class="page-container">
+    <div v-if="!loaded" class="portfolio-loading">
+      <md-progress-spinner :md-diameter="50" :md-stroke="4" md-mode="indeterminate"></md-progress-spinner>
     </div>
+    <template v-else>
+      <div class="page-section card-surface portfolio-card">
+        <div class="portfolio-card-header">
+          <h3 class="md-title portfolio-heading">
+            Portfolio: <strong>{{ portfolio.name }}</strong>
+          </h3>
+          <md-button class="md-raised md-primary" @click="addSymbolOpen = true">
+            <md-icon>add</md-icon> Add symbol
+          </md-button>
+        </div>
+        <TabBar :tabs="portfolioTabs" :modelValue="'tab-' + path" @change="onPortfolioTabChange" />
 
-    <Modal v-model="addSymbolOpen">
-      <h3 class="modal-title">Add a symbol</h3>
-      <p class="modal-subtitle">Search for a ticker to add it to this portfolio.</p>
-      <Search @search="onAddSymbol($event)" placeholder="e.g. AAPL, MSFT..."></Search>
-    </Modal>
+        <md-empty-state
+          v-if="portfolio.stocks.length === 0"
+          md-icon="playlist_add"
+          md-label="No symbols yet"
+          md-description="Add a symbol to start tracking it in this portfolio."
+        >
+          <md-button class="md-primary md-raised" @click="addSymbolOpen = true">
+            <md-icon>add</md-icon> Add symbol
+          </md-button>
+        </md-empty-state>
+
+        <template v-else>
+          <div v-if="path === 'summary'">
+            <Summary :stocks="portfolio.stocks"></Summary>
+          </div>
+          <div v-if="path === 'holdings'">
+            <Holdings @deletedSymbol="onDelete" :portfolio="portfolio"></Holdings>
+          </div>
+          <div v-if="path === 'news'">
+            <News :tickers="tickers"></News>
+          </div>
+          <div v-if="path === 'performance'">
+            <Performance :portfolio="portfolio"></Performance>
+          </div>
+        </template>
+      </div>
+
+      <Modal v-model="addSymbolOpen">
+        <h3 class="modal-title">Add a symbol</h3>
+        <p class="modal-subtitle">Search for a ticker to add it to this portfolio.</p>
+        <Search @search="onAddSymbol($event)" placeholder="e.g. AAPL, MSFT..."></Search>
+      </Modal>
+    </template>
   </div>
 </template>
 
@@ -134,6 +139,11 @@ export default {
 };
 </script>
 <style scoped>
+.portfolio-loading {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+}
 .portfolio-card {
   padding: 28px;
 }

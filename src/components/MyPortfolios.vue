@@ -57,8 +57,10 @@
           <md-textarea v-model="info"></md-textarea>
         </md-field>
         <div class="modal-actions">
-          <md-button class="md-raised" @click="open = false">Cancel</md-button>
-          <md-button class="md-raised md-primary" type="submit">Save</md-button>
+          <md-button class="md-raised" :disabled="submitting" @click="open = false">Cancel</md-button>
+          <md-button class="md-raised md-primary" type="submit" :disabled="submitting">
+            {{ submitting ? 'Creating…' : 'Save' }}
+          </md-button>
         </div>
       </form>
     </Modal>
@@ -76,6 +78,7 @@ export default {
   data() {
     return {
       open: false,
+      submitting: false,
       portfolioName: '',
       info: '',
       valid: false,
@@ -97,6 +100,7 @@ export default {
       this.$router.push(`/portfolios/${id}/summary`);
     },
     async createPortfolio() {
+      this.submitting = true;
       this.$store.commit('setLoading', true);
       try {
         const portfolio = await this.$store.dispatch('submitNewPortfolio', {
@@ -108,6 +112,7 @@ export default {
         this.info = '';
         this.$router.push(`/portfolios/${portfolio.id}/summary`);
       } finally {
+        this.submitting = false;
         this.$store.commit('setLoading', false);
       }
     },

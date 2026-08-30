@@ -70,10 +70,13 @@ export default {
 
 .tab-bar--pill {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 2px;
   padding: 3px;
   background: rgba(17, 100, 104, 0.06);
   border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .tab-bar--pill .tab-bar-item {

@@ -44,8 +44,10 @@
           <md-datepicker name="purchased" v-model="purchasedOn" />
         </md-field>
         <div class="modal-actions">
-          <md-button class="md-raised" @click="open = false">Cancel</md-button>
-          <md-button class="md-raised md-primary" type="submit">Save</md-button>
+          <md-button class="md-raised" :disabled="submitting" @click="open = false">Cancel</md-button>
+          <md-button class="md-raised md-primary" type="submit" :disabled="submitting">
+            {{ submitting ? 'Saving…' : 'Save' }}
+          </md-button>
         </div>
       </form>
     </Modal>
@@ -68,6 +70,7 @@ export default {
   data() {
     return {
       open: false,
+      submitting: false,
       portfolioName: '',
       info: '',
       valid: true,
@@ -91,19 +94,24 @@ export default {
       this.symbol = ticker;
     },
     async createHolding() {
-      this.open = false;
+      this.submitting = true;
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('createNewHolding', {
-        portfolio: this.portfolioId,
-        payload: {
-          symbol: this.symbol,
-          shares: parseFloat(this.newShares),
-          price: parseFloat(this.average),
-          purchased_at: this.purchasedOn,
-        },
-      });
-      this.currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
-      this.$store.commit('setLoading', false);
+      try {
+        await this.$store.dispatch('createNewHolding', {
+          portfolio: this.portfolioId,
+          payload: {
+            symbol: this.symbol,
+            shares: parseFloat(this.newShares),
+            price: parseFloat(this.average),
+            purchased_at: this.purchasedOn,
+          },
+        });
+        this.currentPortfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
+        this.open = false;
+      } finally {
+        this.submitting = false;
+        this.$store.commit('setLoading', false);
+      }
     },
     submit() {
       this.valid = this.validNumber(this.newShares) && this.validNumber(this.average);

@@ -121,9 +121,15 @@ export default {
   flex-wrap: wrap;
   gap: 32px;
   justify-content: center;
+  max-width: 100%;
 }
 .allocation-chart {
-  flex: 1 1 320px;
+  /* chart.js's responsive resizing needs a relatively-positioned parent
+     with a resolvable size, or the canvas can render at its own default
+     intrinsic size instead of shrinking to fit a narrow flex item. */
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 0;
   max-width: 380px;
 }
 .allocation-title {

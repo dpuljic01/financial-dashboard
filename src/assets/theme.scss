@@ -95,6 +95,21 @@ input:-webkit-autofill:active {
   background-size: cover;
 }
 
+// vue-material's own popups (datepicker, dropdown menus) assume they're
+// the topmost thing on the page and use low z-indexes (4-5) accordingly.
+// Modal.vue's backdrop sits at a much higher z-index so it reliably covers
+// the rest of the app - which means opening a datepicker/menu from inside
+// a Modal renders it BEHIND that backdrop instead of on top, since a
+// numerically higher z-index always wins regardless of DOM/paint order.
+// This is exactly what made the "Add holding" date field look like it
+// opened onto a black screen: the calendar popup was there, just hidden
+// under Modal's overlay.
+.md-datepicker-dialog,
+.md-datepicker-overlay,
+.md-menu-content {
+  z-index: 1100 !important;
+}
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */

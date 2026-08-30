@@ -17,6 +17,18 @@ export default {
 };
 </script>
 <style>
+/* Safety net: nothing on this site is meant to scroll horizontally at the
+   page level (wide tables/ticker strips already scroll internally via
+   their own overflow-x). Without this, any element even 1px wider than
+   the viewport - a rounding error in a flex row, a chart canvas that
+   hasn't resized yet - makes the whole page scrollable sideways on
+   mobile, which is what "can scroll right a bit on Dashboard" was. */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   text-align: center;
