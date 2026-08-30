@@ -308,6 +308,11 @@ export default {
 .compare {
   padding: 24px 28px 12px;
 }
+@media (max-width: 480px) {
+  .compare {
+    padding: 18px 14px 10px;
+  }
+}
 .compare--single {
   max-width: 820px;
   margin: 0 auto;

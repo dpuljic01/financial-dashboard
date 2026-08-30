@@ -84,6 +84,17 @@ export default {
   border-radius: 8px;
 }
 
+@media (max-width: 480px) {
+  .tab-bar--pill {
+    gap: 0;
+    padding: 2px;
+  }
+  .tab-bar--pill .tab-bar-item {
+    padding: 6px 7px;
+    font-size: 12px;
+  }
+}
+
 .tab-bar--pill .tab-bar-item--active {
   color: #fff;
   background: #116468;
