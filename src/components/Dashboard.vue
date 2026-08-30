@@ -121,11 +121,16 @@ export default {
   },
   async mounted() {
     this.$store.commit('setLoading', true);
-    await this.$store.dispatch('getCurrentUser');
-    // Always refetch rather than trusting the localStorage-cached list - it
-    // goes stale the moment a portfolio is added/removed from another tab,
-    // session, or device, and silently under-lists portfolios here.
-    this.portfolios = await this.$store.dispatch('getPortfolios');
+    // Independent of each other (both only need the JWT) - run in parallel
+    // instead of stacking two round trips.
+    const [, portfolios] = await Promise.all([
+      this.$store.dispatch('getCurrentUser'),
+      // Always refetch rather than trusting the localStorage-cached list -
+      // it goes stale the moment a portfolio is added/removed from another
+      // tab, session, or device, and silently under-lists portfolios here.
+      this.$store.dispatch('getPortfolios'),
+    ]);
+    this.portfolios = portfolios;
     if (this.portfolios.length > 0) {
       this.portfolio = await this.getCurrentPortfolio();
       this.hasHoldings = this.$store.getters.hasHoldings;

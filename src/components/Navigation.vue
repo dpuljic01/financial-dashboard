@@ -40,19 +40,16 @@
       <progress-bar></progress-bar>
       <router-view></router-view>
     </div>
-    <ConfirmDialog />
   </div>
 </template>
 
 <script>
 import ProgressBar from './ProgressBar.vue';
-import ConfirmDialog from './ConfirmDialog.vue';
 
 export default {
   name: 'Navigation',
   components: {
     ProgressBar,
-    ConfirmDialog,
   },
   data() {
     return {

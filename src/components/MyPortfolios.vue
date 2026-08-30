@@ -21,9 +21,14 @@
           <tbody>
             <tr v-for="item in portfolios" :key="item.id">
               <td class="col-del">
-                <button type="button" class="row-action" title="Delete" @click="deletePortfolio(item.id)">
-                  <md-icon>delete_outline</md-icon>
-                </button>
+                <ConfirmPopover
+                  message="This deletes the portfolio and all of its holdings. This can't be undone."
+                  @confirm="deletePortfolio(item.id)"
+                >
+                  <button type="button" class="row-action" title="Delete">
+                    <md-icon>delete_outline</md-icon>
+                  </button>
+                </ConfirmPopover>
               </td>
               <td @click="goToSummary(item.id)"><strong>{{ item.name }}</strong></td>
               <td @click="goToSummary(item.id)" class="num fin-figure">{{ item.stocks.length }}</td>
@@ -69,12 +74,13 @@
 
 <script>
 import Modal from './Modal.vue';
-import { confirmDialog } from '../plugins/confirm';
+import ConfirmPopover from './ConfirmPopover.vue';
 
 export default {
   name: 'MyPortfolios',
   components: {
     Modal,
+    ConfirmPopover,
   },
   data() {
     return {
@@ -136,11 +142,6 @@ export default {
       return `$${val.toFixed(2)}`;
     },
     async deletePortfolio(pId) {
-      const ok = await confirmDialog(
-        'This deletes the portfolio and all of its holdings. This can\'t be undone.',
-        { title: 'Delete portfolio' },
-      );
-      if (!ok) return;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
       this.portfolios = await this.$store.dispatch('getPortfolios');

@@ -52,14 +52,11 @@
                   >
                     <md-icon>edit</md-icon>
                   </button>
-                  <button
-                    type="button"
-                    class="row-action row-action--delete"
-                    title="Delete"
-                    @click.stop="deleteLot(lot.id)"
-                  >
-                    <md-icon>close</md-icon>
-                  </button>
+                  <ConfirmPopover message="Delete this holding?" @confirm="deleteLot(lot.id)">
+                    <button type="button" class="row-action row-action--delete" title="Delete" @click.stop>
+                      <md-icon>close</md-icon>
+                    </button>
+                  </ConfirmPopover>
                 </span>
               </div>
               <p v-if="lotsFor(stock.id).length === 0" class="lots-empty">No purchase lots.</p>
@@ -116,12 +113,13 @@
 <script>
 import moment from 'moment';
 import Modal from '../Modal.vue';
-import { confirmDialog } from '../../plugins/confirm';
+import ConfirmPopover from '../ConfirmPopover.vue';
 
 export default {
   name: 'Holdings',
   components: {
     Modal,
+    ConfirmPopover,
   },
   props: {
     portfolio: {
@@ -179,8 +177,6 @@ export default {
       this.editingHoldingId = null;
     },
     async deleteLot(holdingId) {
-      const ok = await confirmDialog('Delete this holding?', { title: 'Delete holding' });
-      if (!ok) return;
       this.$store.commit('setLoading', true);
       try {
         await this.$store.dispatch('deleteHolding', holdingId);

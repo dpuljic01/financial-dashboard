@@ -105,11 +105,13 @@ export default {
     this.$store.commit('setLoading', true);
     this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
     this.getTickers();
-    if (this.tickers.length > 0) {
-      await this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
-    }
     this.$store.commit('setLoading', false);
     this.loaded = true;
+    // Refreshes the DB's cached quotes for next time - this render already
+    // has the prices getPortfolio returned, so there's nothing to wait on.
+    if (this.tickers.length > 0) {
+      this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
+    }
   },
   methods: {
     onPortfolioTabChange(tabId) {

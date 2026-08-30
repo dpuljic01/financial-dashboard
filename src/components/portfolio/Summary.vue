@@ -1,7 +1,6 @@
 <template>
   <div v-if="loaded" class="holdings-list">
     <div class="holdings-header">
-      <span></span>
       <span>Symbol</span>
       <span>Price</span>
       <span>Change</span>
@@ -13,9 +12,14 @@
       class="holdings-row"
       @click="goToQuote(item.ticker)"
     >
-      <button type="button" class="row-action" title="Remove" @click.stop="deleteSymbol(item.id)">
-        <md-icon>close</md-icon>
-      </button>
+      <ConfirmPopover
+        message="Remove this symbol from the portfolio?"
+        @confirm="deleteSymbol(item.id)"
+      >
+        <button type="button" class="row-action" title="Remove" @click.stop>
+          <md-icon>close</md-icon>
+        </button>
+      </ConfirmPopover>
       <div class="holdings-identity">
         <span class="holdings-symbol">{{ item.ticker }}</span>
         <span v-if="showName(item)" class="holdings-name">{{ item.short_name }}</span>
@@ -35,10 +39,13 @@
 
 <script>
 import { formatCompactNumber } from '../../utils';
-import { confirmDialog } from '../../plugins/confirm';
+import ConfirmPopover from '../ConfirmPopover.vue';
 
 export default {
   name: 'Summary',
+  components: {
+    ConfirmPopover,
+  },
   props: {
     stocks: {
       type: Array,
@@ -80,8 +87,6 @@ export default {
       return '';
     },
     async deleteSymbol(stockId) {
-      const ok = await confirmDialog('Remove this symbol from the portfolio?', { title: 'Remove symbol' });
-      if (!ok) return;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('deleteSymbol', { portfolioId: this.portfolioId, stockId });
       const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
@@ -99,13 +104,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$grid-columns: 32px minmax(0, 1fr) 90px 80px 80px;
+$grid-columns: minmax(0, 1fr) 90px 80px 80px;
+
+// ConfirmPopover wraps the delete button in floating-vue's own trigger
+// element (a plain, unstyled <div class="v-popper">). display: contents
+// makes that wrapper transparent to the grid below, so it doesn't eat one
+// of the 4 grid-template-columns tracks meant for the real row content.
+.holdings-row :deep(.v-popper) {
+  display: contents;
+}
 
 .holdings-header {
   display: grid;
   grid-template-columns: $grid-columns;
   gap: 8px;
-  padding: 0 0 10px;
+  padding: 0 0 10px 32px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -117,11 +130,12 @@ $grid-columns: 32px minmax(0, 1fr) 90px 80px 80px;
 }
 
 .holdings-row {
+  position: relative;
   display: grid;
   grid-template-columns: $grid-columns;
   align-items: center;
   gap: 8px;
-  padding: 12px 0;
+  padding: 12px 0 12px 32px;
   border-top: 1px solid var(--surface-border);
   cursor: pointer;
 }
@@ -151,6 +165,10 @@ $grid-columns: 32px minmax(0, 1fr) 90px 80px 80px;
   color: rgba(0, 0, 0, 0.55);
 }
 .row-action {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,13 +200,13 @@ $grid-columns: 32px minmax(0, 1fr) 90px 80px 80px;
       "identity price"
       "change volume";
     row-gap: 4px;
-    position: relative;
     padding: 14px 32px 14px 0;
   }
-  .holdings-row > .row-action {
-    position: absolute;
-    top: 8px;
+  .row-action {
+    left: auto;
     right: 0;
+    top: 8px;
+    transform: none;
   }
   .holdings-identity {
     grid-area: identity;
