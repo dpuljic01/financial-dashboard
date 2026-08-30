@@ -31,17 +31,57 @@ $accent: rgb(0, 170, 173);
   /* color: #0D47A1; */
 }
 
-// Modernized snackbar - vue-toasted's default is a sharp-cornered, dated
-// Material 2015-era grey pill. Rounded corners, app palette, real shadow.
+// vue-toasted's own stylesheet is never imported in this app (main.js only
+// imports the JS), so without these rules a toast has none of the library's
+// intended layout at all - no position:fixed, no max-width, no rounding -
+// and just renders as an unstyled full-bleed block at the top of <body>.
+// This is a complete, self-authored replacement rather than a partial
+// override on top of the missing base CSS.
+.toasted-container {
+  position: fixed !important;
+  z-index: 2100 !important; // above ProgressBar (2000) and Modal (1000)
+  top: 84px;
+  right: 16px;
+  left: 16px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+@media (min-width: 520px) {
+  .toasted-container {
+    left: auto;
+    width: 360px;
+  }
+}
+
 .toasted.toasted-primary {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: 10px;
   min-height: 44px;
-  padding: 10px 20px;
+  padding: 12px 14px;
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
+  line-height: 1.35;
+  color: #fff;
   background-color: #16292b;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  // vue-toasted animates its enter/exit via anime.js setting inline
+  // transform/margin directly, tuned for its own (unused here) CSS's
+  // margin-stacked layout - left alone, that fights this flex/gap
+  // container (toasts sliding by a hardcoded -35px, or collapsing via a
+  // negative margin that shoves flex siblings around). Block both and
+  // keep only the opacity fade, which anime.js drives independently of
+  // any of this and looks fine on its own.
+  transform: none !important;
+  margin: 0 !important;
 }
 .toasted.toasted-primary.success {
   background-color: #0f9d70;
@@ -53,8 +93,22 @@ $accent: rgb(0, 170, 173);
   background-color: #116468;
 }
 .toasted.toasted-primary .action {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   color: rgba(255, 255, 255, 0.85);
-  font-weight: 700;
+  cursor: pointer;
+}
+.toasted.toasted-primary .action:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.toasted.toasted-primary .action .material-icons {
+  font-size: 16px;
 }
 
 .dp-accent {

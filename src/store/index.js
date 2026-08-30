@@ -114,10 +114,10 @@ const actions = {
     context.commit('resetState');
   },
   successMessage(context, message = 'Saved') {
-    showToast(message, { type: 'success', duration: 1500 });
+    showToast(message, { type: 'success', duration: 4000 });
   },
   errorMessage(context, message = "Something's wrong") {
-    showToast(message, { type: 'error', duration: 1500 });
+    showToast(message, { type: 'error', duration: 7000 });
   },
   getLatestStockPrices(context, params) {
     return api.getLatestStockPrices(params, context.state.jwt.access_token);

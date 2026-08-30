@@ -24,7 +24,7 @@ app.use(VueMaterial);
 app.use(VueCookies);
 app.use(Toasted, {
   router,
-  duration: 5000,
+  duration: 6000,
   type: 'success',
 });
 setToastedInstance(app.toasted);
