@@ -3,7 +3,9 @@
 </template>
 
 <script>
-import { createChart, AreaSeries, LineSeries } from 'lightweight-charts';
+import {
+  createChart, AreaSeries, LineSeries, CrosshairMode,
+} from 'lightweight-charts';
 
 const SERIES_CTORS = { area: AreaSeries, line: LineSeries };
 
@@ -89,6 +91,12 @@ export default {
           secondsVisible: false,
         },
         crosshair: {
+          // Magnet sticks the horizontal line/label to the series' actual
+          // value at the hovered point - without it explicit, the label can
+          // end up showing whatever price the raw cursor Y position maps
+          // to, which doesn't match the point the vertical line/marker is
+          // actually sitting on.
+          mode: CrosshairMode.Magnet,
           horzLine: { visible: !this.sparkline, labelVisible: !this.sparkline },
           vertLine: { visible: !this.sparkline, labelVisible: !this.sparkline },
         },
@@ -118,7 +126,12 @@ export default {
           lineWidth: spec.lineWidth || 2,
           lineStyle: spec.lineStyle || 0,
           priceLineVisible: false,
-          lastValueVisible: !this.sparkline,
+          // The pinned "latest value" axis tag doesn't track the crosshair
+          // at all - every caller already shows the current price/value of
+          // its own elsewhere (a header, stat card, or legend), so leaving
+          // this on just sits there looking like a hover readout that
+          // doesn't match wherever you're actually pointing.
+          lastValueVisible: false,
           crosshairMarkerVisible: !this.sparkline,
         };
         if (spec.type === 'area') {
