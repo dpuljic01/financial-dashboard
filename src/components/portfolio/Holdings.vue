@@ -116,6 +116,7 @@
 <script>
 import moment from 'moment';
 import Modal from '../Modal.vue';
+import { confirmDialog } from '../../plugins/confirm';
 
 export default {
   name: 'Holdings',
@@ -178,7 +179,8 @@ export default {
       this.editingHoldingId = null;
     },
     async deleteLot(holdingId) {
-      if (!window.confirm('Delete this holding?')) return;
+      const ok = await confirmDialog('Delete this holding?', { title: 'Delete holding' });
+      if (!ok) return;
       this.$store.commit('setLoading', true);
       try {
         await this.$store.dispatch('deleteHolding', holdingId);

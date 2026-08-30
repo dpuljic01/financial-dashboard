@@ -69,6 +69,7 @@
 
 <script>
 import Modal from './Modal.vue';
+import { confirmDialog } from '../plugins/confirm';
 
 export default {
   name: 'MyPortfolios',
@@ -135,7 +136,11 @@ export default {
       return `$${val.toFixed(2)}`;
     },
     async deletePortfolio(pId) {
-      if (!window.confirm('Are you sure about that?')) return;
+      const ok = await confirmDialog(
+        'This deletes the portfolio and all of its holdings. This can\'t be undone.',
+        { title: 'Delete portfolio' },
+      );
+      if (!ok) return;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('deletePortfolio', { portfolioId: pId });
       this.portfolios = await this.$store.dispatch('getPortfolios');

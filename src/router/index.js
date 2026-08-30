@@ -1,21 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Dashboard from '../components/Dashboard.vue';
-import NotFound from '../components/NotFound.vue';
-import Landing from '../components/Landing.vue';
-import Login from '../components/Login.vue';
-import Register from '../components/Register.vue';
-import ResetPassword from '../components/ResetPassword.vue';
-import MyPortfolios from '../components/MyPortfolios.vue';
-import Portfolio from '../components/Portfolio.vue';
-import Holdings from '../components/portfolio/Holdings.vue';
-import Summary from '../components/portfolio/Summary.vue';
-import News from '../components/portfolio/News.vue';
-import Performance from '../components/portfolio/Performance.vue';
-import Quote from '../components/Quote.vue';
-import Compare from '../components/Compare.vue';
-import Profile from '../components/Profile.vue';
 import store from '../store';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '../consts';
+
+// Route components are lazy-loaded (dynamic import) instead of bundled
+// into one file - previously every page's code (plus lightweight-charts,
+// chart.js, moment...) shipped in a single ~1.8MB bundle that had to be
+// downloaded before ANY page could render, even the login screen.
+// webpackChunkName groups pages that are always navigated together (a
+// portfolio's own tabs, the auth pages) into one chunk, so switching
+// between them doesn't cost an extra round trip.
+const Landing = () => import(/* webpackChunkName: "landing" */ '../components/Landing.vue');
+const Dashboard = () => import(/* webpackChunkName: "dashboard" */ '../components/Dashboard.vue');
+const Login = () => import(/* webpackChunkName: "auth" */ '../components/Login.vue');
+const Register = () => import(/* webpackChunkName: "auth" */ '../components/Register.vue');
+const ResetPassword = () => import(/* webpackChunkName: "auth" */ '../components/ResetPassword.vue');
+const MyPortfolios = () => import(/* webpackChunkName: "portfolio" */ '../components/MyPortfolios.vue');
+const Portfolio = () => import(/* webpackChunkName: "portfolio" */ '../components/Portfolio.vue');
+const Holdings = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/Holdings.vue');
+const Summary = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/Summary.vue');
+const News = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/News.vue');
+const Performance = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/Performance.vue');
+const Quote = () => import(/* webpackChunkName: "quote" */ '../components/Quote.vue');
+const Compare = () => import(/* webpackChunkName: "compare" */ '../components/Compare.vue');
+const Profile = () => import(/* webpackChunkName: "profile" */ '../components/Profile.vue');
+const NotFound = () => import(/* webpackChunkName: "misc" */ '../components/NotFound.vue');
 
 const router = createRouter({
   history: createWebHistory('/'),

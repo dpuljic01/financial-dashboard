@@ -35,6 +35,7 @@
 
 <script>
 import { formatCompactNumber } from '../../utils';
+import { confirmDialog } from '../../plugins/confirm';
 
 export default {
   name: 'Summary',
@@ -79,7 +80,8 @@ export default {
       return '';
     },
     async deleteSymbol(stockId) {
-      if (!window.confirm('Delete?')) return;
+      const ok = await confirmDialog('Remove this symbol from the portfolio?', { title: 'Remove symbol' });
+      if (!ok) return;
       this.$store.commit('setLoading', true);
       await this.$store.dispatch('deleteSymbol', { portfolioId: this.portfolioId, stockId });
       const resp = await this.$store.dispatch('getPortfolio', this.portfolioId);
