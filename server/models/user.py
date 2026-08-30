@@ -42,6 +42,10 @@ class User(db.Model, TimestampMixin):
     email_confirmed_at = db.Column(db.DateTime())
     last_logged_in = db.Column(db.DateTime())
     role = db.Column(db.String(100), nullable=True, server_default="user")
+    # Stored as a data: URI (already resized/compressed client-side to a
+    # small square JPEG) rather than a file on disk - Render's free tier
+    # filesystem is ephemeral and wiped on every deploy, but the DB isn't.
+    avatar = db.Column(db.Text(), nullable=True)
 
     __table_args__ = (UniqueConstraint("email", name="uq_users_email"),)
 
@@ -71,6 +75,7 @@ class User(db.Model, TimestampMixin):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
+            "avatar": self.avatar,
             # "portfolios": [portfolio.json for portfolio in self.portfolios],
         }
 

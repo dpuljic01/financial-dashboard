@@ -18,7 +18,8 @@
 
       <md-menu :md-offset-x="-150" :md-offset-y="8">
         <md-button class="toolbar-user-trigger" md-menu-trigger>
-          <span class="toolbar-user-avatar">{{ userInitials }}</span>
+          <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
+          <span v-else class="toolbar-user-avatar">{{ userInitials }}</span>
           <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
           <md-icon class="toolbar-user-caret">expand_more</md-icon>
         </md-button>
@@ -60,6 +61,10 @@ export default {
     };
   },
   computed: {
+    userAvatar() {
+      const user = this.$store.getters.getCurrentUser;
+      return user ? user.avatar : null;
+    },
     currentUserName() {
       const user = this.$store.getters.getCurrentUser;
       if (!user) return '';
@@ -235,6 +240,9 @@ export default {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+.toolbar-user-avatar-img {
+  object-fit: cover;
 }
 .toolbar-user-name {
   display: none;

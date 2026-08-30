@@ -87,6 +87,33 @@ export function percent(number, total) {
   return (number / total) * 100;
 }
 
+// Resizes/crops an image file to a square JPEG data URI, small enough to
+// store directly in the DB (no file storage needed - Render's free tier
+// filesystem is ephemeral and wiped on every deploy).
+export function resizeImageToDataUrl(file, size = 256, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const drawWidth = img.width * scale;
+        const drawHeight = img.height * scale;
+        ctx.drawImage(img, (size - drawWidth) / 2, (size - drawHeight) / 2, drawWidth, drawHeight);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // Compacts large numbers for display, e.g. 12000000 -> "12M", 32248789 -> "32.25M".
 export function formatCompactNumber(value) {
   if (value === null || value === undefined || value === '' || Number.isNaN(+value)) return null;

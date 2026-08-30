@@ -29,6 +29,11 @@ def get_user():
         "last_name": fields.Str(
             required=False, validate=validate.Length(min=1, max=255)
         ),
+        # A data: URI - the client resizes/compresses to a small square
+        # JPEG before sending, this cap is just a backstop against abuse.
+        "avatar": fields.Str(
+            required=False, allow_none=True, validate=validate.Length(max=300000)
+        ),
     }
 )
 def update_user(**kwargs):
@@ -38,6 +43,8 @@ def update_user(**kwargs):
         user.first_name = kwargs["first_name"]
     if "last_name" in kwargs:
         user.last_name = kwargs["last_name"]
+    if "avatar" in kwargs:
+        user.avatar = kwargs["avatar"]
     db.session.commit()
     return jsonify(user.json)
 

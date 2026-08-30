@@ -1,8 +1,27 @@
 <template>
   <div class="page-container">
-    <div class="page-section profile-header">
-      <div class="profile-avatar">{{ initials }}</div>
-      <div>
+    <div class="page-section card-surface profile-header">
+      <div class="profile-avatar-wrap">
+        <img v-if="user.avatar" :src="user.avatar" alt="" class="profile-avatar profile-avatar-img" />
+        <div v-else class="profile-avatar">{{ initials }}</div>
+        <button
+          type="button"
+          class="avatar-edit-btn"
+          title="Change photo"
+          :disabled="uploadingAvatar"
+          @click="$refs.avatarInput.click()"
+        >
+          <md-icon>{{ uploadingAvatar ? 'hourglass_empty' : 'photo_camera' }}</md-icon>
+        </button>
+        <input
+          ref="avatarInput"
+          type="file"
+          accept="image/*"
+          class="avatar-file-input"
+          @change="onAvatarSelected"
+        />
+      </div>
+      <div class="profile-info">
         <h1 class="md-heading profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
         <span class="profile-email">{{ user.email }}</span>
       </div>
@@ -61,6 +80,8 @@
 </template>
 
 <script>
+import { resizeImageToDataUrl } from '../utils';
+
 export default {
   name: 'Profile',
   data() {
@@ -74,6 +95,7 @@ export default {
       showNew: false,
       validName: true,
       validPass: true,
+      uploadingAvatar: false,
     };
   },
   computed: {
@@ -91,6 +113,25 @@ export default {
     this.lastName = this.user.last_name;
   },
   methods: {
+    async onAvatarSelected(event) {
+      const { target } = event;
+      const [file] = target.files;
+      target.value = ''; // allow re-selecting the same file later
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        this.$store.dispatch('errorMessage', 'Please choose an image file');
+        return;
+      }
+      this.uploadingAvatar = true;
+      try {
+        const dataUrl = await resizeImageToDataUrl(file);
+        this.user = await this.$store.dispatch('updateUser', { avatar: dataUrl });
+      } catch (e) {
+        this.$store.dispatch('errorMessage', "Couldn't process that image");
+      } finally {
+        this.uploadingAvatar = false;
+      }
+    },
     async updateName() {
       this.validName = this.firstName.length > 0 && this.lastName.length > 0;
       if (this.validName) {
@@ -123,24 +164,69 @@ export default {
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+  padding: 28px;
+}
+.profile-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 .profile-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: #116468;
   color: #fff;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+.profile-avatar-img {
+  object-fit: cover;
+}
+.avatar-edit-btn {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #116468;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.avatar-edit-btn:hover {
+  background: #0a4547;
+}
+.avatar-edit-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.avatar-edit-btn :deep(.md-icon) {
+  font-size: 16px !important;
+  color: #fff !important;
+}
+.avatar-file-input {
+  display: none;
+}
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
 .profile-name {
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .profile-email {
   color: rgba(0, 0, 0, 0.55);
