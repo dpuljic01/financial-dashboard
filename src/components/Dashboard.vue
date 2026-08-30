@@ -12,19 +12,26 @@
     <div v-if="Object.keys(portfolio).length !== 0" class="page-section card-surface summary-card">
       <div class="summary-card-header">
         <h2 class="md-heading">Portfolio summary</h2>
-        <div class="portfolio-switcher">
-          <span>Portfolio: <strong>{{ portfolio.name }}</strong></span>
-          <md-menu :md-offset-x="150" :md-offset-y="-50">
-            <md-button class="md-icon-button md-dense" md-menu-trigger>
-              <md-icon>keyboard_arrow_down</md-icon>
-            </md-button>
-            <md-menu-content>
-              <md-menu-item v-for="p in portfolios" :key="p.id" @click="switchPortfolio(p.id)">
-                {{ p.name }}
-              </md-menu-item>
-            </md-menu-content>
-          </md-menu>
-        </div>
+        <md-menu v-if="portfolios.length > 1" :md-offset-x="0" :md-offset-y="4">
+          <md-button class="portfolio-switcher" md-menu-trigger>
+            <span class="portfolio-switcher-label">{{ portfolio.name }}</span>
+            <md-icon>expand_more</md-icon>
+          </md-button>
+          <md-menu-content class="portfolio-switcher-menu">
+            <md-menu-item
+              v-for="p in portfolios"
+              :key="p.id"
+              class="portfolio-switcher-item"
+              :class="{ 'portfolio-switcher-item--active': p.id === portfolio.id }"
+              @click="switchPortfolio(p.id)"
+            >
+              {{ p.name }}
+            </md-menu-item>
+          </md-menu-content>
+        </md-menu>
+        <span v-else-if="portfolio.name" class="portfolio-switcher portfolio-switcher--static">
+          {{ portfolio.name }}
+        </span>
       </div>
 
       <TabBar :tabs="portfolioTabs" v-model="activeTab" @change="onPortfolioSummaryTabChange" />
@@ -165,11 +172,44 @@ export default {
   margin: 0;
 }
 .portfolio-switcher {
-  display: flex;
+  display: flex !important;
   align-items: center;
-  gap: 4px;
-  color: rgba(0, 0, 0, 0.65);
-  font-size: 14px;
+  gap: 6px;
+  height: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  border-radius: 20px !important;
+  background: rgba(17, 100, 104, 0.06) !important;
+  box-shadow: none !important;
+  color: #116468 !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  cursor: pointer;
+}
+.portfolio-switcher:hover {
+  background: rgba(17, 100, 104, 0.12) !important;
+}
+.portfolio-switcher .md-icon {
+  margin: 0 !important;
+  font-size: 18px !important;
+  color: #116468 !important;
+}
+.portfolio-switcher-label {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.portfolio-switcher--static {
+  cursor: default;
+}
+@media (max-width: 480px) {
+  .summary-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 .allocation {
   display: flex;

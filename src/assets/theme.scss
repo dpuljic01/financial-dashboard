@@ -141,6 +141,21 @@ input:-webkit-autofill:active {
   color: var(--loss-color);
 }
 
+.portfolio-switcher-menu.md-menu-content {
+  border-radius: 12px !important;
+  padding: 6px !important;
+  min-width: 200px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+}
+.portfolio-switcher-menu .md-list-item-content {
+  border-radius: 8px;
+}
+.portfolio-switcher-menu .portfolio-switcher-item--active .md-list-item-content {
+  background: rgba(17, 100, 104, 0.08);
+  color: #116468;
+  font-weight: 600;
+}
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
