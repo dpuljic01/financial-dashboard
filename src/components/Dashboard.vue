@@ -122,10 +122,10 @@ export default {
   async mounted() {
     this.$store.commit('setLoading', true);
     await this.$store.dispatch('getCurrentUser');
-    this.portfolios = this.$store.getters.listPortfolios;
-    if (this.portfolios.length === 0) {
-      this.portfolios = await this.$store.dispatch('getPortfolios');
-    }
+    // Always refetch rather than trusting the localStorage-cached list - it
+    // goes stale the moment a portfolio is added/removed from another tab,
+    // session, or device, and silently under-lists portfolios here.
+    this.portfolios = await this.$store.dispatch('getPortfolios');
     if (this.portfolios.length > 0) {
       this.portfolio = await this.getCurrentPortfolio();
       this.hasHoldings = this.$store.getters.hasHoldings;
