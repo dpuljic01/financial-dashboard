@@ -48,4 +48,4 @@ services:
       # actually generates usable output (button/component colors, etc).
       sed -i 's/--md-theme-#{\$name}-#{\$type}: \$value/--md-theme-#{$name}-#{$type}: #{$value}/' node_modules/vue-material/dist/theme/mixins.scss
       npm run build
-    startCommand: gunicorn -w 2 wsgi:application
+    startCommand: python manage.py db upgrade && gunicorn -w 2 wsgi:application
