@@ -73,13 +73,28 @@
       <form @submit.prevent="submit">
         <md-field>
           <label for="shares">Number of shares</label>
-          <md-input type="number" step="any" v-model="newShares" name="shares" id="shares" autofocus></md-input>
+          <md-input
+            type="number"
+            step="any"
+            inputmode="decimal"
+            v-model="newShares"
+            name="shares"
+            id="shares"
+            autofocus
+          ></md-input>
         </md-field>
         <p class="dp-error" v-if="!valid">Must be greater than zero</p>
 
         <md-field>
           <label for="average">Average price (USD)</label>
-          <md-input type="number" step="any" v-model="average" name="average" id="average"></md-input>
+          <md-input
+            type="number"
+            step="any"
+            inputmode="decimal"
+            v-model="average"
+            name="average"
+            id="average"
+          ></md-input>
         </md-field>
         <p class="dp-error" v-if="!valid">Must be greater than zero</p>
 
