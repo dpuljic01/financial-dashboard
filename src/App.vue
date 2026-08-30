@@ -2,13 +2,25 @@
   <div id="app">
     <navigation v-if="protectedRoutes.includes(this.$route.name)" />
     <router-view v-else></router-view>
+    <Toaster
+      position="top-center"
+      rich-colors
+      close-button
+      theme="light"
+      :offset="{ top: '84px' }"
+      :mobile-offset="{ top: '84px' }"
+    />
   </div>
 </template>
 
 <script>
+import { Toaster } from 'vue-sonner';
 import { PROTECTED_ROUTES } from './consts';
 
 export default {
+  components: {
+    Toaster,
+  },
   data() {
     return {
       protectedRoutes: PROTECTED_ROUTES,
@@ -34,6 +46,15 @@ body {
   text-align: center;
   color: #2c3e50;
   min-height: 100vh;
+  /* This is an app UI, not a document - a long-press-to-select on a heading
+     or label (triggering the OS's selection handles/dictionary popup) reads
+     as broken, not helpful. Form inputs are unaffected: user-select on an
+     ancestor doesn't reach into a native <input>/<textarea>'s own text. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   --gain-color: #0f9d70;
   --loss-color: #d1435c;
   --gain-tint: rgba(15, 157, 112, 0.12);
