@@ -33,26 +33,28 @@ $accent: rgb(0, 170, 173);
 
 // vue-toasted's own stylesheet is never imported in this app (main.js only
 // imports the JS), so without these rules a toast has none of the library's
-// intended layout at all - no position:fixed, no max-width, no rounding -
-// and just renders as an unstyled full-bleed block at the top of <body>.
-// This is a complete, self-authored replacement rather than a partial
-// override on top of the missing base CSS.
-// Deliberately not display:flex on the container - a fixed-position block
-// box with both `left` and `right` set gets an unambiguous computed width
-// (viewport minus the two offsets) with no flex width-resolution involved.
-// Toasts stack via plain margin, not gap.
+// intended layout at all. This is a complete, self-authored replacement:
+// a soft pastel card per type (icon, bold title, description, close button)
+// rather than a solid-color banner.
+//
+// The container is a plain block box (left/right offsets, not display:flex)
+// so its own width is unambiguous; the toast itself is a normal block child
+// and needs no explicit width at all. An earlier version made the toast a
+// flex child sized via width:100%, which needs the flex container's
+// cross-axis size to resolve and rendered as an overflowing box on a real
+// device instead of respecting the intended margins.
 .toasted-container {
   position: fixed !important;
   z-index: 2100 !important; // above ProgressBar (2000) and Modal (1000)
   top: 84px;
-  right: 16px;
   left: 16px;
+  right: 16px;
   pointer-events: none;
 }
-@media (min-width: 520px) {
+@media (min-width: 480px) {
   .toasted-container {
     left: auto;
-    width: 360px;
+    width: 380px;
   }
 }
 
@@ -60,37 +62,62 @@ $accent: rgb(0, 170, 173);
   pointer-events: auto;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  width: 100%;
   margin: 0 0 10px !important;
-  border-radius: 10px;
-  min-height: 44px;
-  padding: 12px 14px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 400;
   font-family: inherit;
-  line-height: 1.35;
-  color: #fff;
-  background-color: #16292b;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  line-height: 1.4;
+  color: #14313a;
+  background-color: #eef1f1;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
   // vue-toasted animates its enter/exit via anime.js setting inline
   // transform/margin directly, tuned for its own (unused here) CSS's
-  // margin-stacked layout - left alone, that fights this margin-stacked
-  // layout differently (toasts sliding by a hardcoded -35px, or collapsing
-  // via a larger negative margin than the one set above). Block the slide
-  // and pin the margin; only the opacity fade (driven independently by
-  // anime.js) is left alone, and looks fine on its own.
+  // margin-stacked layout - left alone, that fights the margin set above.
+  // Block the slide; the opacity fade (driven independently by anime.js)
+  // is left alone and looks fine on its own.
   transform: none !important;
 }
 .toasted.toasted-primary.success {
-  background-color: #0f9d70;
+  background-color: #d1f7db;
+  color: #146c2e;
 }
 .toasted.toasted-primary.error {
-  background-color: #d1435c;
+  background-color: #fbd5da;
+  color: #7a1f2b;
 }
 .toasted.toasted-primary.info {
-  background-color: #116468;
+  background-color: #cdeefc;
+  color: #0b4a6f;
+}
+.toasted.toasted-primary.warning {
+  background-color: #fbead0;
+  color: #7a4e12;
+}
+// The leading status icon - a direct child, unlike the close action's own
+// icon which is nested inside .action further below.
+.toasted.toasted-primary > .material-icons {
+  flex-shrink: 0;
+  font-size: 20px !important;
+  line-height: 1;
+  margin-top: 1px;
+}
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.toast-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+.toast-desc {
+  opacity: 0.85;
 }
 .toasted.toasted-primary .action {
   flex-shrink: 0;
@@ -98,14 +125,16 @@ $accent: rgb(0, 170, 173);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  color: rgba(255, 255, 255, 0.85);
+  color: currentColor;
+  opacity: 0.55;
   cursor: pointer;
 }
 .toasted.toasted-primary .action:hover {
-  background: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
 }
 .toasted.toasted-primary .action .material-icons {
   font-size: 16px;
