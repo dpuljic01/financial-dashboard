@@ -145,9 +145,13 @@ export default {
       this.activeTab = id;
     },
     async switchPortfolio(id) {
-      if (this.portfolio.id !== id) {
+      if (this.portfolio.id === id) return;
+      this.$store.commit('setLoading', true);
+      try {
         this.portfolio = await this.$store.dispatch('getPortfolio', id);
         this.hasHoldings = this.$store.getters.hasHoldings;
+      } finally {
+        this.$store.commit('setLoading', false);
       }
     },
     searchQuote(event) {
