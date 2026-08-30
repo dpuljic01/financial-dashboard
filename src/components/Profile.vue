@@ -225,8 +225,8 @@ export default {
 }
 .profile-name {
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
+  overflow-wrap: break-word;
 }
 .profile-email {
   color: rgba(0, 0, 0, 0.55);
