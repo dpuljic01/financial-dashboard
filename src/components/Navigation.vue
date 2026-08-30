@@ -29,7 +29,7 @@
     </md-toolbar>
 
     <div class="app-content">
-      <progress-bar class="progress-bar" v-if="this.$store.getters.isLoading"></progress-bar>
+      <progress-bar></progress-bar>
       <router-view></router-view>
     </div>
   </div>
