@@ -1,11 +1,15 @@
 <template>
   <div class="simple-search">
-    <div class="simple-search-input-row" :class="{ 'simple-search-input-row--focused': focused }">
+    <div
+      class="simple-search-input-row"
+      :class="{ 'simple-search-input-row--focused': focused, 'simple-search-input-row--disabled': disabled }"
+    >
       <i class="md-icon md-icon-font simple-search-icon">search</i>
       <input
         type="text"
         class="simple-search-input"
         :placeholder="placeholder"
+        :disabled="disabled"
         v-model="query"
         @input="onInput"
         @keyup.enter="submitTyped"
@@ -47,6 +51,10 @@ export default {
       type: String,
       default: 'Search symbols',
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: () => ({
     query: '',
@@ -76,11 +84,12 @@ export default {
       }, DEBOUNCE_MS);
     },
     select(ticker) {
+      if (this.disabled) return;
       this.reset();
       this.$emit('search', { symbol: ticker.symbol, short_name: ticker.name });
     },
     submitTyped() {
-      if (!this.query) return;
+      if (this.disabled || !this.query) return;
       const symbol = this.query.toUpperCase();
       this.reset();
       this.$emit('search', { symbol, short_name: symbol });
@@ -124,6 +133,10 @@ export default {
 .simple-search-input-row--focused {
   border-color: #116468;
   box-shadow: 0 2px 8px rgba(17, 100, 104, 0.2);
+}
+.simple-search-input-row--disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 .simple-search-icon {
   color: rgba(0, 0, 0, 0.4);

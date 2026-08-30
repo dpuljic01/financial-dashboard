@@ -83,7 +83,11 @@ def _fetch_company_info_with_fallback(symbol):
         av_info = None
 
     if not av_info:
-        return info
+        # Never hand back a literally empty dict here - it would fail the
+        # cache's response_filter below and get refetched on every request,
+        # burning through Alpha Vantage's free-tier daily quota (25/day) in
+        # minutes once a handful of tickers are broken at once.
+        return info or {"symbol": symbol}
     return {**av_info, **info}
 
 
@@ -151,7 +155,12 @@ def yf_stock_quote(symbol):
 @bp.route("/<string:symbol>/company-info", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=60 * 5, key_prefix=make_cache_key, response_filter=_has_company_info)
+# Company profile fields (sector, market cap, employees...) barely change
+# day to day, and the fallback provider (Alpha Vantage) allows only 25
+# requests/day on the free tier - a short cache meant retrying every failed
+# ticker every few minutes, which exhausts that quota almost immediately.
+# A day-long cache keeps each ticker to one fallback attempt per day.
+@cache.cached(timeout=60 * 60 * 24, key_prefix=make_cache_key, response_filter=_has_company_info)
 def get_company_info(symbol):
     symbol = symbol.upper()
     stock = Stock.query.filter_by(ticker=symbol).one_or_none()

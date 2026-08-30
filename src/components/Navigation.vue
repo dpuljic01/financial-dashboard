@@ -20,10 +20,17 @@
         <md-button class="toolbar-user-trigger" md-menu-trigger>
           <span class="toolbar-user-avatar">{{ userInitials }}</span>
           <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
+          <md-icon class="toolbar-user-caret">expand_more</md-icon>
         </md-button>
-        <md-menu-content>
-          <md-menu-item @click="goToProfile">Profile</md-menu-item>
-          <md-menu-item @click="logout">Log out</md-menu-item>
+        <md-menu-content class="user-menu-content">
+          <md-menu-item @click="goToProfile">
+            <md-icon>person</md-icon>
+            <span>Profile</span>
+          </md-menu-item>
+          <md-menu-item class="user-menu-item--danger" @click="logout">
+            <md-icon>logout</md-icon>
+            <span>Log out</span>
+          </md-menu-item>
         </md-menu-content>
       </md-menu>
     </md-toolbar>
@@ -119,10 +126,17 @@ export default {
      theming otherwise wins over a plain `color` declaration here and the
      text renders as a tinted teal instead of solid white. */
   color: #fff !important;
-  text-decoration: none;
+  text-decoration: none !important;
   font-weight: 700;
   font-size: 15px;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.toolbar-brand:hover,
+.toolbar-brand:focus,
+.toolbar-brand:active,
+.toolbar-brand:visited {
+  text-decoration: none !important;
 }
 .toolbar-brand :deep(.md-icon) {
   display: inline-flex !important;
@@ -159,7 +173,7 @@ export default {
 }
 .toolbar-nav-link {
   color: #fff !important;
-  text-decoration: none;
+  text-decoration: none !important;
   font-size: 13px;
   font-weight: 500;
   padding: 7px 10px;
@@ -167,6 +181,16 @@ export default {
   white-space: nowrap;
   flex-shrink: 0;
   transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Mobile browsers apply a default underline to a tapped/focused link that a
+   bare `text-decoration: none` on the base selector doesn't reach - cover
+   every interaction state explicitly. */
+.toolbar-nav-link:hover,
+.toolbar-nav-link:focus,
+.toolbar-nav-link:active,
+.toolbar-nav-link:visited {
+  text-decoration: none !important;
 }
 .toolbar-nav-link:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -220,12 +244,21 @@ export default {
   text-transform: none;
   white-space: nowrap;
 }
+.toolbar-user-caret {
+  display: none;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 18px !important;
+}
 @media (min-width: 700px) {
   .toolbar-user-trigger {
-    padding: 6px 12px 6px 6px !important;
+    padding: 6px 10px 6px 6px !important;
   }
   .toolbar-user-name {
     display: inline;
+  }
+  .toolbar-user-caret {
+    display: inline-flex;
   }
 }
 </style>

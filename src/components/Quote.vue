@@ -16,9 +16,10 @@
 
       <div v-if="path === 'profile'">
         <md-empty-state
-          v-if="Object.values(companyInfo).length === 0"
+          v-if="stats.length === 0 && !companyInfo.longbusinesssummary"
           md-icon="error"
-          md-label="Couldn't retrieve info about this company"
+          md-label="Detailed company data isn't available right now"
+          md-description="The data provider may be temporarily rate-limited - try again in a few minutes."
         >
         </md-empty-state>
         <div v-else class="profile card-surface">

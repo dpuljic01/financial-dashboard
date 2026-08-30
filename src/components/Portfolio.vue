@@ -45,7 +45,14 @@
       <Modal v-model="addSymbolOpen">
         <h3 class="modal-title">Add a symbol</h3>
         <p class="modal-subtitle">Search for a ticker to add it to this portfolio.</p>
-        <Search @search="onAddSymbol($event)" placeholder="e.g. AAPL, MSFT..."></Search>
+        <Search
+          @search="onAddSymbol($event)"
+          :disabled="addingSymbol"
+          placeholder="e.g. AAPL, MSFT..."
+        ></Search>
+        <div v-if="addingSymbol" class="add-symbol-status">
+          <FinancialLoader size="small" :label="`Adding ${pendingSymbol}…`" />
+        </div>
       </Modal>
     </template>
   </div>
@@ -76,6 +83,8 @@ export default {
   data() {
     return {
       addSymbolOpen: false,
+      addingSymbol: false,
+      pendingSymbol: '',
       portfolio: {},
       loaded: false,
       tickers: [],
@@ -112,19 +121,25 @@ export default {
       this.tickers = tickers;
     },
     async onAddSymbol(payload) {
+      this.addingSymbol = true;
+      this.pendingSymbol = payload.symbol;
       this.$store.commit('setLoading', true);
-      await this.$store.dispatch('addSymbol', {
-        portfolio: this.portfolio.id,
-        payload: {
-          symbol: payload.symbol,
-          short_name: payload.short_name,
-        },
-      });
-      this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
-      this.getTickers();
-      this.addSymbolOpen = false;
-      this.$store.dispatch('successMessage');
-      this.$store.commit('setLoading', false);
+      try {
+        await this.$store.dispatch('addSymbol', {
+          portfolio: this.portfolio.id,
+          payload: {
+            symbol: payload.symbol,
+            short_name: payload.short_name,
+          },
+        });
+        this.portfolio = await this.$store.dispatch('getPortfolio', this.portfolioId);
+        this.getTickers();
+        this.addSymbolOpen = false;
+        this.$store.dispatch('successMessage');
+      } finally {
+        this.addingSymbol = false;
+        this.$store.commit('setLoading', false);
+      }
     },
     onDelete() {
       this.getTickers();
@@ -170,5 +185,8 @@ export default {
   margin: 0 0 16px;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
+}
+.add-symbol-status {
+  margin-top: 16px;
 }
 </style>

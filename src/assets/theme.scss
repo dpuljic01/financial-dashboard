@@ -110,6 +110,37 @@ input:-webkit-autofill:active {
   z-index: 1100 !important;
 }
 
+// md-menu-content is teleported outside the component tree, so it can't be
+// reached by Navigation.vue's own scoped styles - style it globally here,
+// scoped by the class we set on the element itself instead.
+.user-menu-content.md-menu-content {
+  border-radius: 12px !important;
+  padding: 6px !important;
+  min-width: 190px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+}
+.user-menu-content .md-list-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
+  min-height: 40px;
+}
+.user-menu-content .md-icon {
+  margin: 0 !important;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 20px !important;
+}
+.user-menu-content .user-menu-item--danger .md-list-item-content {
+  color: var(--loss-color);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+.user-menu-content .user-menu-item--danger .md-icon {
+  color: var(--loss-color);
+}
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
