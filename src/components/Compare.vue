@@ -45,13 +45,7 @@
         :height="320"
         @crosshair-move="onCrosshairMove"
       />
-      <md-progress-spinner
-        v-else
-        :md-diameter="50"
-        :md-stroke="4"
-        style="margin-top: 50px;"
-        md-mode="indeterminate"
-      ></md-progress-spinner>
+      <FinancialLoader v-else style="margin-top: 50px;" />
     </div>
   </div>
 </template>
@@ -59,6 +53,7 @@
 <script>
 import LightweightChart from './charts/LightweightChart.vue';
 import TabBar from './TabBar.vue';
+import FinancialLoader from './FinancialLoader.vue';
 import { setQuoteSeries, percentChange } from '../utils';
 
 const PALETTE = ['#116468', '#0f9d70', '#d1435c', '#00aaad', '#8c6dfd', '#e8873a', '#3a86ff'];
@@ -78,6 +73,7 @@ export default {
   components: {
     LightweightChart,
     TabBar,
+    FinancialLoader,
   },
   data() {
     return {

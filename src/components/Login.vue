@@ -61,7 +61,7 @@
         </form>
       </Modal>
       <div class="loading-overlay" v-if="this.$store.getters.isLoading">
-        <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
+        <FinancialLoader />
       </div>
     </div>
   </div>
@@ -70,11 +70,13 @@
 <script>
 import { isValidEmail } from '../utils';
 import Modal from './Modal.vue';
+import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Login',
   components: {
     Modal,
+    FinancialLoader,
   },
   data() {
     return {

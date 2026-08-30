@@ -1,12 +1,6 @@
 <template>
   <div>
-    <md-progress-spinner
-      v-if="!loaded"
-      :md-diameter="50"
-      :md-stroke="4"
-      style="margin-top: 50px;"
-      md-mode="indeterminate"
-    ></md-progress-spinner>
+    <FinancialLoader v-if="!loaded" label="Loading news…" style="margin-top: 50px;" />
     <md-empty-state
       v-else-if="news.length === 0 && loaded"
       md-icon="announcement"
@@ -48,9 +42,13 @@
 
 <script>
 import moment from 'moment';
+import FinancialLoader from '../FinancialLoader.vue';
 
 export default {
   name: 'News',
+  components: {
+    FinancialLoader,
+  },
   props: {
     tickers: {
       type: Array,

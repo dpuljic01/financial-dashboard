@@ -1,6 +1,6 @@
 <template>
   <div v-if="!loaded" class="performance-loading">
-    <md-progress-spinner :md-diameter="50" :md-stroke="4" md-mode="indeterminate"></md-progress-spinner>
+    <FinancialLoader label="Loading performance…" />
   </div>
   <md-empty-state
     v-else-if="!hasHistory"
@@ -52,6 +52,7 @@
 <script>
 import moment from 'moment';
 import LightweightChart from '../charts/LightweightChart.vue';
+import FinancialLoader from '../FinancialLoader.vue';
 import { formatCompactNumber } from '../../utils';
 
 const BENCHMARK_TICKER = '^gspc';
@@ -61,6 +62,7 @@ export default {
   name: 'Performance',
   components: {
     LightweightChart,
+    FinancialLoader,
   },
   props: {
     portfolio: {

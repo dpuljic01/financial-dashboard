@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <div v-if="!loaded" class="portfolio-loading">
-      <md-progress-spinner :md-diameter="50" :md-stroke="4" md-mode="indeterminate"></md-progress-spinner>
+      <FinancialLoader label="Loading portfolio…" />
     </div>
     <template v-else>
       <div class="page-section card-surface portfolio-card">
@@ -59,6 +59,7 @@ import News from './portfolio/News.vue';
 import Performance from './portfolio/Performance.vue';
 import TabBar from './TabBar.vue';
 import Modal from './Modal.vue';
+import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Portfolio',
@@ -70,6 +71,7 @@ export default {
     Performance,
     TabBar,
     Modal,
+    FinancialLoader,
   },
   data() {
     return {

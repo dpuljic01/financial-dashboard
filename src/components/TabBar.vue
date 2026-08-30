@@ -85,13 +85,21 @@ export default {
 }
 
 @media (max-width: 480px) {
+  /* Compact/content-hugging reads fine on desktop, but on a narrow phone
+     that just leaves a cramped little cluster of tiny buttons on the
+     left. Stretch to the full row width instead and let each button
+     share it equally - bigger, more touch-friendly targets, still one
+     row, still can't overflow since each gets a fixed fraction of a
+     fixed-width container. */
   .tab-bar--pill {
-    gap: 0;
-    padding: 2px;
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
   }
   .tab-bar--pill .tab-bar-item {
-    padding: 6px 7px;
-    font-size: 12px;
+    flex: 1;
+    padding: 8px 2px;
+    text-align: center;
   }
 }
 

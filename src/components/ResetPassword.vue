@@ -30,15 +30,20 @@
       </form>
 
       <div class="loading-overlay" v-if="this.$store.getters.isLoading">
-        <md-progress-spinner md-mode="indeterminate" :md-stroke="1"></md-progress-spinner>
+        <FinancialLoader />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import FinancialLoader from './FinancialLoader.vue';
+
 export default {
   name: 'ResetPassword',
+  components: {
+    FinancialLoader,
+  },
   created() {
     this.passwordToken = this.$route.params.passwordToken;
   },
