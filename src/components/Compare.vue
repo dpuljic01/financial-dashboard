@@ -15,11 +15,14 @@
     </div>
 
     <div v-else-if="loaded" class="compare-price-header">
-      <span class="compare-price fin-figure">{{ formattedPrice }}</span>
-      <span
-        class="compare-change fin-figure"
-        :class="displayTrend === 'up' ? 'fin-gain' : 'fin-loss'"
-      >{{ formattedChange }}</span>
+      <div class="compare-price-row">
+        <span class="compare-price fin-figure">{{ formattedPrice }}</span>
+        <span
+          class="compare-change fin-figure"
+          :class="displayTrend === 'up' ? 'fin-gain' : 'fin-loss'"
+        >{{ formattedChange }}</span>
+      </div>
+      <span v-if="hoveredDateLabel" class="compare-hovered-date">{{ hoveredDateLabel }}</span>
     </div>
 
     <div v-if="multiple && loaded" class="compare-legend">
@@ -43,6 +46,7 @@
         v-if="loaded"
         :series="lwcSeries"
         :height="320"
+        :hide-crosshair-labels="!multiple"
         @crosshair-move="onCrosshairMove"
       />
       <FinancialLoader v-else style="margin-top: 50px;" />
@@ -51,6 +55,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import LightweightChart from './charts/LightweightChart.vue';
 import TabBar from './TabBar.vue';
 import FinancialLoader from './FinancialLoader.vue';
@@ -87,6 +92,7 @@ export default {
       latestPrice: null,
       periodOpenPrice: null,
       hoveredPrice: null,
+      hoveredTime: null,
       trend: 'flat',
       changePercent: null,
       activeTab: 'tab-1d',
@@ -125,6 +131,15 @@ export default {
       if (this.displayChangePercent == null) return '';
       const sign = this.displayChangePercent > 0 ? '+' : '';
       return `${sign}${this.displayChangePercent.toFixed(2)}%`;
+    },
+    // Only relevant while actually hovering (blank the rest of the time,
+    // rather than showing today's date) - and only for single-symbol mode,
+    // since that's the only place with one unambiguous price to pair it with.
+    hoveredDateLabel() {
+      if (this.multiple || this.hoveredTime == null) return '';
+      const intraday = /[mh]$/.test(this.interval);
+      const format = intraday ? 'MMM D, YYYY HH:mm' : 'MMM D, YYYY';
+      return moment.unix(this.hoveredTime).utc().format(format);
     },
   },
   mounted() {
@@ -257,6 +272,7 @@ export default {
         return;
       }
       this.hoveredPrice = time && values[0] != null ? values[0] : null;
+      this.hoveredTime = time || null;
     },
     // apexcharts-era data shape ([isoDateString, value] pairs) into
     // lightweight-charts' {time (unix seconds), value} points.
@@ -326,9 +342,14 @@ export default {
 }
 .compare-price-header {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.compare-price-row {
+  display: flex;
   align-items: baseline;
   gap: 12px;
-  margin-bottom: 16px;
 }
 .compare-price {
   font-size: 28px;
@@ -338,6 +359,10 @@ export default {
 .compare-change {
   font-size: 15px;
   font-weight: 600;
+}
+.compare-hovered-date {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
 }
 .compare-legend {
   display: flex;

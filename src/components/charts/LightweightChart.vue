@@ -35,6 +35,16 @@ export default {
       type: Number,
       default: 0,
     },
+    // Hides the native price/date crosshair labels lightweight-charts draws
+    // on the axes. Set this when the caller shows its own combined
+    // price+date readout elsewhere (e.g. above the chart) - two disconnected
+    // native labels sitting on opposite edges of the chart is a worse
+    // reading experience than one clear spot, especially on mobile where
+    // the right-edge price label is easy to miss entirely.
+    hideCrosshairLabels: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['crosshair-move'],
   data() {
@@ -97,8 +107,8 @@ export default {
           // to, which doesn't match the point the vertical line/marker is
           // actually sitting on.
           mode: CrosshairMode.Magnet,
-          horzLine: { visible: !this.sparkline, labelVisible: !this.sparkline },
-          vertLine: { visible: !this.sparkline, labelVisible: !this.sparkline },
+          horzLine: { visible: !this.sparkline, labelVisible: !this.sparkline && !this.hideCrosshairLabels },
+          vertLine: { visible: !this.sparkline, labelVisible: !this.sparkline && !this.hideCrosshairLabels },
         },
         handleScroll: !this.sparkline,
         handleScale: !this.sparkline,
