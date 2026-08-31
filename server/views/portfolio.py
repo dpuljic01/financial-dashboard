@@ -166,7 +166,7 @@ def create_portfolio_holding(portfolio_id, **payload):
     return jsonify(holding_db.json), 201
 
 
-@bp.route("/<int:holding_id>", methods=["DELETE"])
+@bp.route("/holdings/<int:holding_id>", methods=["DELETE"])
 @jwt_required()
 @check_confirmed
 def delete_portfolio_holding(holding_id):

@@ -364,9 +364,16 @@ export default {
   background: var(--gain-tint);
   color: var(--gain-color);
 }
+/* Unlike edit/add, delete reads as destructive at rest too, not just on
+   hover - a neutral-gray icon that only turns red once you're already
+   hovering it isn't a strong enough "this deletes something" signal. */
+.row-action--delete {
+  color: var(--loss-color);
+  opacity: 0.75;
+}
 .row-action--delete:hover {
   background: var(--loss-tint);
-  color: var(--loss-color);
+  opacity: 1;
 }
 .row-action .md-icon {
   margin: 0;

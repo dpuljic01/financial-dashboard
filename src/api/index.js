@@ -128,7 +128,13 @@ export function deletePortfolio(params, accessToken) {
 }
 
 export function deleteHolding(holdingId, accessToken) {
-  return axios.delete(`${API_URL}/portfolios/${holdingId}`, {
+  // /portfolios/holdings/:id, not /portfolios/:id - that shape collided
+  // exactly with the delete-a-whole-portfolio route (both DELETE
+  // /portfolios/<int>), and Flask/Werkzeug silently resolves the collision
+  // to whichever route was registered first (delete_portfolio) rather than
+  // erroring, so every "delete a holding" call was actually hitting
+  // delete_portfolio instead.
+  return axios.delete(`${API_URL}/portfolios/holdings/${holdingId}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
