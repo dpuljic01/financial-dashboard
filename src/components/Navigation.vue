@@ -16,6 +16,13 @@
         >{{ link.label }}</router-link>
       </nav>
 
+      <Search
+        compact
+        class="toolbar-search"
+        placeholder="Search symbols"
+        @search="onGlobalSearch"
+      ></Search>
+
       <md-menu :md-offset-x="-150" :md-offset-y="8">
         <md-button class="toolbar-user-trigger" md-menu-trigger>
           <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
@@ -45,11 +52,13 @@
 
 <script>
 import ProgressBar from './ProgressBar.vue';
+import Search from './Search.vue';
 
 export default {
   name: 'Navigation',
   components: {
     ProgressBar,
+    Search,
   },
   data() {
     return {
@@ -86,6 +95,9 @@ export default {
     },
     goToProfile() {
       this.$router.push('/profile');
+    },
+    onGlobalSearch(event) {
+      this.$router.push(`/quote/${event.symbol}/profile`);
     },
     async logout() {
       this.$store.commit('setLoading', true);
@@ -162,6 +174,15 @@ export default {
   .toolbar-brand-name {
     display: inline;
   }
+  /* Only needed once the brand text itself is visible at this width - below
+     it, the brand is just the icon and the 12px flex gap already reads as
+     clear separation from the first nav link. With "Financial Dashboard"
+     spelled out, that same 12px put it right up against "Dashboard" (the
+     nav link), reading as one run-on phrase instead of two separate
+     things. */
+  .toolbar-nav {
+    margin-left: 20px;
+  }
 }
 
 .toolbar-nav {
@@ -208,6 +229,16 @@ export default {
   .toolbar-nav-link {
     font-size: 14px;
     padding: 8px 14px;
+  }
+}
+
+.toolbar-search {
+  display: none;
+  flex-shrink: 0;
+}
+@media (min-width: 700px) {
+  .toolbar-search {
+    display: block;
   }
 }
 

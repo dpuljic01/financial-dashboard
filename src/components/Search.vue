@@ -1,5 +1,5 @@
 <template>
-  <div class="simple-search">
+  <div class="simple-search" :class="{ 'simple-search--compact': compact }">
     <div
       class="simple-search-input-row"
       :class="{ 'simple-search-input-row--focused': focused, 'simple-search-input-row--disabled': disabled }"
@@ -52,6 +52,12 @@ export default {
       default: 'Search symbols',
     },
     disabled: {
+      type: Boolean,
+      default: false,
+    },
+    // Smaller footprint for tight spaces like the nav bar - same behavior,
+    // just sized to sit next to nav links instead of anchoring a page.
+    compact: {
       type: Boolean,
       default: false,
     },
@@ -184,6 +190,32 @@ export default {
   to {
     transform: rotate(360deg);
   }
+}
+.simple-search--compact {
+  max-width: 240px;
+}
+.simple-search--compact .simple-search-input-row {
+  height: 34px;
+  padding: 0 6px 0 12px;
+  border-radius: 17px;
+}
+.simple-search--compact .simple-search-icon {
+  font-size: 16px !important;
+  margin-right: 6px;
+}
+.simple-search--compact .simple-search-input {
+  font-size: 13px;
+}
+.simple-search--compact .simple-search-add {
+  width: 24px;
+  height: 24px;
+}
+.simple-search--compact .simple-search-add .md-icon {
+  font-size: 14px !important;
+}
+.simple-search--compact .simple-search-spinner {
+  width: 14px;
+  height: 14px;
 }
 .simple-search-dropdown {
   position: absolute;

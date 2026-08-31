@@ -1,10 +1,6 @@
 <template>
   <div v-if="loaded" class="page-container quote-page">
     <div class="page-section">
-      <Search @search="searchQuote($event)"></Search>
-    </div>
-
-    <div class="page-section">
       <h3 class="md-title">
         {{ quote.toUpperCase() }}<span v-if="companyInfo.shortname"> &middot; {{ companyInfo.shortname }}</span>
       </h3>
@@ -68,7 +64,6 @@
 </template>
 
 <script>
-import Search from './Search.vue';
 import Compare from './Compare.vue';
 import News from './portfolio/News.vue';
 import TabBar from './TabBar.vue';
@@ -79,7 +74,6 @@ const VALID_QUOTE_PATHS = ['profile', 'news'];
 export default {
   name: 'Quote',
   components: {
-    Search,
     News,
     Compare,
     TabBar,
@@ -142,11 +136,6 @@ export default {
       this.path = tabId.replace('tab-', '');
       this.$router.push(`/quote/${this.quote}/${this.path}`);
     },
-    async searchQuote(event) {
-      await this.$router.push(`/quote/${event.symbol}/profile`);
-      this.path = 'profile';
-      this.quote = event.symbol;
-    },
     formatMarketCap(value) {
       const compact = formatCompactNumber(value);
       return compact ? `$${compact}` : null;
@@ -175,6 +164,18 @@ export default {
     },
   },
   watch: {
+    // The nav-bar search (and anything else that can link to /quote/:x
+    // while a Quote page is already mounted) navigates via router push
+    // rather than a fresh mount, so vue-router reuses this component
+    // instance - `quote` in data() only reads $route.params.quote once, at
+    // creation. Without this, the URL changes but the page still shows the
+    // previous symbol until a manual refresh.
+    '$route.params.quote': function onRouteQuoteChange(newQuote) {
+      if (!newQuote || newQuote === this.quote) return;
+      const requestedPath = this.$route.path.split('/').pop();
+      this.path = VALID_QUOTE_PATHS.includes(requestedPath) ? requestedPath : 'profile';
+      this.quote = newQuote;
+    },
     async quote(val) {
       this.loaded = false;
       this.logoFailed = false;
