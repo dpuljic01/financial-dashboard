@@ -1,5 +1,16 @@
 <template>
-  <div ref="container" class="lightweight-chart" :style="{ height: `${height}px` }">
+  <div class="lightweight-chart-wrapper" :style="{ height: `${height}px` }">
+    <!--
+      lightweight-charts takes ownership of this div's children the moment
+      createChart() runs - it injects and manages its own canvas/table DOM
+      here directly, outside Vue's virtual DOM. Rendering anything of our
+      own (like the combo tooltip) as a child of this same node means Vue
+      and the chart library are both trying to own its child list, which is
+      exactly the kind of conflict that silently drops updates. The tooltip
+      lives as a sibling in the wrapper below instead, positioned over the
+      chart with plain absolute positioning.
+    -->
+    <div ref="container" class="lightweight-chart"></div>
     <div v-if="comboTooltip && comboVisible" class="combo-tooltip" :style="{ left: `${comboX}px` }">
       {{ comboText }}
     </div>
@@ -8,6 +19,7 @@
 
 <script>
 import moment from 'moment';
+import { markRaw } from 'vue';
 import {
   createChart, AreaSeries, LineSeries, CrosshairMode,
 } from 'lightweight-charts';
@@ -105,7 +117,16 @@ export default {
   methods: {
     createChartInstance() {
       const { container } = this.$refs;
-      this.chart = createChart(container, {
+      // markRaw is essential here, not an optimization: lightweight-charts
+      // keys its internal seriesData map (read in subscribeCrosshairMove
+      // below) by the exact SeriesApi object identity it handed back from
+      // addSeries(). Storing that object in Vue's reactive data wraps it in
+      // a Proxy, so `this.seriesInstances[i]` is never === the object the
+      // chart itself is using as a map key - every seriesData.get() lookup
+      // silently misses and returns undefined, which is why hover
+      // price/tooltip readouts driven by this map went blank. Same
+      // reasoning applies to the chart instance itself.
+      this.chart = markRaw(createChart(container, {
         width: container.clientWidth,
         height: this.height,
         autoSize: false,
@@ -148,7 +169,7 @@ export default {
         },
         handleScroll: !this.sparkline,
         handleScale: !this.sparkline,
-      });
+      }));
 
       this.chart.subscribeCrosshairMove((param) => {
         // Translate lightweight-charts' own param (keyed by internal series
@@ -199,7 +220,7 @@ export default {
         if (spec.priceScaleId) options.priceScaleId = spec.priceScaleId;
         if (spec.priceFormat) options.priceFormat = spec.priceFormat;
 
-        const instance = this.chart.addSeries(SeriesCtor, options);
+        const instance = markRaw(this.chart.addSeries(SeriesCtor, options));
         instance.setData(spec.data);
         return instance;
       });
@@ -218,9 +239,14 @@ export default {
 </script>
 
 <style scoped>
+.lightweight-chart-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
 .lightweight-chart {
   width: 100%;
-  position: relative;
+  height: 100%;
 }
 .combo-tooltip {
   position: absolute;
