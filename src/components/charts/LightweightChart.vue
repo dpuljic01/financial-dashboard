@@ -1,8 +1,13 @@
 <template>
-  <div ref="container" class="lightweight-chart" :style="{ height: `${height}px` }"></div>
+  <div ref="container" class="lightweight-chart" :style="{ height: `${height}px` }">
+    <div v-if="comboTooltip && comboVisible" class="combo-tooltip" :style="{ left: `${comboX}px` }">
+      {{ comboText }}
+    </div>
+  </div>
 </template>
 
 <script>
+import moment from 'moment';
 import {
   createChart, AreaSeries, LineSeries, CrosshairMode,
 } from 'lightweight-charts';
@@ -45,6 +50,28 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Renders a single floating pill at the bottom of the chart, following
+    // the crosshair, combining price and date/time in one place - instead of
+    // the price sitting on the right axis and the date on the bottom axis,
+    // disconnected from each other.
+    comboTooltip: {
+      type: Boolean,
+      default: false,
+    },
+    // Index into the `series` prop whose value is shown as the price in the
+    // combo tooltip (defaults to the first/primary series).
+    comboSeriesIndex: {
+      type: Number,
+      default: 0,
+    },
+    comboTimeFormat: {
+      type: String,
+      default: 'MMM D, YYYY',
+    },
+    comboFormatter: {
+      type: Function,
+      default: null,
+    },
   },
   emits: ['crosshair-move'],
   data() {
@@ -52,6 +79,9 @@ export default {
       chart: null,
       seriesInstances: [],
       resizeObserver: null,
+      comboVisible: false,
+      comboX: 0,
+      comboText: '',
     };
   },
   mounted() {
@@ -107,8 +137,14 @@ export default {
           // to, which doesn't match the point the vertical line/marker is
           // actually sitting on.
           mode: CrosshairMode.Magnet,
-          horzLine: { visible: !this.sparkline, labelVisible: !this.sparkline && !this.hideCrosshairLabels },
-          vertLine: { visible: !this.sparkline, labelVisible: !this.sparkline && !this.hideCrosshairLabels },
+          horzLine: {
+            visible: !this.sparkline,
+            labelVisible: !this.sparkline && !this.hideCrosshairLabels && !this.comboTooltip,
+          },
+          vertLine: {
+            visible: !this.sparkline,
+            labelVisible: !this.sparkline && !this.hideCrosshairLabels && !this.comboTooltip,
+          },
         },
         handleScroll: !this.sparkline,
         handleScale: !this.sparkline,
@@ -124,6 +160,17 @@ export default {
           return point && point.value !== undefined ? point.value : null;
         });
         this.$emit('crosshair-move', { time: param.time || null, values });
+
+        if (this.comboTooltip) {
+          const price = param.point ? values[this.comboSeriesIndex] : null;
+          this.comboVisible = !!param.point && price !== null && price !== undefined;
+          if (this.comboVisible) {
+            const dateLabel = moment.unix(param.time).utc().format(this.comboTimeFormat);
+            const priceLabel = this.comboFormatter ? this.comboFormatter(price) : `$${price.toFixed(2)}`;
+            this.comboText = `${priceLabel}  ·  ${dateLabel}`;
+            this.comboX = param.point.x;
+          }
+        }
       });
     },
     renderSeries() {
@@ -173,5 +220,21 @@ export default {
 <style scoped>
 .lightweight-chart {
   width: 100%;
+  position: relative;
+}
+.combo-tooltip {
+  position: absolute;
+  bottom: 4px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 </style>

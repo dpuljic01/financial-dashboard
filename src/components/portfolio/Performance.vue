@@ -45,7 +45,13 @@
       </div>
     </div>
 
-    <LightweightChart :series="lwcSeries" :height="320" :hide-price-scale-below="500" />
+    <LightweightChart
+      :series="lwcSeries"
+      :height="320"
+      :hide-price-scale-below="500"
+      combo-tooltip
+      :combo-formatter="formatComboPrice"
+    />
   </div>
 </template>
 
@@ -312,6 +318,9 @@ export default {
     },
     formatNumber(val) {
       return (+val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+    formatComboPrice(val) {
+      return `$${this.formatNumber(val)}`;
     },
   },
   watch: {

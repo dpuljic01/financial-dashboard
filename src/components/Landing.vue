@@ -180,8 +180,13 @@ export default {
 
 /* ---------- hero ---------- */
 .hero {
-  background: radial-gradient(ellipse 900px 500px at 20% 0%, rgba(0, 170, 173, 0.25), transparent 60%),
+  background-color: #051617;
+  background-image:
+    url('../assets/hero-pattern.svg'),
+    radial-gradient(ellipse 900px 500px at 20% 0%, rgba(0, 170, 173, 0.25), transparent 60%),
     linear-gradient(160deg, #051617 0%, #0c2a2c 55%, #114347 100%);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 240px 240px, auto, auto;
   padding: 56px 24px 0;
 }
 .hero-copy {
@@ -226,8 +231,8 @@ export default {
   flex-wrap: wrap;
 }
 .hero-cta-primary {
-  background-color: #2fd8d4 !important;
-  color: #06282a !important;
+  background-color: #e2a54d !important;
+  color: #2b1608 !important;
   font-weight: 700 !important;
 }
 .hero-cta-secondary {

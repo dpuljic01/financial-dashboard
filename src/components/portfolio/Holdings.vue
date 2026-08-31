@@ -71,8 +71,7 @@
         <md-field>
           <label for="shares">Number of shares</label>
           <md-input
-            type="number"
-            step="any"
+            type="text"
             inputmode="decimal"
             v-model="newShares"
             name="shares"
@@ -85,8 +84,7 @@
         <md-field>
           <label for="average">Average price (USD)</label>
           <md-input
-            type="number"
-            step="any"
+            type="text"
             inputmode="decimal"
             v-model="average"
             name="average"
@@ -196,8 +194,8 @@ export default {
           portfolio: this.portfolioId,
           payload: {
             symbol: this.symbol,
-            shares: parseFloat(this.newShares),
-            price: parseFloat(this.average),
+            shares: this.toFloat(this.newShares),
+            price: this.toFloat(this.average),
             purchased_at: this.purchasedOn,
           },
         });
@@ -216,7 +214,13 @@ export default {
       }
     },
     validNumber(value) {
-      return value > 0;
+      return this.toFloat(value) > 0;
+    },
+    // Accepts a comma as decimal separator too - a plain type="number" input
+    // silently rejects "5.12" on a browser/OS set to a comma-decimal locale,
+    // which is what made fractional entry look broken.
+    toFloat(value) {
+      return parseFloat(String(value).replace(',', '.'));
     },
     calculatePortfolioValue(holdings, stockId) {
       let price = 0;
