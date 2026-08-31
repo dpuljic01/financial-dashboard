@@ -2,7 +2,11 @@
   <div class="app-shell">
     <md-toolbar class="md-primary app-toolbar">
       <div class="app-toolbar-inner">
-        <router-link to="/dashboard" class="toolbar-brand">
+        <router-link
+          to="/dashboard"
+          class="toolbar-brand"
+          :class="{ 'toolbar-brand--active': isActive('/dashboard') }"
+        >
           <md-icon>insights</md-icon>
           <span class="toolbar-brand-name">Financial Dashboard</span>
         </router-link>
@@ -37,7 +41,7 @@
           <md-icon>{{ mobileSearchOpen ? 'close' : 'search' }}</md-icon>
         </button>
 
-        <md-menu class="toolbar-user-menu" :md-offset-x="-150" :md-offset-y="8">
+        <md-menu class="toolbar-user-menu" :md-offset-x="0" :md-offset-y="8">
           <md-button class="toolbar-user-trigger" md-menu-trigger>
             <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
             <span v-else class="toolbar-user-avatar">{{ userInitials }}</span>
@@ -81,8 +85,11 @@ export default {
   },
   data() {
     return {
+      // Dashboard isn't listed here - the brand/logo already links there
+      // (a standard "click the logo to go home" pattern), and dropping the
+      // duplicate pill is what actually buys back the room nav needs on
+      // narrow screens instead of clipping.
       navLinks: [
-        { path: '/dashboard', label: 'Dashboard' },
         { path: '/portfolios', label: 'Portfolios' },
         { path: '/compare', label: 'Compare' },
       ],
@@ -196,13 +203,26 @@ export default {
   font-weight: 700;
   font-size: 15px;
   flex-shrink: 0;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
+}
+/* Dashboard has no separate nav pill (see navLinks) - the brand carries its
+   own active state instead, so "where am I" doesn't disappear along with
+   the pill. */
+.toolbar-brand--active {
+  background: rgba(255, 255, 255, 0.18);
 }
 .toolbar-brand:hover,
 .toolbar-brand:focus,
 .toolbar-brand:active,
 .toolbar-brand:visited {
   text-decoration: none !important;
+}
+.toolbar-brand:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 .toolbar-brand :deep(.md-icon) {
   display: inline-flex !important;
@@ -283,6 +303,10 @@ export default {
 .toolbar-search {
   display: none;
   flex-shrink: 0;
+  /* Extra separation from the last nav link - the container's own 12px
+     flex gap read as part of the nav group rather than a distinct search
+     affordance next to it. */
+  margin-left: 28px;
 }
 @media (min-width: 700px) {
   .toolbar-search {

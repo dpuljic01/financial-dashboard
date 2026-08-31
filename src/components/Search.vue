@@ -149,7 +149,13 @@ export default {
   pointer-events: none;
 }
 .simple-search-icon {
-  color: rgba(0, 0, 0, 0.4);
+  /* !important: this component can render inside a themed md-primary
+     toolbar (the nav-bar search), which forces every descendant .md-icon
+     to white for contrast against the teal bar - but this icon always
+     sits inside .simple-search-input-row's own white pill regardless of
+     where the component is embedded, so it must stay dark or it
+     disappears against that white background. */
+  color: rgba(0, 0, 0, 0.4) !important;
   font-size: 20px !important;
   margin-right: 8px;
 }
@@ -196,12 +202,22 @@ export default {
   }
 }
 .simple-search--compact {
-  max-width: 240px;
+  max-width: 260px;
 }
 .simple-search--compact .simple-search-input-row {
   height: 34px;
   padding: 0 6px 0 12px;
   border-radius: 17px;
+  /* The base 15%-black border/shadow is tuned for sitting on a white page
+     - against the teal toolbar it reads muddy instead of crisp. A light
+     border plus a darker, softer shadow makes the pill read as floating
+     above the bar instead of blending into it. */
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 3px rgba(15, 34, 36, 0.2);
+}
+.simple-search--compact .simple-search-input-row--focused {
+  border-color: #fff;
+  box-shadow: 0 2px 10px rgba(15, 34, 36, 0.3);
 }
 .simple-search--compact .simple-search-icon {
   font-size: 16px !important;

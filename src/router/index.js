@@ -21,7 +21,7 @@ const Summary = () => import(/* webpackChunkName: "portfolio" */ '../components/
 const News = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/News.vue');
 const Performance = () => import(/* webpackChunkName: "portfolio" */ '../components/portfolio/Performance.vue');
 const Quote = () => import(/* webpackChunkName: "quote" */ '../components/Quote.vue');
-const Compare = () => import(/* webpackChunkName: "compare" */ '../components/Compare.vue');
+const ComparePage = () => import(/* webpackChunkName: "compare" */ '../components/ComparePage.vue');
 const Profile = () => import(/* webpackChunkName: "profile" */ '../components/Profile.vue');
 const NotFound = () => import(/* webpackChunkName: "misc" */ '../components/NotFound.vue');
 
@@ -109,7 +109,7 @@ const router = createRouter({
     {
       path: '/compare',
       name: 'Compare',
-      component: Compare,
+      component: ComparePage,
     },
     {
       path: '/profile',
