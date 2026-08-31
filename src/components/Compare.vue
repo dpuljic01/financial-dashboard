@@ -83,8 +83,12 @@ export default {
   data() {
     return {
       localSymbols: [...this.symbols],
-      period: '1d',
-      interval: '5m',
+      // 1D defaults to a 5-minute intraday view, which on a quiet trading
+      // day (or outside market hours) can render as a near-flat line that
+      // reads as "no data" rather than "not much happened today". 1M gives
+      // a chart that reliably shows real movement on first load.
+      period: '1mo',
+      interval: '1h',
       series: [],
       lwcSeries: [],
       legendItems: [],
@@ -95,7 +99,7 @@ export default {
       hoveredTime: null,
       trend: 'flat',
       changePercent: null,
-      activeTab: 'tab-1d',
+      activeTab: 'tab-1mo',
       periodTabs: [
         { id: 'tab-1d', label: '1D' },
         { id: 'tab-5d', label: '5D' },
@@ -171,8 +175,9 @@ export default {
           this.interval = '1mo';
           break;
         default:
-          this.period = '1d';
-          this.interval = '5m';
+          this.period = '1mo';
+          this.interval = '1h';
+          this.activeTab = 'tab-1mo';
       }
       this.compare();
     },
