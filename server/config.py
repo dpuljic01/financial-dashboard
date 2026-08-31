@@ -13,6 +13,13 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Neon suspends its compute after a few idle minutes. Without pool_pre_ping,
+    # the pool's first checkout after a suspend hands out a connection that's
+    # already dead, and the query fails with a 500 - refreshing "fixes" it only
+    # because the retry gets a fresh connection. pre_ping tests each connection
+    # with a cheap SELECT 1 before use and transparently reopens it if it's
+    # gone, so this happens invisibly instead of surfacing as an error.
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     # Was "simple" (an in-process dict) - with gunicorn running multiple
     # workers, each worker had its own private cache, so a cached response
     # from worker A was invisible to worker B, and any restart (including
