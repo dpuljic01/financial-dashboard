@@ -1,5 +1,5 @@
 <template>
-  <VDropdown :triggers="['click']" placement="top" :distance="8" theme="dropdown">
+  <VDropdown :triggers="['click']" placement="top" :distance="8" :overflow-padding="12" theme="dropdown">
     <slot></slot>
     <template #popper="{ hide }">
       <div class="confirm-popover">
@@ -71,7 +71,11 @@ export default {
   background: rgba(0, 0, 0, 0.1);
 }
 .popover-btn--danger {
-  background: var(--loss-color);
+  /* Hardcoded, not var(--loss-color): floating-vue teleports this popover
+     to <body>, outside #app where that custom property is defined, so the
+     variable would resolve to nothing and only the hover state (a literal
+     hex value) would ever show a background. */
+  background: #d1435c;
   color: #fff;
 }
 .popover-btn--danger:hover {
