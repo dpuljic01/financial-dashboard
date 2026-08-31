@@ -13,7 +13,16 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    CACHE_TYPE = "simple"  # Flask-Caching related configs
+    # Was "simple" (an in-process dict) - with gunicorn running multiple
+    # workers, each worker had its own private cache, so a cached response
+    # from worker A was invisible to worker B, and any restart (including
+    # the free-tier spin-down/wake-up cycle) wiped it entirely. That badly
+    # undercut the company-info cache meant to protect Alpha Vantage's
+    # 25-requests/day quota. Redis is already provisioned and used
+    # elsewhere (JWT blacklist) - point the cache at it too for one shared,
+    # restart-surviving cache.
+    CACHE_TYPE = "RedisCache"  # Flask-Caching related configs
+    CACHE_REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379")
     CACHE_DEFAULT_TIMEOUT = 300  # 5min
 
     FINANCIAL_DASHBOARD_FE_URL = os.getenv(
