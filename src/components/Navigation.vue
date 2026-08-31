@@ -1,46 +1,65 @@
 <template>
   <div class="app-shell">
     <md-toolbar class="md-primary app-toolbar">
-      <router-link to="/dashboard" class="toolbar-brand">
-        <md-icon>insights</md-icon>
-        <span class="toolbar-brand-name">Financial Dashboard</span>
-      </router-link>
+      <div class="app-toolbar-inner">
+        <router-link to="/dashboard" class="toolbar-brand">
+          <md-icon>insights</md-icon>
+          <span class="toolbar-brand-name">Financial Dashboard</span>
+        </router-link>
 
-      <nav class="toolbar-nav">
-        <router-link
-          v-for="link in navLinks"
-          :key="link.path"
-          :to="link.path"
-          class="toolbar-nav-link"
-          :class="{ 'toolbar-nav-link--active': isActive(link.path) }"
-        >{{ link.label }}</router-link>
-      </nav>
+        <nav class="toolbar-nav">
+          <router-link
+            v-for="link in navLinks"
+            :key="link.path"
+            :to="link.path"
+            class="toolbar-nav-link"
+            :class="{ 'toolbar-nav-link--active': isActive(link.path) }"
+          >{{ link.label }}</router-link>
+        </nav>
 
-      <Search
-        compact
-        class="toolbar-search"
-        placeholder="Search symbols"
-        @search="onGlobalSearch"
-      ></Search>
+        <!-- >=700px: search sits inline in the toolbar, no extra tap needed. -->
+        <Search
+          compact
+          class="toolbar-search"
+          placeholder="Search symbols"
+          @search="onGlobalSearch"
+        ></Search>
 
-      <md-menu :md-offset-x="-150" :md-offset-y="8">
-        <md-button class="toolbar-user-trigger" md-menu-trigger>
-          <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
-          <span v-else class="toolbar-user-avatar">{{ userInitials }}</span>
-          <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
-          <md-icon class="toolbar-user-caret">expand_more</md-icon>
-        </md-button>
-        <md-menu-content class="user-menu-content">
-          <md-menu-item @click="goToProfile">
-            <md-icon>person</md-icon>
-            <span>Profile</span>
-          </md-menu-item>
-          <md-menu-item class="user-menu-item--danger" @click="logout">
-            <md-icon>logout</md-icon>
-            <span>Log out</span>
-          </md-menu-item>
-        </md-menu-content>
-      </md-menu>
+        <!-- <700px: there's no room for an inline box next to nav links and
+             the user menu, so it collapses to an icon that drops down a
+             full-width search panel instead of competing for space. -->
+        <button
+          type="button"
+          class="toolbar-search-toggle"
+          :title="mobileSearchOpen ? 'Close search' : 'Search symbols'"
+          @click="toggleMobileSearch"
+        >
+          <md-icon>{{ mobileSearchOpen ? 'close' : 'search' }}</md-icon>
+        </button>
+
+        <md-menu class="toolbar-user-menu" :md-offset-x="-150" :md-offset-y="8">
+          <md-button class="toolbar-user-trigger" md-menu-trigger>
+            <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
+            <span v-else class="toolbar-user-avatar">{{ userInitials }}</span>
+            <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
+            <md-icon class="toolbar-user-caret">expand_more</md-icon>
+          </md-button>
+          <md-menu-content class="user-menu-content">
+            <md-menu-item @click="goToProfile">
+              <md-icon>person</md-icon>
+              <span>Profile</span>
+            </md-menu-item>
+            <md-menu-item class="user-menu-item--danger" @click="logout">
+              <md-icon>logout</md-icon>
+              <span>Log out</span>
+            </md-menu-item>
+          </md-menu-content>
+        </md-menu>
+      </div>
+
+      <div v-if="mobileSearchOpen" class="toolbar-search-mobile" @keydown.esc="mobileSearchOpen = false">
+        <Search ref="mobileSearch" placeholder="Search symbols" @search="onGlobalSearch"></Search>
+      </div>
     </md-toolbar>
 
     <div class="app-content">
@@ -67,6 +86,7 @@ export default {
         { path: '/portfolios', label: 'Portfolios' },
         { path: '/compare', label: 'Compare' },
       ],
+      mobileSearchOpen: false,
     };
   },
   computed: {
@@ -97,7 +117,16 @@ export default {
       this.$router.push('/profile');
     },
     onGlobalSearch(event) {
+      this.mobileSearchOpen = false;
       this.$router.push(`/quote/${event.symbol}/profile`);
+    },
+    toggleMobileSearch() {
+      this.mobileSearchOpen = !this.mobileSearchOpen;
+      if (this.mobileSearchOpen) {
+        this.$nextTick(() => {
+          if (this.$refs.mobileSearch) this.$refs.mobileSearch.focus();
+        });
+      }
     },
     async logout() {
       this.$store.commit('setLoading', true);
@@ -111,16 +140,36 @@ export default {
 </script>
 
 <style scoped>
+/* Mirrors .app-content's own padding (below) at each breakpoint, applied
+   outside the centered column exactly like .app-content does for
+   .page-container - so the brand/nav align with the page cards underneath
+   instead of the toolbar hugging the viewport edge while the content
+   column floats centered further in. */
 .app-toolbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 10;
+  padding: 0 16px;
+}
+@media (min-width: 600px) {
+  .app-toolbar {
+    padding: 0 24px;
+  }
+}
+
+/* Mirrors .page-container's max-width + centering (see App.vue). */
+.app-toolbar-inner {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 12px;
+  min-height: 56px;
 }
 
 .app-content {
@@ -189,7 +238,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 2px;
-  flex: 1;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -240,6 +288,56 @@ export default {
   .toolbar-search {
     display: block;
   }
+}
+
+.toolbar-search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.toolbar-search-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.toolbar-search-toggle .md-icon {
+  color: #fff !important;
+  font-size: 20px !important;
+  margin: 0 !important;
+}
+@media (min-width: 700px) {
+  .toolbar-search-toggle {
+    display: none;
+  }
+}
+
+.toolbar-search-mobile {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface-color, #fff);
+  border-bottom: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 10px 24px rgba(15, 34, 36, 0.18);
+  padding: 12px 16px;
+  z-index: 9;
+}
+@media (min-width: 700px) {
+  .toolbar-search-mobile {
+    display: none;
+  }
+}
+
+.toolbar-user-menu {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .toolbar-user-trigger {

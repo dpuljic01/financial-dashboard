@@ -1,10 +1,6 @@
 <template>
   <div v-if="loaded" class="page-container">
     <div class="page-section">
-      <Search @search="searchQuote($event)"></Search>
-    </div>
-
-    <div class="page-section">
       <h2 class="md-heading">Market overview</h2>
       <TrendChart />
     </div>
@@ -88,7 +84,6 @@
 <script>
 import Performance from './portfolio/Performance.vue';
 import TrendChart from './charts/TrendChart.vue';
-import Search from './Search.vue';
 import Allocation from './portfolio/Allocation.vue';
 import TabBar from './TabBar.vue';
 
@@ -98,7 +93,6 @@ export default {
     Allocation,
     Performance,
     TrendChart,
-    Search,
     TabBar,
   },
   computed: {
@@ -158,9 +152,6 @@ export default {
       } finally {
         this.$store.commit('setLoading', false);
       }
-    },
-    searchQuote(event) {
-      this.$router.push(`/quote/${event.symbol}/profile`);
     },
   },
 };

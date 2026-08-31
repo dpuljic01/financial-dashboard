@@ -6,6 +6,7 @@
     >
       <i class="md-icon md-icon-font simple-search-icon">search</i>
       <input
+        ref="input"
         type="text"
         class="simple-search-input"
         :placeholder="placeholder"
@@ -71,6 +72,9 @@ export default {
     debounceTimer: null,
   }),
   methods: {
+    focus() {
+      if (this.$refs.input) this.$refs.input.focus();
+    },
     onFocus() {
       this.focused = true;
       this.showDropdown = true;
