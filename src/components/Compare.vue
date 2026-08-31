@@ -23,6 +23,7 @@
         >{{ formattedChange }}</span>
       </div>
       <span v-if="hoveredDateLabel" class="compare-hovered-date">{{ hoveredDateLabel }}</span>
+      <span v-else-if="loadingEarlier" class="compare-hovered-date">Loading earlier history…</span>
     </div>
 
     <div v-if="multiple && loaded" class="compare-legend">
@@ -44,10 +45,13 @@
     <div class="chart">
       <LightweightChart
         v-if="loaded"
+        ref="chart"
         :series="lwcSeries"
         :height="320"
         :hide-crosshair-labels="!multiple"
+        :load-more-on-pan="!multiple && period !== 'max'"
         @crosshair-move="onCrosshairMove"
+        @load-earlier="onLoadEarlier"
       />
       <FinancialLoader v-else style="margin-top: 50px;" />
     </div>
@@ -62,6 +66,16 @@ import FinancialLoader from './FinancialLoader.vue';
 import { setQuoteSeries, percentChange } from '../utils';
 
 const PALETTE = ['#116468', '#0f9d70', '#d1435c', '#00aaad', '#8c6dfd', '#e8873a', '#3a86ff'];
+
+// How far back one "load earlier" fetch reaches, matched to the active
+// period tab - panning on a 1D chart pages in another day at a time,
+// panning on a 1Y chart pages in another year, and so on.
+const PERIOD_SPAN_DAYS = {
+  '1d': 1, '5d': 5, '1mo': 31, '6mo': 183, '1y': 366, '5y': 1827,
+};
+// Yahoo Finance doesn't have data before a company existed - stop paging
+// back once a fetch comes back empty, or once this floor is hit either way.
+const EARLIEST_FETCHABLE = '1970-01-01';
 
 export default {
   name: 'Compare',
@@ -97,6 +111,8 @@ export default {
       periodOpenPrice: null,
       hoveredPrice: null,
       hoveredTime: null,
+      earliestLoadedDate: null,
+      loadingEarlier: false,
       trend: 'flat',
       changePercent: null,
       activeTab: 'tab-1mo',
@@ -204,12 +220,14 @@ export default {
         this.periodOpenPrice = null;
         this.changePercent = null;
         this.trend = 'flat';
+        this.earliestLoadedDate = null;
         return;
       }
-      const [, openPrice] = serie.data[0];
+      const [earliestDate, openPrice] = serie.data[0];
       const [, latestPrice] = serie.data[serie.data.length - 1];
       this.latestPrice = latestPrice;
       this.periodOpenPrice = openPrice;
+      this.earliestLoadedDate = earliestDate;
       this.changePercent = percentChange(openPrice, latestPrice);
       if (this.changePercent > 0) {
         this.trend = 'up';
@@ -278,6 +296,58 @@ export default {
       }
       this.hoveredPrice = time && values[0] != null ? values[0] : null;
       this.hoveredTime = time || null;
+    },
+    // Fires when LightweightChart reports the user has panned within a
+    // few bars of the earliest loaded point. Fetches one more chunk
+    // further back (sized to the active period tab) and hands it to the
+    // chart directly via prependSeriesData(), rather than going through
+    // the `series` prop - that path always does a full rebuild + re-fit,
+    // which would yank the view back to "fit everything" on every page of
+    // history instead of leaving the user exactly where they were panning.
+    async onLoadEarlier() {
+      if (this.loadingEarlier || this.multiple || !this.earliestLoadedDate) return;
+      if (this.earliestLoadedDate <= EARLIEST_FETCHABLE) return;
+
+      this.loadingEarlier = true;
+      try {
+        const spanDays = PERIOD_SPAN_DAYS[this.period] || 31;
+        const end = moment.utc(this.earliestLoadedDate);
+        const start = moment.max(end.clone().subtract(spanDays, 'days'), moment.utc(EARLIEST_FETCHABLE));
+
+        const resp = await this.$store.dispatch('getStockHistoryData', {
+          symbols: this.localSymbols.join(),
+          interval: this.interval,
+          start: start.format('YYYY-MM-DD'),
+          end: end.format('YYYY-MM-DD'),
+          include_info: false,
+        });
+        const [earlierSerie] = setQuoteSeries(resp.data);
+        const [serie] = this.series;
+
+        if (!earlierSerie || earlierSerie.data.length === 0 || !serie) {
+          // Nothing further back exists (e.g. reached the ticker's
+          // earliest trading day) - stop trying past this point.
+          this.earliestLoadedDate = null;
+          return;
+        }
+
+        const existingDates = new Set(serie.data.map(([date]) => date));
+        const newPoints = earlierSerie.data.filter(([date]) => !existingDates.has(date));
+        if (newPoints.length === 0) {
+          this.earliestLoadedDate = null;
+          return;
+        }
+
+        serie.data = [...newPoints, ...serie.data];
+        const [[earliestDate]] = serie.data;
+        this.earliestLoadedDate = earliestDate;
+
+        if (this.$refs.chart) {
+          this.$refs.chart.prependSeriesData([this.toLwcData(serie.data)]);
+        }
+      } finally {
+        this.loadingEarlier = false;
+      }
     },
     // apexcharts-era data shape ([isoDateString, value] pairs) into
     // lightweight-charts' {time (unix seconds), value} points.

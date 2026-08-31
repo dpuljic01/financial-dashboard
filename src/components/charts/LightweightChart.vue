@@ -84,8 +84,16 @@ export default {
       type: Function,
       default: null,
     },
+    // Emits 'load-earlier' when the user pans/zooms within a few bars of
+    // the start of the currently-loaded data, so a caller can fetch and
+    // prepend an earlier chunk (see prependSeriesData()) instead of the
+    // pan just running out into empty space.
+    loadMoreOnPan: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['crosshair-move'],
+  emits: ['crosshair-move', 'load-earlier'],
   data() {
     return {
       chart: null,
@@ -97,6 +105,20 @@ export default {
     };
   },
   mounted() {
+    // Plain instance properties, not reactive data - read-and-reset purely
+    // inside the crosshair/pan callbacks below, no need to trigger a
+    // re-render themselves.
+    this.loadEarlierRequested = false;
+    // fitContent() and resize() (called on every render/layout pass,
+    // including the very first) each fire their own visible-range-change
+    // events - sometimes more than one apiece (an intermediate range, then
+    // the settled one) - and "fit everything" by definition starts right at
+    // the first bar, which alone would satisfy the "near the edge" check
+    // below. A timestamp window rather than a one-shot flag survives that
+    // burst regardless of how many events one internal call happens to
+    // produce, while still passing through genuine pans/zooms, which occur
+    // well outside this window.
+    this.suppressRangeEventsUntil = 0;
     this.createChartInstance();
     this.renderSeries();
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
@@ -193,6 +215,22 @@ export default {
           }
         }
       });
+
+      if (this.loadMoreOnPan) {
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+          if (Date.now() < this.suppressRangeEventsUntil) return;
+          if (!range || this.loadEarlierRequested || this.seriesInstances.length === 0) return;
+          const barsInfo = this.seriesInstances[0].barsInLogicalRange(range);
+          // barsBefore counts down to 0 as the visible range approaches the
+          // first loaded bar, then goes positive once you've panned past it
+          // into empty space - firing a bit before that (5 bars of slack)
+          // means new data lands before the user actually hits the edge.
+          if (barsInfo && barsInfo.barsBefore !== null && barsInfo.barsBefore <= 5) {
+            this.loadEarlierRequested = true;
+            this.$emit('load-earlier');
+          }
+        });
+      }
     },
     renderSeries() {
       if (!this.chart) return;
@@ -224,11 +262,32 @@ export default {
         instance.setData(spec.data);
         return instance;
       });
+      this.suppressRangeEventsUntil = Date.now() + 200;
       this.chart.timeScale().fitContent();
+    },
+    // Updates existing series in place with a fuller dataset (e.g. more
+    // history prepended after a load-earlier fetch) without touching the
+    // `series` prop. Deliberately bypasses renderSeries()'s remove/recreate
+    // + fitContent() - the whole point of loading more while panning is
+    // that new data quietly appears at the edge without the view jumping
+    // or resetting back to a fit-everything zoom level.
+    prependSeriesData(perSeriesData) {
+      if (!this.chart) return;
+      perSeriesData.forEach((data, index) => {
+        const instance = this.seriesInstances[index];
+        if (instance && data) instance.setData(data);
+      });
+      this.loadEarlierRequested = false;
     },
     handleResize() {
       if (!this.chart || !this.$refs.container) return;
       const width = this.$refs.container.clientWidth;
+      // chart.resize() also fires a visible-range-change event (more bars
+      // fit / don't fit at the new width) - suppress it the same way as
+      // fitContent(), including the ResizeObserver's own initial callback
+      // (which fires once as soon as observe() is called, before any real
+      // resize has happened).
+      this.suppressRangeEventsUntil = Date.now() + 200;
       this.chart.resize(width, this.height);
       if (this.hidePriceScaleBelow > 0) {
         this.chart.applyOptions({ rightPriceScale: { visible: width >= this.hidePriceScaleBelow } });
