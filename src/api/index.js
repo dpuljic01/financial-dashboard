@@ -85,6 +85,12 @@ export function createNewPortfolio(portfolio, accessToken) {
   });
 }
 
+export function updatePortfolio(data, accessToken) {
+  return axios.put(`${API_URL}/portfolios/${data.portfolioId}`, data.payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function getStockHistoryData(params, accessToken) {
   return axios.get(`${API_URL}/stocks/yfinance`, {
     params,

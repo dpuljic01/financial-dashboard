@@ -29,9 +29,17 @@
             <span class="stock-caret">{{ expandedStockId === stock.id ? '▾' : '▸' }}</span>
             <strong>{{ stock.ticker }}</strong>
           </td>
-          <td class="num fin-figure">{{ roundFloat(getNumberOfShares(stock.id)) }}</td>
-          <td class="num fin-figure">
-            {{ formatCurrency(calculatePortfolioValue(currentPortfolio.holdings, stock.id)) }}
+          <template v-if="getNumberOfShares(stock.id) > 0">
+            <td class="num fin-figure">{{ roundFloat(getNumberOfShares(stock.id)) }}</td>
+            <td class="num fin-figure">
+              {{ formatCurrency(calculatePortfolioValue(currentPortfolio.holdings, stock.id)) }}
+            </td>
+          </template>
+          <td v-else colspan="2" class="empty-holding-cell">
+            <span class="empty-holding-msg">No shares logged yet</span>
+            <button type="button" class="empty-holding-cta" @click.stop="add(stock.ticker)">
+              Log first buy →
+            </button>
           </td>
         </tr>
         <tr v-if="expandedStockId === stock.id" class="lots-row">
@@ -312,6 +320,7 @@ export default {
   padding-right: 0;
 }
 .row-action {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,6 +334,32 @@ export default {
   cursor: pointer;
   flex-shrink: 0;
 }
+/* Styled label replacing the browser's native (slow, unstyled) title
+   tooltip - reads the same title attribute via attr(), so no markup or
+   script changes needed to keep it in sync with the button's purpose. */
+.row-action::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 34, 36, 0.92);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 5px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 5;
+}
+.row-action:hover::after,
+.row-action:focus-visible::after {
+  opacity: 1;
+}
 .row-action--add:hover {
   background: var(--gain-tint);
   color: var(--gain-color);
@@ -336,6 +371,31 @@ export default {
 .row-action .md-icon {
   margin: 0;
   font-size: 18px !important;
+}
+.empty-holding-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.empty-holding-msg {
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.45);
+}
+.empty-holding-cta {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gain-color, #116468);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.empty-holding-cta:hover {
+  text-decoration: underline;
 }
 .lots-row td {
   padding: 0 12px 10px 0;

@@ -36,6 +36,8 @@ class Portfolio(db.Model, TimestampMixin):
         return {
             "id": self.id,
             "name": self.name,
+            "info": self.info,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "holdings": [holding.json for holding in self.holdings],
             "stocks": [stock.json_short for stock in self.stocks],
         }
@@ -45,6 +47,8 @@ class Portfolio(db.Model, TimestampMixin):
         return {
             "id": self.id,
             "name": self.name,
+            "info": self.info,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "holdings": [holding.json for holding in self.holdings],
             "stocks": [stock.json for stock in self.stocks],
         }

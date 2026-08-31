@@ -81,11 +81,16 @@ def update_portfolio(portfolio_id, **payload):
         id=portfolio_id, user_id=current_identity
     ).first_or_404()
 
-    # portfolio = Portfolio.query.filter_by(name=payload["name"], user_id=current_identity).first()
-    # if portfolio:
-    #     return jsonify({"message": "Portfolio with that name already exists."}), 409
+    if "name" in payload:
+        existing = Portfolio.query.filter_by(
+            name=payload["name"], user_id=current_identity
+        ).first()
+        if existing and existing.id != portfolio_db.id:
+            return jsonify({"message": "Portfolio with that name already exists."}), 409
+        portfolio_db.name = payload["name"]
+    if "info" in payload:
+        portfolio_db.info = payload["info"]
 
-    portfolio_db.update(payload)
     db.session.commit()
     return jsonify(portfolio_db.json_short), 201
 

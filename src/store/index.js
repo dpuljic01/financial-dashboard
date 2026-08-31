@@ -94,6 +94,9 @@ const actions = {
       return response.data;
     });
   },
+  updatePortfolio(context, data) {
+    return api.updatePortfolio(data, context.state.jwt.access_token).then((response) => response.data);
+  },
   createNewHolding(context, data) {
     return api.createNewHolding(data, context.state.jwt.access_token).then(() => {
       context.dispatch('successMessage');
