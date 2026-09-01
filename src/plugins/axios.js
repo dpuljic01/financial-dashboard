@@ -1,5 +1,6 @@
 import axios from 'axios';
 import store from '../store';
+import router from '../router';
 import { showToast } from './toasted';
 
 axios.defaults.withCredentials = true;
@@ -26,6 +27,15 @@ axios.interceptors.response.use(
       showToast(message, { type: 'error', duration: 7000 });
     }
     store.commit('setLoading', false);
+    // An expired/invalid JWT surfaces as a 401 on whatever request happened
+    // to fire next - which, unlike a login-page rejection, doesn't come
+    // from a navigation, so the router guard in router/index.js never runs
+    // to catch it. Force it here instead of leaving the user stuck on a
+    // page that looks logged in but 401s on every action.
+    if (status === 401 && router.currentRoute.value.name !== 'Login') {
+      store.commit('resetState');
+      router.push('/login');
+    }
     return Promise.reject(error);
   },
 );
