@@ -103,7 +103,7 @@
 
         <md-field>
           <label for="purchased">Purchased on</label>
-          <md-datepicker name="purchased" v-model="purchasedOn" />
+          <md-datepicker name="purchased" v-model="purchasedOn" :md-disabled-dates="isFutureDate" />
         </md-field>
         <div class="modal-actions">
           <md-button class="md-raised" :disabled="submitting" @click="cancel">Cancel</md-button>
@@ -223,6 +223,15 @@ export default {
     },
     validNumber(value) {
       return this.toFloat(value) > 0;
+    },
+    // A future purchase date makes the portfolio's earliest-holding date
+    // land after "today" - the Performance tab requests price history for
+    // [earliest purchase, today], and start > end returns zero rows for
+    // every ticker, blanking the whole chart instead of just this lot.
+    isFutureDate(date) {
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      return date > endOfToday;
     },
     // Accepts a comma as decimal separator too - a plain type="number" input
     // silently rejects "5.12" on a browser/OS set to a comma-decimal locale,

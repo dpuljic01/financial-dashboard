@@ -144,8 +144,15 @@ export default {
       }
 
       const tickers = [...new Set(normalizedHoldings.map((h) => h.ticker))];
-      const startDate = normalizedHoldings[0].purchasedAt;
       const endDate = moment().format('YYYY-MM-DD');
+      // A holding purchased "in the future" (bad manual entry, clock skew)
+      // would otherwise make this the earliest date and send start >= end -
+      // yfinance's end is exclusive, so even start === end comes back with
+      // zero rows for every ticker, blanking the whole chart instead of
+      // just misrepresenting that one lot.
+      const startDate = normalizedHoldings[0].purchasedAt < endDate
+        ? normalizedHoldings[0].purchasedAt
+        : moment().subtract(1, 'day').format('YYYY-MM-DD');
 
       const resp = await this.$store.dispatch('getStockHistoryData', {
         symbols: [...tickers, BENCHMARK_TICKER].join(),

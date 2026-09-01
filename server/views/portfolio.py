@@ -125,7 +125,13 @@ def delete_portfolio_stock(portfolio_id, stock_id):
     if not stock_db:
         abort(404)
 
-    db.session.delete(stock_db)
+    # Unlink this portfolio from the stock only - deleting stock_db itself
+    # would delete the row from the global, ticker-unique `stocks` table,
+    # which every portfolio holding that ticker shares. Since Holding.stock_id
+    # has ondelete="CASCADE" against that table, removing a symbol from one
+    # portfolio would silently cascade-delete every holding of that ticker
+    # in every other portfolio that also tracks it.
+    portfolio_db.stocks.remove(stock_db)
     db.session.commit()
     return jsonify(), 204
 
