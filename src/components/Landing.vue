@@ -43,7 +43,7 @@
     <section class="features">
       <div class="feature">
         <div class="feature-icon"><md-icon>show_chart</md-icon></div>
-        <h3>Track performance, not guesses</h3>
+        <h3>Track performance</h3>
         <p>
           Every holding's real gain or loss over time, weighed against what you actually paid —
           not just today's price.
@@ -51,7 +51,7 @@
       </div>
       <div class="feature">
         <div class="feature-icon"><md-icon>compare_arrows</md-icon></div>
-        <h3>Compare any two tickers</h3>
+        <h3>Compare multiple tickers</h3>
         <p>
           Line up any symbols against each other across any timeframe before you decide
           where the next dollar goes.
@@ -79,7 +79,13 @@
     </section>
 
     <footer class="landing-footer">
-      <span>Financial Dashboard</span>
+      <div class="footer-content">
+        <span>Financial Dashboard</span>
+        <span class="divider"> • </span>
+        <a href="https://www.puljic.ch" target="_blank" rel="noopener noreferrer">www.puljic.ch</a>
+        <span class="divider"> • </span>
+        <span>&copy; 2026 Puljic</span>
+      </div>
     </footer>
   </div>
 </template>
