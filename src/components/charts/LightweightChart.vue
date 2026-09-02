@@ -92,8 +92,16 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Emits 'visible-range-change' ({ from, to }, unix seconds) whenever
+    // the visible window shifts from panning or zooming - lets a caller
+    // (e.g. keeping a 1D/1M/1Y timeframe picker in sync) react to where the
+    // user has actually scrolled to, independent of loadMoreOnPan.
+    emitVisibleRange: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['crosshair-move', 'load-earlier'],
+  emits: ['crosshair-move', 'load-earlier', 'visible-range-change'],
   data() {
     return {
       chart: null,
@@ -216,18 +224,30 @@ export default {
         }
       });
 
-      if (this.loadMoreOnPan) {
+      if (this.loadMoreOnPan || this.emitVisibleRange) {
         this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
           if (Date.now() < this.suppressRangeEventsUntil) return;
-          if (!range || this.loadEarlierRequested || this.seriesInstances.length === 0) return;
-          const barsInfo = this.seriesInstances[0].barsInLogicalRange(range);
-          // barsBefore counts down to 0 as the visible range approaches the
-          // first loaded bar, then goes positive once you've panned past it
-          // into empty space - firing a bit before that (5 bars of slack)
-          // means new data lands before the user actually hits the edge.
-          if (barsInfo && barsInfo.barsBefore !== null && barsInfo.barsBefore <= 5) {
-            this.loadEarlierRequested = true;
-            this.$emit('load-earlier');
+          if (!range) return;
+
+          if (this.loadMoreOnPan && !this.loadEarlierRequested && this.seriesInstances.length > 0) {
+            // range.from is the logical index of the visible window's left
+            // edge - 0 is the first loaded bar, and it goes negative once
+            // panning moves past all loaded data into empty space. Reading
+            // it directly (rather than via barsInLogicalRange, which
+            // returns null once the visible range no longer overlaps any
+            // bars at all) means a fast/continuous pan that outruns one
+            // fetch still keeps requesting the next chunk instead of
+            // stalling on a permanently blank view once nothing is left to
+            // measure from.
+            if (range.from <= 5) {
+              this.loadEarlierRequested = true;
+              this.$emit('load-earlier');
+            }
+          }
+
+          if (this.emitVisibleRange) {
+            const visibleRange = this.chart.timeScale().getVisibleRange();
+            if (visibleRange) this.$emit('visible-range-change', visibleRange);
           }
         });
       }

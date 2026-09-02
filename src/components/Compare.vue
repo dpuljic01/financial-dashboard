@@ -50,8 +50,10 @@
         :height="320"
         :hide-crosshair-labels="!multiple"
         :load-more-on-pan="!multiple && period !== 'max'"
+        :emit-visible-range="!multiple && period !== 'max'"
         @crosshair-move="onCrosshairMove"
         @load-earlier="onLoadEarlier"
+        @visible-range-change="onVisibleRangeChange"
       />
       <FinancialLoader v-else style="margin-top: 50px;" />
     </div>
@@ -196,6 +198,35 @@ export default {
           this.activeTab = 'tab-1mo';
       }
       this.compare();
+    },
+    // Keeps the 1D/5D/1M/... pill in sync with whatever span the user has
+    // actually scrolled/zoomed to, without re-fetching - it only updates
+    // which pill is highlighted (activeTab), never `period`/`interval`
+    // themselves, since those drive the real fetch and changing them here
+    // would yank the view back to a fresh "fit everything" load on every
+    // pan, exactly what loadMoreOnPan/prependSeriesData was built to avoid.
+    onVisibleRangeChange({ from, to }) {
+      if (this.multiple || !from || !to || to <= from) return;
+      const spanDays = (to - from) / 86400;
+      const tabId = `tab-${this.nearestPeriodForSpan(spanDays)}`;
+      if (tabId !== this.activeTab) this.activeTab = tabId;
+    },
+    // Nearest by ratio (log distance), not raw day difference - the
+    // presets span three orders of magnitude (1 day to 5 years), so
+    // absolute distance would make short spans meaningless (a 3-day view
+    // is only "closer" in raw days to 1mo than to 5d because 1mo happens
+    // to be the bigger number).
+    nearestPeriodForSpan(spanDays) {
+      let closestPeriod = '1mo';
+      let closestDistance = Infinity;
+      Object.entries(PERIOD_SPAN_DAYS).forEach(([candidatePeriod, days]) => {
+        const distance = Math.abs(Math.log(spanDays) - Math.log(days));
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestPeriod = candidatePeriod;
+        }
+      });
+      return closestPeriod;
     },
     toUppercase(str) {
       const newStr = str.toUpperCase();

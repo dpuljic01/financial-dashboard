@@ -103,7 +103,20 @@
 
         <md-field>
           <label for="purchased">Purchased on</label>
-          <md-datepicker name="purchased" v-model="purchasedOn" :md-disabled-dates="isFutureDate" />
+          <!-- md-open-on-focus disabled, and the calendar-icon trigger below
+               hidden: vue-material's calendar dialog only closes on its own
+               "Ok"/"Cancel" buttons, not on picking a day - floating right
+               over this form's Save button, a day click there just leaves
+               it open and swallowing every click until the icon-triggered
+               copy is found and dismissed, which reads as the whole page
+               having frozen. The plain native date input (still rendered
+               underneath) has no such trap. -->
+          <md-datepicker
+            name="purchased"
+            v-model="purchasedOn"
+            :md-disabled-dates="isFutureDate"
+            :md-open-on-focus="false"
+          />
         </md-field>
         <div class="modal-actions">
           <md-button class="md-raised" :disabled="submitting" @click="cancel">Cancel</md-button>
@@ -463,5 +476,11 @@ export default {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+// Only remaining trigger for vue-material's calendar dialog (md-open-on-focus
+// is off above) - the plain date input underneath already has the browser's
+// own calendar-picker-indicator, so hiding this loses no functionality.
+:deep(.md-date-icon) {
+  display: none;
 }
 </style>
