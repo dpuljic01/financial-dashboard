@@ -45,7 +45,6 @@
           <md-button class="toolbar-user-trigger" md-menu-trigger>
             <img v-if="userAvatar" :src="userAvatar" alt="" class="toolbar-user-avatar toolbar-user-avatar-img" />
             <span v-else class="toolbar-user-avatar">{{ userInitials }}</span>
-            <span v-if="currentUserName" class="toolbar-user-name">{{ currentUserName }}</span>
             <md-icon class="toolbar-user-caret">expand_more</md-icon>
           </md-button>
           <md-menu-content class="user-menu-content">
@@ -100,11 +99,6 @@ export default {
     userAvatar() {
       const user = this.$store.getters.getCurrentUser;
       return user ? user.avatar : null;
-    },
-    currentUserName() {
-      const user = this.$store.getters.getCurrentUser;
-      if (!user) return '';
-      return user.first_name || user.email || '';
     },
     userInitials() {
       const user = this.$store.getters.getCurrentUser;
@@ -381,7 +375,12 @@ export default {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 .toolbar-user-avatar {
-  display: flex;
+  /* inline-flex, not flex: vue-material renders slot content inside its
+     own plain-block .md-button-content span, so .toolbar-user-trigger's
+     flex row above never actually reaches these children - without this
+     being inline, it's a block box that pushes the caret onto its own
+     line below it instead of sitting next to it. */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -397,16 +396,7 @@ export default {
 .toolbar-user-avatar-img {
   object-fit: cover;
 }
-.toolbar-user-name {
-  display: none;
-  color: #fff !important;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: none;
-  white-space: nowrap;
-}
 .toolbar-user-caret {
-  display: none;
   margin: 0 !important;
   color: rgba(255, 255, 255, 0.7) !important;
   font-size: 18px !important;
@@ -414,12 +404,6 @@ export default {
 @media (min-width: 700px) {
   .toolbar-user-trigger {
     padding: 6px 10px 6px 6px !important;
-  }
-  .toolbar-user-name {
-    display: inline;
-  }
-  .toolbar-user-caret {
-    display: inline-flex;
   }
 }
 </style>
