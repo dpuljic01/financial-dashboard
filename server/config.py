@@ -72,7 +72,6 @@ class Config:
             )
         )
 
-    MONGO_DB_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
     PROXIES = os.getenv("PROXIES", None)
 
 

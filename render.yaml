@@ -26,8 +26,6 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
-      - key: MONGO_DB_CONNECTION_STRING
-        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM

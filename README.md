@@ -13,7 +13,7 @@ A full-stack fintech dashboard built as part of a Master's thesis, with a Flask/
 - **Frontend:** Vue 3, Vuex, Vue Router
 - **Charts:** TradingView [lightweight-charts](https://github.com/tradingview/lightweight-charts) (price/performance/compare charts), Chart.js (allocation donut)
 - **Market data:** yfinance (primary), [Alpha Vantage](https://www.alphavantage.co/) (fallback for company profile/quote data when yfinance is rate-limited), IEX Cloud
-- **Database:** PostgreSQL (hosted on [Neon](https://neon.tech)), Redis (response caching), MongoDB (ticker symbol search index)
+- **Database:** PostgreSQL (hosted on [Neon](https://neon.tech)), Redis (response caching)
 - **Hosting:** Render — one web service builds and serves both the API and the client
 
 ## Server

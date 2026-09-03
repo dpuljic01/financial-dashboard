@@ -70,44 +70,6 @@ def create_user(email, first_name, last_name, password, role):
 #     print("Done!")
 
 
-@cli.command("populate_tickers", short_help="Populate MongoDB collection with symbols.")
-@click.option("--force", is_flag=True, help="Force repopulation.")
-@with_appcontext
-def populate_tickers(force=False):
-    """
-    Populate mongo db collection with all the symbols
-    This will be done only once (or more if needed)
-    I'm doing this due to limited API calls on free IEX account,
-    and also to save some space in my Heroku postgresql DB, since they have limit of 10k rows for the DB :(
-    """
-    import pymongo
-    from server.mongo_db import mongo_db
-    from server.apis.iex import IEXFinance
-
-    tickers_collection = pymongo.collection.Collection(mongo_db, "tickers")
-    if not force:
-        indexes = tickers_collection.list_indexes()
-        if "SymbolIndex" in indexes:
-            print("Done! Index already present.")
-            return
-
-    tickers_collection.drop()  # Drop old data to repopulate it with fresh data
-
-    tickers = IEXFinance.list_symbols()
-    tickers_collection.insert_many([ticker for ticker in tickers])
-
-    tickers_collection.create_index(
-        [
-            ("symbol", pymongo.TEXT),
-            ("name", pymongo.TEXT),
-        ],
-        weights={"symbol": 20, "name": 1},
-        name="SymbolIndex",
-    )
-
-    print("Done!")
-
-
 @cli.command("update_stocks", short_help="Update stock information.")
 @with_appcontext
 def update_stocks():
