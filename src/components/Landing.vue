@@ -14,19 +14,20 @@
           and see market moves the moment they happen — all in one place, built for people who
           check their portfolio more than once a day.
         </p>
-        <div class="hero-actions">
-          <router-link to="/register">
-            <md-button class="md-raised hero-cta-primary">Create free account</md-button>
-          </router-link>
-          <router-link to="/login">
-            <md-button class="md-raised hero-cta-secondary">Log in</md-button>
-          </router-link>
+        <div class="hero-actions-row">
+          <div class="hero-actions">
+            <router-link to="/register">
+              <md-button class="md-raised hero-cta-primary">Create free account</md-button>
+            </router-link>
+            <router-link to="/login">
+              <md-button class="md-raised hero-cta-secondary">Log in</md-button>
+            </router-link>
+          </div>
+          <a class="hero-badge" :href="productHuntUrl" target="_blank" rel="noopener noreferrer">
+            <img :src="productHuntBadge" :alt="productHuntAlt" width="250" height="54" loading="lazy" />
+          </a>
         </div>
       </div>
-
-      <a class="hero-badge" :href="productHuntUrl" target="_blank" rel="noopener noreferrer">
-        <img :src="productHuntBadge" :alt="productHuntAlt" width="250" height="54" loading="lazy" />
-      </a>
 
       <div class="ticker-tape" v-if="tickers.length > 0" aria-hidden="true">
         <div class="ticker-tape-track">
@@ -249,27 +250,40 @@ export default {
   color: rgba(234, 243, 241, 0.72);
   margin: 0 0 36px;
 }
+.hero-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
 .hero-actions {
   display: flex;
+  align-items: center;
   gap: 14px;
   flex-wrap: wrap;
 }
 .hero-badge {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  width: 190px;
+  display: block;
+  flex-shrink: 0;
+  height: 36px;
 }
 .hero-badge img {
   display: block;
-  width: 100%;
-  height: auto;
+  width: auto;
+  height: 100%;
 }
 @media (max-width: 720px) {
-  .hero-badge {
-    position: static;
-    margin: 20px 0 0;
+  .hero-actions-row {
+    justify-content: flex-start;
   }
+  .hero-badge {
+    height: 26px;
+  }
+}
+.hero-cta-primary,
+.hero-cta-secondary {
+  margin: 0 !important;
 }
 .hero-cta-primary {
   background-color: #e2a54d !important;
