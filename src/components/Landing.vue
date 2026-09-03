@@ -24,6 +24,10 @@
         </div>
       </div>
 
+      <a class="hero-badge" :href="productHuntUrl" target="_blank" rel="noopener noreferrer">
+        <img :src="productHuntBadge" :alt="productHuntAlt" width="250" height="54" loading="lazy" />
+      </a>
+
       <div class="ticker-tape" v-if="tickers.length > 0" aria-hidden="true">
         <div class="ticker-tape-track">
           <div
@@ -102,11 +106,24 @@ const SNAPSHOT_LABELS = {
   'EURUSD=X': 'EUR/USD',
 };
 
+const PRODUCT_HUNT_POST = 'real-time-financial-dashboard';
+const PRODUCT_HUNT_POST_ID = '1240374';
+
 export default {
   name: 'Landing',
   data() {
     return {
       tickers: [],
+      productHuntUrl:
+        `https://www.producthunt.com/products/${PRODUCT_HUNT_POST}?embed=true`
+        + '&utm_source=badge-featured&utm_medium=badge'
+        + `&utm_campaign=badge-${PRODUCT_HUNT_POST}`,
+      productHuntBadge:
+        `https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=${PRODUCT_HUNT_POST_ID}`
+        + '&theme=dark',
+      productHuntAlt:
+        'Real-time Financial Dashboard - Track markets and spending, '
+        + 'rebuilt from my 2020 MSc thesis | Product Hunt',
     };
   },
   computed: {
@@ -186,6 +203,7 @@ export default {
 
 /* ---------- hero ---------- */
 .hero {
+  position: relative;
   background-color: #051617;
   background-image:
     url('../assets/hero-pattern.svg'),
@@ -235,6 +253,23 @@ export default {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+}
+.hero-badge {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  width: 190px;
+}
+.hero-badge img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 720px) {
+  .hero-badge {
+    position: static;
+    margin: 20px 0 0;
+  }
 }
 .hero-cta-primary {
   background-color: #e2a54d !important;
