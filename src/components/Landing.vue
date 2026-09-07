@@ -405,6 +405,7 @@ export default {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 600;
   font-size: 32px;
+  line-height: 1.3;
   margin: 0 0 12px;
 }
 .final-cta p {
