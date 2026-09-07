@@ -125,6 +125,9 @@ const actions = {
   getLatestStockPrices(context, params) {
     return api.getLatestStockPrices(params, context.state.jwt.access_token);
   },
+  getQuote(context, symbol) {
+    return api.getQuote(symbol, context.state.jwt.access_token).then((response) => response.data);
+  },
   getNews(context, params) {
     return api.getNews(params, context.state.jwt.access_token);
   },

@@ -51,7 +51,7 @@
 
         <template v-else>
           <div v-if="path === 'summary'">
-            <Summary :stocks="portfolio.stocks"></Summary>
+            <Summary :stocks="portfolio.stocks" :last-updated="lastUpdated"></Summary>
           </div>
           <div v-if="path === 'holdings'">
             <Holdings ref="holdings" @deletedSymbol="onDelete" :portfolio="portfolio"></Holdings>
@@ -96,6 +96,10 @@ import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Portfolio',
+  // See Dashboard.vue for why this is needed: v-model on <Modal> below would
+  // otherwise compile to Vue 2-style value/input. Safe file-wide here since
+  // nothing else in this template uses v-model on a vue-material component.
+  compatConfig: { MODE: 3 },
   components: {
     Holdings,
     Summary,
@@ -117,6 +121,9 @@ export default {
       loaded: false,
       tickers: [],
       path: 'summary',
+      lastUpdated: null,
+      pollTimer: null,
+      polling: false,
       portfolioTabs: [
         { id: 'tab-summary', label: 'Summary' },
         { id: 'tab-holdings', label: 'Holdings' },
@@ -135,13 +142,59 @@ export default {
     this.getTickers();
     this.$store.commit('setLoading', false);
     this.loaded = true;
-    // Refreshes the DB's cached quotes for next time - this render already
-    // has the prices getPortfolio returned, so there's nothing to wait on.
+    this.lastUpdated = new Date();
     if (this.tickers.length > 0) {
-      this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
+      this.startPolling();
     }
   },
+  beforeUnmount() {
+    this.stopPolling();
+  },
   methods: {
+    startPolling() {
+      // 20s matches the backend's cache TTL on /yfinance/latest (see
+      // tickers.py) - polling faster than that would just re-request the
+      // same cached response instead of getting fresher prices.
+      this.pollTimer = setInterval(() => this.refreshPrices(), 20000);
+    },
+    stopPolling() {
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer);
+        this.pollTimer = null;
+      }
+    },
+    async refreshPrices() {
+      // Skip a backgrounded tab and skip overlapping ticks if a previous
+      // refresh is still in flight (e.g. a slow upstream provider).
+      if (document.hidden || this.polling || this.tickers.length === 0) {
+        return;
+      }
+      this.polling = true;
+      try {
+        const resp = await this.$store.dispatch('getLatestStockPrices', { symbols: this.tickers.join() });
+        const quoteByTicker = {};
+        (resp.data || []).forEach((quote) => {
+          if (quote.ticker) quoteByTicker[quote.ticker] = quote;
+        });
+        // Patch latest_market_data on the existing stock objects in place
+        // rather than reassigning this.portfolio wholesale (which used to
+        // re-fetch the entire portfolio - holdings, lots, company info,
+        // everything - every 20s). Mutating just this one field still
+        // updates the price/change/volume cells reactively, without the
+        // full-portfolio prop change cascading into Holdings/Performance/
+        // TabBar and making the whole page visibly redraw.
+        for (let i = 0; i < this.portfolio.stocks.length; i += 1) {
+          const quote = quoteByTicker[this.portfolio.stocks[i].ticker];
+          if (quote) this.portfolio.stocks[i].latest_market_data = quote;
+        }
+        this.lastUpdated = new Date();
+      } catch (err) {
+        // A single missed refresh isn't worth surfacing to the user - the
+        // next tick retries on its own.
+      } finally {
+        this.polling = false;
+      }
+    },
     onPortfolioTabChange(tabId) {
       this.path = tabId.replace('tab-', '');
       this.$router.push(`/portfolios/${this.portfolio.id}/${this.path}`);

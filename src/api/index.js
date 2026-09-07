@@ -57,6 +57,12 @@ export function getLatestStockPrices(params, accessToken) {
   });
 }
 
+export function getQuote(symbol, accessToken) {
+  return axios.get(`${API_URL}/stocks/yfinance/${symbol}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function getCompanyInfo(symbol, accessToken) {
   return axios.get(`${API_URL}/stocks/${symbol}/company-info`, {
     headers: { Authorization: `Bearer ${accessToken}` },

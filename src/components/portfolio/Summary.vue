@@ -1,5 +1,6 @@
 <template>
   <div v-if="loaded" class="holdings-list">
+    <div v-if="lastUpdated" class="holdings-updated">Updated {{ updatedLabel }}</div>
     <div class="holdings-header">
       <span>Symbol</span>
       <span>Price</span>
@@ -50,18 +51,40 @@ export default {
     stocks: {
       type: Array,
     },
+    lastUpdated: {
+      type: Date,
+      default: null,
+    },
   },
   data() {
     return {
       loaded: false,
       portfolioId: this.$route.params.portfolioId,
       stonks: this.stocks,
+      now: new Date(),
+      clockTimer: null,
     };
+  },
+  computed: {
+    updatedLabel() {
+      const seconds = Math.max(0, Math.round((this.now - this.lastUpdated) / 1000));
+      if (seconds < 5) return 'just now';
+      if (seconds < 60) return `${seconds}s ago`;
+      return `${Math.floor(seconds / 60)}m ago`;
+    },
   },
   async mounted() {
     this.stonks = this.stocks;
     this.portfolioId = this.$route.params.portfolioId;
     this.loaded = true;
+    // Ticks the "Xs ago" label between actual price refreshes (which land
+    // roughly every 20s from the parent's polling) so it doesn't look frozen.
+    this.clockTimer = setInterval(() => {
+      this.now = new Date();
+    }, 1000);
+  },
+  beforeUnmount() {
+    if (this.clockTimer) clearInterval(this.clockTimer);
   },
   methods: {
     goToQuote(ticker) {
@@ -112,6 +135,12 @@ $grid-columns: minmax(0, 1fr) 90px 80px 80px;
 // of the 4 grid-template-columns tracks meant for the real row content.
 .holdings-row :deep(.v-popper) {
   display: contents;
+}
+
+.holdings-updated {
+  padding: 0 0 8px 32px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .holdings-header {

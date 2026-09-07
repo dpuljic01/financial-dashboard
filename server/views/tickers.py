@@ -146,10 +146,20 @@ def recommendations(symbol):
 @bp.route("/yfinance/<string:symbol>", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=10, key_prefix=make_cache_key)
+# Named/routed as a quote endpoint but actually called get_stock_recommendations
+# (copy-paste leftover) - nothing in the frontend called this route, so
+# nothing depended on that behavior. Fixed to do what its name says: a live
+# quote for one symbol, independent of any DB Stock row (unlike
+# /yfinance/latest) so it also works for a ticker only ever viewed via
+# search, never added to a portfolio.
+@cache.cached(timeout=20, key_prefix=make_cache_key)
 def yf_stock_quote(symbol):
-    quote = get_stock_recommendations(symbol)
-    return jsonify(quote)
+    try:
+        quote = get_quote(symbol.upper())[symbol.upper()]
+    except Exception:
+        log.exception("Failed to fetch quote for ticker %s", symbol)
+        return jsonify({}), 404
+    return jsonify(slugify_keys(quote))
 
 
 @bp.route("/<string:symbol>/company-info", methods=["GET"])
@@ -292,7 +302,11 @@ def alpha_vantage_info(args):
 @bp.route("/yfinance/latest", methods=["GET"])
 @jwt_required()
 @check_confirmed
-@cache.cached(timeout=60, key_prefix=make_cache_key)
+# Short cache so the frontend's polling (every 20s) actually gets fresher
+# data most of the time, while concurrent requests within that window still
+# hit Redis instead of yfinance/Yahoo - polling frequency doesn't translate
+# 1:1 into upstream request volume.
+@cache.cached(timeout=20, key_prefix=make_cache_key)
 @use_args(
     {
         "symbols": fields.DelimitedList(fields.Str(), required=True),
@@ -314,8 +328,10 @@ def fetch_latest_stock_prices(args):
             pass
 
         if quote:
-            res.append(quote)
-            stock.latest_market_data = slugify_keys(quote)
+            slugified = slugify_keys(quote)
+            slugified["ticker"] = stock.ticker
+            res.append(slugified)
+            stock.latest_market_data = slugified
             db.session.commit()
             continue
 
@@ -323,8 +339,10 @@ def fetch_latest_stock_prices(args):
         global_quote = AlphaVantage.fetch_data(params)
         if global_quote.get("Global Quote", {}):
             quote = AlphaVantage.filter_global_quote(global_quote)
-            res.append(quote)
-            stock.latest_market_data = slugify_keys(quote)
+            slugified = slugify_keys(quote)
+            slugified["ticker"] = stock.ticker
+            res.append(slugified)
+            stock.latest_market_data = slugified
             db.session.commit()
             continue
 
@@ -335,9 +353,15 @@ def fetch_latest_stock_prices(args):
 
         if quote["changePercent"]:
             quote["changePercent"] = quote["changePercent"] * 100
-        res.append(quote)
-        stock.latest_market_data = slugify_keys(quote)
+        slugified = slugify_keys(quote)
+        slugified["ticker"] = stock.ticker
+        res.append(slugified)
+        stock.latest_market_data = slugified
         db.session.commit()
     db.session.commit()
 
-    return jsonify(res), 204
+    # Was `, 204` (No Content) despite returning a real JSON body - callers
+    # either got a body they shouldn't have per spec, or had it silently
+    # stripped depending on the client, so nothing ever actually consumed
+    # this response; the frontend polling below needs the body intact.
+    return jsonify(res)

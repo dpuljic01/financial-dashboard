@@ -1,7 +1,10 @@
 <template>
   <div v-if="loaded" class="page-container">
     <div class="page-section">
-      <h2 class="md-heading">Market overview</h2>
+      <div class="market-overview-header">
+        <h2 class="md-heading">Market overview</h2>
+        <MarketStatusPill />
+      </div>
       <TrendChart />
     </div>
 
@@ -86,14 +89,24 @@ import Performance from './portfolio/Performance.vue';
 import TrendChart from './charts/TrendChart.vue';
 import Allocation from './portfolio/Allocation.vue';
 import TabBar from './TabBar.vue';
+import MarketStatusPill from './MarketStatusPill.vue';
 
 export default {
   name: 'Dashboard',
+  // Without this, v-model on <TabBar> below compiles to Vue 2-style
+  // value/input instead of Vue 3's modelValue/update:modelValue - vue.config.js
+  // sets MODE 3 project-wide for vue-loader, but that doesn't reliably
+  // propagate to v-model compilation per component, so it needs restating
+  // here (same fix as Modal.vue/TabBar.vue already apply to themselves).
+  // Only safe to set file-wide because this template has no vue-material
+  // (Vue 2-native) component using v-model that would need the opposite.
+  compatConfig: { MODE: 3 },
   components: {
     Allocation,
     Performance,
     TrendChart,
     TabBar,
+    MarketStatusPill,
   },
   computed: {
     userFirstName() {
@@ -158,6 +171,16 @@ export default {
 </script>
 
 <style scoped>
+.market-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.market-overview-header .md-heading {
+  margin-bottom: 0;
+}
 .summary-card {
   padding: 28px 28px 8px;
 }

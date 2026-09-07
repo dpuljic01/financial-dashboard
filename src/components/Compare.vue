@@ -39,7 +39,13 @@
     </div>
 
     <div class="compare-toolbar">
-      <TabBar variant="pill" :tabs="periodTabs" v-model="activeTab" @change="onTabChange" />
+      <TabBar
+        variant="pill"
+        :tabs="periodTabs"
+        :model-value="activeTab"
+        @update:model-value="activeTab = $event"
+        @change="onTabChange"
+      />
     </div>
 
     <div class="chart">
@@ -66,6 +72,7 @@ import LightweightChart from './charts/LightweightChart.vue';
 import TabBar from './TabBar.vue';
 import FinancialLoader from './FinancialLoader.vue';
 import { setQuoteSeries, percentChange } from '../utils';
+import { isSymbolTrading } from '../utils/marketHours';
 
 const PALETTE = ['#116468', '#0f9d70', '#d1435c', '#00aaad', '#8c6dfd', '#e8873a', '#3a86ff'];
 
@@ -117,6 +124,8 @@ export default {
       loadingEarlier: false,
       trend: 'flat',
       changePercent: null,
+      pollTimer: null,
+      polling: false,
       activeTab: 'tab-1mo',
       periodTabs: [
         { id: 'tab-1d', label: '1D' },
@@ -166,8 +175,60 @@ export default {
   },
   mounted() {
     this.compare();
+    if (!this.multiple) {
+      this.startPolling();
+    }
+  },
+  beforeUnmount() {
+    this.stopPolling();
   },
   methods: {
+    startPolling() {
+      // Matches the /yfinance/<symbol> cache TTL (see tickers.py) - polling
+      // faster wouldn't get fresher data, just re-hit the same cached
+      // response. The symbol is read fresh from props on every tick, so
+      // navigating between quotes (Quote.vue reuses this instance) doesn't
+      // need the timer restarted.
+      this.pollTimer = setInterval(() => this.pollLatestPrice(), 20000);
+    },
+    stopPolling() {
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer);
+        this.pollTimer = null;
+      }
+    },
+    async pollLatestPrice() {
+      const symbol = this.symbols[0];
+      if (document.hidden || this.polling || !symbol || !isSymbolTrading(symbol)) {
+        return;
+      }
+      this.polling = true;
+      try {
+        const quote = await this.$store.dispatch('getQuote', symbol);
+        if (quote.price == null) return;
+        this.latestPrice = quote.price;
+        if (this.periodOpenPrice) {
+          this.changePercent = percentChange(this.periodOpenPrice, quote.price);
+          if (this.changePercent > 0) {
+            this.trend = 'up';
+          } else if (this.changePercent < 0) {
+            this.trend = 'down';
+          } else {
+            this.trend = 'flat';
+          }
+        }
+        // Deliberately not touching series/lwcSeries here - the header
+        // above already reads latestPrice/changePercent reactively via
+        // displayPrice/displayChangePercent, and reassigning lwcSeries would
+        // trigger LightweightChart's deep watch -> renderSeries() -> a full
+        // removeSeries/addSeries + fitContent(), resetting anyone's pan/zoom
+        // every 20s (the exact reset prependSeriesData was built to avoid).
+      } catch (err) {
+        // A single missed poll isn't worth surfacing - the next tick retries.
+      } finally {
+        this.polling = false;
+      }
+    },
     onTabChange(tabId) {
       [, this.period] = tabId.split('-');
       switch (this.period) {
@@ -241,6 +302,16 @@ export default {
         }
         this.buildLwcSeries();
         this.loaded = true;
+        // updateSingleSymbolStats() just set latestPrice from this period's
+        // last historical bar, which can lag the truly-live price by up to
+        // one bar interval (e.g. up to 30 minutes on 5D) - most noticeable
+        // as a visible "jump back" right after switching tabs on a symbol
+        // that's actively moving. Not awaited: the tab switch itself should
+        // feel instant using what was just fetched, then quietly correct to
+        // the live price a moment later once this resolves.
+        if (!this.multiple) {
+          this.pollLatestPrice();
+        }
       }
     },
     updateSingleSymbolStats() {

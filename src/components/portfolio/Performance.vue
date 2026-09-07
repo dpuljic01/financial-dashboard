@@ -81,17 +81,51 @@ export default {
       loaded: false,
       hasHistory: false,
       series: [],
-      currentValue: 0,
+      normalizedHoldings: [],
+      lastKnownPriceByTicker: {},
       currentCostBasis: 0,
-      totalReturn: 0,
-      totalReturnPercent: 0,
       showBenchmark: false,
       benchmarkReturnPercent: 0,
     };
   },
   computed: {
+    // Prices polled live for the Summary tab (see Portfolio.vue) land on
+    // portfolio.stocks - reusing them here means Current Value/Total Return
+    // move with that same 20s poll instead of only updating once a day when
+    // the history chart's last close changes.
+    livePriceByTicker() {
+      const prices = {};
+      (this.portfolio.stocks || []).forEach((stock) => {
+        const price = stock.latest_market_data && stock.latest_market_data.price;
+        if (price !== undefined && price !== null) prices[stock.ticker] = price;
+      });
+      return prices;
+    },
+    currentValue() {
+      return this.normalizedHoldings.reduce((sum, holding) => {
+        const price = this.livePriceByTicker[holding.ticker]
+          ?? this.lastKnownPriceByTicker[holding.ticker];
+        return price !== undefined ? sum + holding.shares * price : sum;
+      }, 0);
+    },
+    totalReturn() {
+      return this.currentValue - this.currentCostBasis;
+    },
+    totalReturnPercent() {
+      return this.currentCostBasis ? (this.totalReturn / this.currentCostBasis) * 100 : 0;
+    },
     vsBenchmark() {
       return this.totalReturnPercent - this.benchmarkReturnPercent;
+    },
+    // The daily-bar history behind the chart only changes once a day (when
+    // a new close lands), so reloading it on every price-only poll tick
+    // (see Portfolio.vue's 20s refresh) would re-fetch/re-parse the whole
+    // history for no visible change. Reload only when the actual holdings
+    // change instead - Current Value/Total Return above already move live
+    // via livePriceByTicker without needing a history refetch.
+    holdingsSignature() {
+      const holdings = this.portfolio.holdings || [];
+      return holdings.map((h) => `${h.id}:${h.stock_id}:${h.shares}:${h.price}:${h.purchased_at}`).join('|');
     },
     lwcSeries() {
       if (this.series.length === 0) return [];
@@ -174,7 +208,7 @@ export default {
       }
 
       const {
-        valueSeries, costSeries, benchmarkSeries,
+        valueSeries, costSeries, benchmarkSeries, lastKnownPrice,
       } = this.calcSeries(timeline, closesByTicker, normalizedHoldings, benchmarkCloses);
 
       this.series = [
@@ -185,14 +219,10 @@ export default {
         this.series.push({ name: `${BENCHMARK_LABEL} (same contributions)`, data: benchmarkSeries });
       }
 
-      const lastValue = valueSeries[valueSeries.length - 1];
       const lastCost = costSeries[costSeries.length - 1];
-      this.currentValue = lastValue ? lastValue[1] : 0;
+      this.normalizedHoldings = normalizedHoldings;
+      this.lastKnownPriceByTicker = lastKnownPrice;
       this.currentCostBasis = lastCost ? lastCost[1] : 0;
-      this.totalReturn = this.currentValue - this.currentCostBasis;
-      this.totalReturnPercent = this.currentCostBasis
-        ? (this.totalReturn / this.currentCostBasis) * 100
-        : 0;
 
       this.showBenchmark = !!benchmarkSeries;
       if (benchmarkSeries) {
@@ -295,7 +325,9 @@ export default {
         }
       });
 
-      return { valueSeries, costSeries, benchmarkSeries: hasBenchmark ? benchmarkSeries : null };
+      return {
+        valueSeries, costSeries, benchmarkSeries: hasBenchmark ? benchmarkSeries : null, lastKnownPrice,
+      };
     },
     forwardFill(timeline, closes) {
       const filled = {};
@@ -331,7 +363,7 @@ export default {
     },
   },
   watch: {
-    portfolio() {
+    holdingsSignature() {
       this.loadPerformance();
     },
   },
