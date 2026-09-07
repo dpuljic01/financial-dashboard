@@ -48,7 +48,10 @@
       </div>
     </div>
 
-    <Modal v-model="open">
+    <Modal
+      :model-value="open"
+      @update:model-value="open = $event"
+    >
       <h3 class="modal-title">Create portfolio</h3>
       <form @submit.prevent="submit">
         <md-field>

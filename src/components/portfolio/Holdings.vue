@@ -73,7 +73,10 @@
         </tr>
       </tbody>
     </table>
-    <Modal v-model="open">
+    <Modal
+      :model-value="open"
+      @update:model-value="open = $event"
+    >
       <h3 class="modal-title">{{ editingHoldingId ? 'Edit holding' : 'Add holding' }}</h3>
       <form @submit.prevent="submit">
         <md-field>

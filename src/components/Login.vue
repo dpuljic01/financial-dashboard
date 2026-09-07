@@ -74,6 +74,10 @@ import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Login',
+  // See Dashboard.vue for why this is needed: v-model on <Modal> below would
+  // otherwise compile to Vue 2-style value/input. Safe file-wide here since
+  // nothing else in this template uses v-model on a vue-material component.
+  compatConfig: { MODE: 3 },
   components: {
     Modal,
     FinancialLoader,
