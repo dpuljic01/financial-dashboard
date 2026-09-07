@@ -8,22 +8,6 @@ from sqlalchemy_utils import PasswordType
 from server.extensions import db
 from server.models.mixin import TimestampMixin
 
-[
-    {
-        "date_posted": "14 minutes ago",
-        "headline": "What Correction? S&P 500 Surges as Apple Leads Tech Stock Boom and Cruise Stocks Rise; Oil Stocks Fall",
-        "link": "https://api.nasdaq.com/articles/what-correction-sp-500-surges-as-apple-leads-tech-stock-boom-and-cruise-stocks-rise-oil",
-        "provider": "Press release",
-        "symbol": "aapl"
-    },
-    {
-        "date_posted": "2 hours ago",
-        "headline": "Apple Decides to Waive 30% Cut of Paid Events on Facebook, but Only for 3 Months",
-        "link": "https://api.nasdaq.com/articles/apple-decides-to-waive-30-cut-of-paid-events-on-facebook-but-only-for-3-months-2020-09-25",
-        "provider": "Press release",
-        "symbol": "aapl"
-    }
-]
 
 def get_uuid():
     return str(uuid4())
