@@ -65,7 +65,10 @@
         </template>
       </div>
 
-      <Modal v-model="addSymbolOpen">
+      <Modal
+        :model-value="addSymbolOpen"
+        @update:model-value="addSymbolOpen = $event"
+      >
         <h3 class="modal-title">Add a symbol</h3>
         <p class="modal-subtitle">
           Search a ticker - symbols you already hold jump straight to logging shares, new ones
@@ -96,10 +99,6 @@ import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Portfolio',
-  // See Dashboard.vue for why this is needed: v-model on <Modal> below would
-  // otherwise compile to Vue 2-style value/input. Safe file-wide here since
-  // nothing else in this template uses v-model on a vue-material component.
-  compatConfig: { MODE: 3 },
   components: {
     Holdings,
     Summary,

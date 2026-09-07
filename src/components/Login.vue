@@ -45,7 +45,10 @@
         </p>
       </form>
 
-      <Modal v-model="showDialog">
+      <Modal
+        :model-value="showDialog"
+        @update:model-value="showDialog = $event"
+      >
         <h3 class="modal-title dp-primary">What's your email address?</h3>
         <p>
           We will email you a link to reset your password.
@@ -74,10 +77,6 @@ import FinancialLoader from './FinancialLoader.vue';
 
 export default {
   name: 'Login',
-  // See Dashboard.vue for why this is needed: v-model on <Modal> below would
-  // otherwise compile to Vue 2-style value/input. Safe file-wide here since
-  // nothing else in this template uses v-model on a vue-material component.
-  compatConfig: { MODE: 3 },
   components: {
     Modal,
     FinancialLoader,

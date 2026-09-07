@@ -33,7 +33,12 @@
         </span>
       </div>
 
-      <TabBar :tabs="portfolioTabs" v-model="activeTab" @change="onPortfolioSummaryTabChange" />
+      <TabBar
+        :tabs="portfolioTabs"
+        :model-value="activeTab"
+        @update:model-value="activeTab = $event"
+        @change="onPortfolioSummaryTabChange"
+      />
 
       <div v-if="activeTab === 'tab-performance'">
         <md-empty-state v-if="!this.hasHoldings" md-label="You don't have any holdings in your portfolio">
@@ -93,14 +98,6 @@ import MarketStatusPill from './MarketStatusPill.vue';
 
 export default {
   name: 'Dashboard',
-  // Without this, v-model on <TabBar> below compiles to Vue 2-style
-  // value/input instead of Vue 3's modelValue/update:modelValue - vue.config.js
-  // sets MODE 3 project-wide for vue-loader, but that doesn't reliably
-  // propagate to v-model compilation per component, so it needs restating
-  // here (same fix as Modal.vue/TabBar.vue already apply to themselves).
-  // Only safe to set file-wide because this template has no vue-material
-  // (Vue 2-native) component using v-model that would need the opposite.
-  compatConfig: { MODE: 3 },
   components: {
     Allocation,
     Performance,
